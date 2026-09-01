@@ -8,7 +8,9 @@ const escapeXml = (value) =>
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;')
 
-const labelSvg = ({ name, subtitle, accent, lines, marker = true }) => svgData(`
+const labelSvg = ({ name, subtitle, accent, lines, marker = true }) => {
+  const lineGap = lines.length > 7 ? 40 : 48
+  return svgData(`
   <svg xmlns="http://www.w3.org/2000/svg" width="900" height="1120" viewBox="0 0 900 1120">
     <defs>
       <linearGradient id="pack" x1="0" x2="1" y1="0" y2="1">
@@ -32,11 +34,12 @@ const labelSvg = ({ name, subtitle, accent, lines, marker = true }) => svgData(`
       <text x="450" y="358" text-anchor="middle" font-family="Arial,sans-serif" font-size="23" font-weight="700" letter-spacing="3" fill="${accent}">${escapeXml(subtitle)}</text>
       <text x="450" y="405" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" letter-spacing="2" fill="#49616a">DEMO PACKAGE</text>
       <rect x="154" y="540" width="592" height="392" rx="18" fill="#fffdf6"/>
-      ${lines.map((line, index) => `<text x="192" y="${604 + index * 48}" font-family="Arial,sans-serif" font-size="${line.small ? 17 : 25}" font-weight="${line.bold ? 700 : 400}" fill="${line.red ? '#c6493d' : '#102a33'}">${escapeXml(line.text)}</text>`).join('')}
+      ${lines.map((line, index) => `<text x="192" y="${604 + index * lineGap}" font-family="Arial,sans-serif" font-size="${line.small ? 17 : 25}" font-weight="${line.bold ? 700 : 400}" fill="${line.red ? '#c6493d' : '#102a33'}">${escapeXml(line.text)}</text>`).join('')}
       ${marker ? '<rect x="604" y="965" width="120" height="22" rx="4" fill="#00a37a"/><text x="664" y="1014" text-anchor="middle" font-family="Arial" font-size="18" fill="#fffdf6">20 mm REF</text>' : ''}
     </g>
   </svg>
 `)
+}
 
 export const DEMOS = {
   risky: {
@@ -92,6 +95,7 @@ Chennai, Tamil Nadu 600119`,
         { text: 'CONSUMER CARE: ROOT & RAIN HELPDESK' },
         { text: '12 Market Road, Chennai 600001', small: true },
         { text: '1800 000 2026 · care@rootrain.in', small: true },
+        { text: 'UNIT SALE PRICE Rs. 0.40/g', small: true },
       ],
     }),
     text: `ROOT & RAIN TURMERIC POWDER
@@ -101,7 +105,8 @@ PACKED 08/2026
 MANUFACTURED BY: ROOT & RAIN FOODS
 CONSUMER CARE: ROOT & RAIN HELPDESK
 12 Market Road, Chennai 600001
-Helpline: 1800 000 2026 · care@rootrain.in`,
+Helpline: 1800 000 2026 · care@rootrain.in
+UNIT SALE PRICE Rs. 0.40/g`,
     meta: {
       productName: 'Root & Rain Turmeric Powder',
       category: 'food',

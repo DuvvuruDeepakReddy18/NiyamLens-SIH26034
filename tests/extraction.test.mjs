@@ -38,3 +38,21 @@ test('extracts full numeric and month-name packing dates without truncation', ()
   assert.equal(extractDeclarations('MFD 12.08.2026').byId.packDate.value, '12.08.2026')
   assert.equal(extractDeclarations('PKD AUG 2026').byId.packDate.value, 'AUG 2026')
 })
+
+test('does not extract PIN codes or batch numbers as telephone evidence', () => {
+  for (const unrelatedNumber of ['PIN 600001', 'BATCH 4471829']) {
+    const result = extractDeclarations(`CONSUMER CARE: care@example.in\n${unrelatedNumber}`)
+    assert.equal(result.byId.phone.detected, false)
+  }
+})
+
+test('extracts a consumer-care address from either side of the care heading', () => {
+  const result = extractDeclarations(`MANUFACTURED BY: EXAMPLE FOODS\n12 Market Road, Chennai 600001\nCONSUMER CARE: EXAMPLE HELPDESK\nTelephone: 1800 111 2026\ncare@example.in`)
+  assert.equal(result.byId.consumerAddress.detected, true)
+  assert.match(result.byId.consumerAddress.value, /Market Road/)
+})
+
+test('does not attribute a manufacturer telephone above the consumer-care block', () => {
+  const result = extractDeclarations(`MANUFACTURED BY: EXAMPLE FOODS\nTelephone: 044 23456789\nCONSUMER CARE: care@example.in`)
+  assert.equal(result.byId.phone.detected, false)
+})

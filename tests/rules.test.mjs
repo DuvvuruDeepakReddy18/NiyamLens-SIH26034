@@ -96,8 +96,46 @@ test('requires phone and address in addition to consumer-care email', () => {
     .replace('CONSUMER CARE: EXAMPLE FOODS HELPDESK\n12 Market Road, Chennai 600001\nTelephone: 1800 111 2026 · care@example.in', 'CONSUMER CARE: care@example.in')
   const result = evaluateCompliance({ text: emailOnly, meta: baseMeta })
   assert.equal(result.status, 'non_compliant')
-  assert.equal(result.checks.find((check) => check.id === 'consumerAddress').status, 'fail')
+  assert.equal(result.checks.find((check) => check.id === 'consumerAddress').status, 'review')
   assert.equal(result.checks.find((check) => check.id === 'consumerPhone').status, 'fail')
+})
+
+test('accepts a consumer-care address printed immediately above the care heading', () => {
+  const addressAboveCare = completeText.replace(
+    'CONSUMER CARE: EXAMPLE FOODS HELPDESK\n12 Market Road, Chennai 600001',
+    '12 Market Road, Chennai 600001\nCONSUMER CARE: EXAMPLE FOODS HELPDESK',
+  )
+  const result = evaluateCompliance({ text: addressAboveCare, meta: baseMeta })
+  assert.equal(result.checks.find((check) => check.id === 'consumerAddress').status, 'pass')
+})
+
+test('does not treat a PIN code or batch number as a consumer-care telephone', () => {
+  for (const unrelatedNumber of ['PIN 600001', 'BATCH 4471829']) {
+    const withoutPhone = completeText.replace('Telephone: 1800 111 2026 · care@example.in', `${unrelatedNumber} · care@example.in`)
+    const result = evaluateCompliance({ text: withoutPhone, meta: baseMeta })
+    assert.equal(result.checks.find((check) => check.id === 'consumerPhone').status, 'fail')
+  }
+})
+
+test('does not reuse a manufacturer telephone as consumer-care evidence', () => {
+  const manufacturerPhoneOnly = completeText.replace(
+    'MANUFACTURED BY: EXAMPLE FOODS, CHENNAI\nCONSUMER CARE: EXAMPLE FOODS HELPDESK\n12 Market Road, Chennai 600001\nTelephone: 1800 111 2026 · care@example.in',
+    'MANUFACTURED BY: EXAMPLE FOODS, CHENNAI\nTelephone: 044 23456789\n12 Market Road, Chennai 600001\nCONSUMER CARE: EXAMPLE FOODS HELPDESK\ncare@example.in',
+  )
+  const result = evaluateCompliance({ text: manufacturerPhoneOnly, meta: baseMeta })
+  assert.equal(result.checks.find((check) => check.id === 'consumerPhone').status, 'fail')
+})
+
+test('food profile keeps the general Legal Metrology declarations in scope', () => {
+  const incompleteFood = completeText
+    .replace('PACKED 08/2026\n', '')
+    .replace('MANUFACTURED BY: EXAMPLE FOODS, CHENNAI\n', '')
+    .replace('UNIT SALE PRICE Rs. 0.40/g\n', '')
+  const result = evaluateCompliance({ text: incompleteFood, meta: { ...baseMeta, category: 'food' } })
+  assert.equal(result.status, 'non_compliant')
+  assert.equal(result.checks.find((check) => check.id === 'packDate').status, 'fail')
+  assert.equal(result.checks.find((check) => check.id === 'manufacturer').status, 'fail')
+  assert.equal(result.checks.find((check) => check.id === 'unitSalePrice').status, 'fail')
 })
 
 test('accepts full numeric and month-name packing dates', () => {

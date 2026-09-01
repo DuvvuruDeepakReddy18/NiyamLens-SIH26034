@@ -66,11 +66,11 @@ npm run qa:pwa
 
 Current verified baseline:
 
-- 37 automated tests passing.
+- 44 automated tests passing.
 - Production Vite build passing.
 - Full browser workflow passing with zero recorded console/page errors.
 - Production service-worker reload and OCR passing with the browser fully offline.
-- Actual sample OCR: 91% confidence, 9 structured signals and 9 mapped evidence regions.
+- Actual sample OCR: 91% confidence, 10 structured signals and 10 mapped evidence regions.
 
 The OCR QA blocks external network requests and loads the bundled engine assets. The sample OCR number is still a single regression scene, **not field accuracy**. Import real labelled records with `expectedValues` in Validation Lab to calculate dataset-specific metrics.
 

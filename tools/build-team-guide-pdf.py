@@ -500,7 +500,7 @@ def cover_story():
         textColor=SLATE,
     )
     stat_cells = []
-    for number, label in [("29", "FEATURES"), ("37/37", "TESTS PASS"), ("4", "OCR MODES"), ("YES", "OFFLINE OCR")]:
+    for number, label in [("29", "FEATURES"), ("44/44", "TESTS PASS"), ("4", "OCR MODES"), ("YES", "OFFLINE OCR")]:
         stat_cells.append([Paragraph(number, stat_style), Paragraph(label, stat_label)])
     stats = Table([stat_cells], colWidths=[(A4[0] - 40 * mm) / 4] * 4)
     stats.setStyle(TableStyle([
@@ -526,7 +526,7 @@ def cover_story():
         Paragraph(live, STYLES["cover-meta"]),
         Paragraph(source, STYLES["cover-meta"]),
         Spacer(1, 6 * mm),
-        Paragraph("Release 0.2.0 · Verified commit 3868eed · Private source repository", STYLES["cover-meta"]),
+        Paragraph("Release 0.2.1 · Verified 1 September 2026 · Private source repository", STYLES["cover-meta"]),
         NextPageTemplate("body"),
         PageBreak(),
     ]

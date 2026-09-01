@@ -53,8 +53,8 @@ await page.screenshot({ path: path.join(root, 'qa-real-upload.png'), fullPage: t
 await page.getByText('Controlled test packets').click()
 await page.getByRole('button', { name: /Violation packet/i }).click()
 await page.getByText('FLAG', { exact: true }).first().waitFor()
-const flagCount = await page.getByText('FLAG', { exact: true }).count()
-const reviewCount = await page.getByText('REVIEW', { exact: true }).count()
+const flagCount = await page.locator('.checks-list .check-row.fail').count()
+const reviewCount = await page.locator('.checks-list .check-row.review').count()
 await page.screenshot({ path: path.join(root, 'qa-desktop-violation.png'), fullPage: true })
 
 await page.getByRole('button', { name: /Evidence report/i }).click()
@@ -77,6 +77,7 @@ await passPage.goto(baseUrl, { waitUntil: 'networkidle' })
 await passPage.getByText('Controlled test packets').click()
 await passPage.getByRole('button', { name: /Compliant packet/i }).click()
 await passPage.getByText('PASS', { exact: true }).first().waitFor()
+await passPage.getByText(/Controlled demo evidence loaded/i).waitFor()
 const packageArtworkUrl = await passPage.locator('.image-layer img').getAttribute('src')
 if (packageArtworkUrl) {
   const artworkPage = await context.newPage()
@@ -85,6 +86,9 @@ if (packageArtworkUrl) {
   await artworkPage.close()
 }
 await passPage.screenshot({ path: path.join(root, 'qa-desktop-compliant.png'), fullPage: true })
+await passPage.getByRole('button', { name: /Run browser OCR/i }).click()
+await passPage.getByText(/OCR complete across 1 panel/i).waitFor({ timeout: 120000 })
+const controlledPacketOcr = await passPage.locator('.inline-warning').count() === 0
 await passPage.getByRole('button', { name: /Rule library/i }).click()
 await passPage.getByText('The law is the source of truth—not the language model.').waitFor()
 await passPage.getByText('NO FABRICATED APPROVAL').waitFor()
@@ -133,7 +137,7 @@ await mobilePage.getByRole('button', { name: 'New inspection' }).waitFor()
 await mobilePage.waitForTimeout(350)
 await mobilePage.screenshot({ path: path.join(root, 'qa-mobile-menu.png'), fullPage: false })
 
-console.log(JSON.stringify({ realUpload: true, perspectiveRectification: true, originalHashPreserved: digestBeforeRectification === digestAfterRectification, structuredExtraction: true, flagCount, reviewCount, compliantDemo: true, ruleLibrary: true, benchmarkMetrics, supervisorOverride: true, supervisorReportReopened: true, blindChallenge: hiddenControlledPackets === 0, errors }, null, 2))
+console.log(JSON.stringify({ realUpload: true, perspectiveRectification: true, originalHashPreserved: digestBeforeRectification === digestAfterRectification, structuredExtraction: true, flagCount, reviewCount, compliantDemo: true, controlledPacketOcr, ruleLibrary: true, benchmarkMetrics, supervisorOverride: true, supervisorReportReopened: true, blindChallenge: hiddenControlledPackets === 0, errors }, null, 2))
 await browser.close()
 
 if (errors.length) process.exitCode = 1

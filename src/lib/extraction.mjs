@@ -1,3 +1,5 @@
+import { findConsumerAddress, findConsumerPhone } from './consumerContact.mjs'
+
 const cleanLines = (text) =>
   String(text || '')
     .replace(/\r/g, '')
@@ -40,7 +42,7 @@ export function extractDeclarations(text) {
   const manufacturerMatch = raw.match(/\b(?:MANUFACTURED|MFD|PACKED|IMPORTED)\s+BY\b[^\n]*|\b(?:MANUFACTURER|PACKER|IMPORTER)\s*[:\-][^\n]*/i)
   const careMatch = raw.match(/\b(?:CONSUMER|CUSTOMER)\s*(?:CARE|COMPLAINT)[^\n]*|\bHELPLINE\b[^\n]*|\bCOMPLAINTS?\b[^\n]*/i)
   const emailMatch = raw.match(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i)
-  const phoneMatch = raw.match(/(?:\+?91[\s-]?)?(?:1800[\s-]?\d{3}[\s-]?\d{3,4}|[6-9]\d{9})\b/)
+  const phoneMatch = findConsumerPhone(raw)
   const originMatch = raw.match(/\b(?:COUNTRY\s+OF\s+ORIGIN|MADE\s+IN|PRODUCT\s+OF)\s*[:\-]?\s*([^\n]{2,40})/i)
   const unitPriceMatch = raw.match(/\b(?:UNIT\s+SALE\s+PRICE|UNIT\s+PRICE|USP)\b[^\n]*|(?:₹|RS\.?)\s*\d+(?:\.\d+)?\s*\/\s*(?:KG|G|ML|L|UNIT)/i)
   const genericMatch = raw.match(/\b(?:COMMON|GENERIC)\s+NAME\s*[:\-]?\s*([^\n]{2,60})/i)
@@ -54,12 +56,7 @@ export function extractDeclarations(text) {
   const responsibleEvidence = manufacturerIndex >= 0
     ? [manufacturerLine, lines[manufacturerIndex + 1]].filter(Boolean).join(' · ')
     : ''
-  const careLine = lineContaining(lines, careMatch)
-  const careIndex = careLine ? lines.indexOf(careLine) : -1
-  const careBlock = careIndex >= 0 ? lines.slice(careIndex, careIndex + 3).join(' · ') : ''
-  const careAddress = /\b\d{6}\b|\b(?:ROAD|RD\.?|STREET|LANE|NAGAR|COLONY|BUILDING|BLDG|FLOOR|CITY|DISTRICT|STATE|INDIA)\b/i.test(careBlock)
-    ? careBlock
-    : ''
+  const careAddress = findConsumerAddress(raw)
 
   const fields = [
     field('productName', 'Product / generic name', genericMatch?.[1] || productFallback, genericMatch ? lineContaining(lines, genericMatch) : productFallback, genericMatch ? 94 : productFallback ? 72 : 0),
@@ -69,9 +66,9 @@ export function extractDeclarations(text) {
     field('bestBefore', 'Best before / use by', bestBeforeMatch?.[1], lineContaining(lines, bestBeforeMatch), bestBeforeMatch ? 88 : 0),
     field('responsibleEntity', 'Manufacturer / packer / importer', manufacturerMatch?.[0], responsibleEvidence, manufacturerMatch ? 89 : 0),
     field('consumerCare', 'Consumer-care channel', careMatch?.[0], lineContaining(lines, careMatch), careMatch ? 90 : 0),
-    field('consumerAddress', 'Consumer-care address', careAddress, careAddress, careAddress ? 86 : 0),
+    field('consumerAddress', 'Consumer-care address', careAddress.value, careAddress.line, careAddress.found ? 86 : 0),
     field('email', 'Consumer-care email', emailMatch?.[0], lineContaining(lines, emailMatch), emailMatch ? 98 : 0),
-    field('phone', 'Consumer-care phone', phoneMatch?.[0], lineContaining(lines, phoneMatch), phoneMatch ? 94 : 0),
+    field('phone', 'Consumer-care phone', phoneMatch.value, phoneMatch.line, phoneMatch.found ? 94 : 0),
     field('countryOrigin', 'Country of origin', originMatch?.[1], lineContaining(lines, originMatch), originMatch ? 92 : 0),
     field('unitSalePrice', 'Unit sale price', unitPriceMatch?.[0], lineContaining(lines, unitPriceMatch), unitPriceMatch ? 90 : 0),
     field('barcode', 'Barcode / GTIN', barcodeMatch?.[1], lineContaining(lines, barcodeMatch), barcodeMatch ? 96 : 0),

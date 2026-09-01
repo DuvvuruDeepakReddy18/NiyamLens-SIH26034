@@ -1,4 +1,4 @@
-# Deployment readiness — NiyamLens 0.2.0
+# Deployment readiness — NiyamLens 0.2.1
 
 - **Checked:** 1 September 2026
 - **Target:** Static Vite deployment on Vercel
@@ -10,18 +10,18 @@
 
 | Gate | Status | Evidence |
 |---|---|---|
-| Unit and regression suite | PASS | 37/37 tests |
-| Production compilation | PASS | `npm run build`; one 296 KB JavaScript bundle plus CSS and static OCR assets |
-| Production browser workflow | PASS | Upload, perspective correction, extraction, verdicts, evidence report, persistence, supervisor override/reopen, validation lab, blind challenge and mobile navigation; zero page/console errors |
-| Offline production startup | PASS | Service worker v5 caches 16 required shell/OCR resources |
-| Offline OCR | PASS | Browser set fully offline; 91% sample confidence and 9 parsed declaration signals |
+| Unit and regression suite | PASS | 44/44 tests |
+| Production compilation | PASS | `npm run build`; one 298 KB JavaScript bundle plus CSS and static OCR assets |
+| Production browser workflow | PASS | Upload, perspective correction, extraction, controlled-packet OCR, verdicts, evidence report, persistence, supervisor override/reopen, validation lab, blind challenge and mobile navigation; zero page/console errors |
+| Offline production startup | PASS | Service worker v6 caches 16 required shell/OCR resources |
+| Offline OCR | PASS | Browser set fully offline; 91% sample confidence and 10 parsed declaration signals |
 | Production dependency audit | PASS | 0 known production vulnerabilities from `npm audit --omit=dev` |
 | Deployment configuration | PASS | `vercel.json` defines Vite build/output and cache headers |
 | Vercel authentication | PASS | Local CLI authenticated as `duvvurudeepakreddy18` |
 | GitHub remote and backup | PASS | Private repository under `DuvvuruDeepakReddy18`; `main` is connected to Vercel |
 | Live HTTPS deployment | PASS | Production alias responds successfully and serves the service worker plus bundled OCR assets |
 | Live end-to-end workflow | PASS | Production upload, rectification, extraction, verdict, reporting, override/reopen and blind-challenge checks completed with zero browser errors |
-| Live offline field mode | PASS | Network-disabled reload and on-device OCR completed at 91% confidence with 9 parsed signals |
+| Live offline field mode | PASS | Network-disabled reload and on-device OCR completed at 91% confidence with 10 parsed signals |
 | Department/laboratory approval | PENDING | Required before enforcement use; not a blocker for an SIH/SAH prototype deployment |
 
 ## Deployment characteristics

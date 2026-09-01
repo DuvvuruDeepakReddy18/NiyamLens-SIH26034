@@ -47,7 +47,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { DEMOS } from './lib/demoData.js'
-import { detectBarcode, evidenceFromFile, rectifyEvidence, rectifyEvidenceFromBarcode, reprocessEvidence } from './lib/evidence.mjs'
+import { detectBarcode, evidenceFromFile, processImage, rectifyEvidence, rectifyEvidenceFromBarcode, reprocessEvidence } from './lib/evidence.mjs'
 import { extractDeclarations } from './lib/extraction.mjs'
 import { appendAuditEvent, verifyAuditChain } from './lib/audit.mjs'
 import { parseBenchmarkFile, runBenchmark, SEEDED_BENCHMARK } from './lib/benchmark.mjs'
@@ -55,7 +55,7 @@ import { APPROVAL_GATES, RULE_EDGE_CASES, RULE_MATRIX, RULE_MATRIX_VERSION } fro
 import { decryptBundle, encryptBundle } from './lib/secureBundle.mjs'
 import { evaluateCompliance, FONT_TIERS, RULE_PACK } from './lib/rules.mjs'
 import { listInspections, saveInspection } from './lib/storage.mjs'
-import { detectReferenceCard, flattenOcrWords, matchDeclarationRegions, measureRegion, webXrDepthSupport } from './lib/vision.mjs'
+import { analyzeImageQuality, detectReferenceCard, flattenOcrWords, matchDeclarationRegions, measureRegion, webXrDepthSupport } from './lib/vision.mjs'
 
 const NAV_ITEMS = [
   { id: 'inspect', label: 'New inspection', icon: ScanLine },
@@ -659,39 +659,52 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     }
   }
 
-  const applyDemo = (demo) => {
+  const applyDemo = async (demo) => {
     beginEvidenceRecord()
     const id = `test-${Date.now()}`
-    setEvidenceItems([{
-      id,
-      name: demo.fileName,
-      type: 'image/svg+xml',
-      size: 0,
-      sha256: '',
-      originalUrl: demo.imageUrl,
-      analysisUrl: demo.imageUrl,
-      rotation: 0,
-      grayscale: false,
-      contrast: 112,
-      capturedAt: new Date().toISOString(),
-    }])
-    setActiveEvidenceId(id)
-    setOcrWords([])
-    setText(demo.text)
-    setMeta({
-      ...INITIAL_META,
-      ...demo.meta,
-      panelMeasurements: {
-        [id]: {
-          referencePx: demo.meta.referencePx,
-          glyphPx: demo.meta.glyphPx,
-          glyphWidthPx: demo.meta.glyphWidthPx,
+    try {
+      setProcessing(true)
+      setOcrState({ running: false, progress: 5, label: 'Preparing controlled evidence for browser OCR', error: '' })
+      const analysisUrl = await processImage(demo.imageUrl)
+      const quality = await analyzeImageQuality(analysisUrl)
+      setEvidenceItems([{
+        id,
+        name: demo.fileName,
+        type: 'image/svg+xml',
+        size: 0,
+        width: quality.width,
+        height: quality.height,
+        quality,
+        sha256: '',
+        originalUrl: demo.imageUrl,
+        analysisUrl,
+        rotation: 0,
+        grayscale: false,
+        contrast: 112,
+        capturedAt: new Date().toISOString(),
+      }])
+      setActiveEvidenceId(id)
+      setOcrWords([])
+      setText(demo.text)
+      setMeta({
+        ...INITIAL_META,
+        ...demo.meta,
+        panelMeasurements: {
+          [id]: {
+            referencePx: demo.meta.referencePx,
+            glyphPx: demo.meta.glyphPx,
+            glyphWidthPx: demo.meta.glyphWidthPx,
+          },
         },
-      },
-    })
-    setOcrState({ running: false, progress: 100, label: 'Controlled demo evidence loaded', error: '' })
-    setBarcodeState({ message: '', error: false, candidate: null })
-    recordAudit('controlled_packet_loaded', { fileName: demo.fileName })
+      })
+      setOcrState({ running: false, progress: 100, label: 'Controlled demo evidence loaded', error: '' })
+      setBarcodeState({ message: '', error: false, candidate: null })
+      await recordAudit('controlled_packet_loaded', { fileName: demo.fileName })
+    } catch (error) {
+      setOcrState({ running: false, progress: 0, label: 'Controlled evidence unavailable', error: error.message || 'The controlled packet could not be prepared.' })
+    } finally {
+      setProcessing(false)
+    }
   }
 
   const transformActiveEvidence = async (changes) => {

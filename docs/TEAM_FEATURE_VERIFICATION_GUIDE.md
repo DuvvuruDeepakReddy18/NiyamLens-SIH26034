@@ -1,7 +1,7 @@
 # NiyamLens team feature and verification guide
 
 **Problem statement:** SIH26034 — packaged-commodity declaration compliance  
-**Release:** NiyamLens 0.2.0, commit `7a5575e`  
+**Release:** NiyamLens 0.2.1, repository `main`
 **Live application:** <https://niyamlens-sih26034.vercel.app>  
 **Source backup:** <https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034> (private)  
 **Last verified:** 1 September 2026
@@ -47,7 +47,7 @@ If those ten checks pass, the core presentation path is ready. The controlled pa
 | Barcode | Native GTIN reading and barcode-plane flattening | Scan a real EAN/UPC package in supported Chrome/Edge |
 | OCR | Local Tesseract OCR in English, Hindi, Telugu and Tamil combinations | Disconnect after caching and run OCR successfully |
 | Grounding | Clickable OCR declaration regions | Click an extracted MRP or quantity card and see its image box highlight |
-| Extraction | MRP, quantity, date, entity, consumer care, origin, unit price and barcode parsing | Run the bundled real-label sample; nine signals and nine regions are expected |
+| Extraction | MRP, quantity, date, entity, consumer care, origin, unit price and barcode parsing | Run the bundled real-label sample; ten signals and ten regions are expected |
 | Geometry | Flat and cylindrical principal-display-panel calculators | Enter dimensions and observe the calculated square-centimetre area |
 | Typography | Calibrated font height and width-to-height checks | Measure a reference, glyph height and glyph width on the same panel |
 | Uncertainty | Table-I boundary and physical-measurement abstention | Set area near 100 cm² with ±5% uncertainty and observe REVIEW |
@@ -179,7 +179,7 @@ If those ten checks pass, the core presentation path is ready. The controlled pa
 4. Observe progress, the editable transcript and the OCR-confidence chip.
 5. Click extracted declaration cards to inspect their image grounding.
 
-**Verified sample result:** The live bundled sample completes at 91% OCR confidence with nine parsed signals and nine mapped evidence regions. It makes zero requests to external OCR services.
+**Verified sample result:** The live bundled sample completes at 91% OCR confidence with ten parsed signals and ten mapped evidence regions. It makes zero requests to external OCR services.
 
 **Do not claim:** 91% is one regression image, not field accuracy.
 
@@ -332,7 +332,7 @@ It also checks that measured character width is at least one-third of height, su
 
 **Expected proof:** The same inputs always produce the same outcome, and the report records the rule-pack version.
 
-**Status:** 37 automated tests pass, including legal boundaries and failure cases; departmental approval is still pending.
+**Status:** 44 automated tests pass, including legal boundaries and failure cases; departmental approval is still pending.
 
 ### 17. Rule 26 exemptions and carve-outs
 
@@ -510,7 +510,7 @@ It also checks that measured character width is at least one-third of height, su
 4. Upload the sample or a local label and run browser OCR.
 5. Confirm the application and OCR both work without network access.
 
-**Automated proof:** The live check found service worker `niyamlens-shell-v5`, 16 cached shell/OCR resources, successful offline reload and successful offline OCR at 91% sample confidence.
+**Automated proof:** The live check found service worker `niyamlens-shell-v6`, 16 cached shell/OCR resources, successful offline reload and successful offline OCR at 91% sample confidence.
 
 **Status:** Live automated.
 
@@ -549,7 +549,7 @@ Run these from the `niyamlens` repository after `npm install`.
 npm test
 ```
 
-Expected release baseline: `37` tests, `37` passed, `0` failed.
+Expected release baseline: `44` tests, `44` passed, `0` failed.
 
 ### Verify production compilation
 
@@ -575,7 +575,9 @@ perspectiveRectification: true
 originalHashPreserved: true
 structuredExtraction: true
 flagCount: 7
+reviewCount: 0
 compliantDemo: true
+controlledPacketOcr: true
 supervisorOverride: true
 supervisorReportReopened: true
 blindChallenge: true
@@ -589,7 +591,7 @@ $env:NIYAMLENS_BASE_URL='https://niyamlens-sih26034.vercel.app/'
 npm run qa:ocr
 ```
 
-Expected release baseline: OCR 91%, product `FIELD HARVEST`, nine parsed signals, nine mapped regions, no external requests and no browser errors.
+Expected release baseline: OCR 91%, product `FIELD HARVEST`, ten parsed signals, ten mapped regions, no external requests and no browser errors.
 
 ### Verify fully offline operation
 
@@ -673,4 +675,3 @@ All six members should rehearse the ten-minute smoke test. The operator and pres
 - [Field validation protocol](FIELD_VALIDATION_PROTOCOL.md)
 - [Legal review register](LEGAL_REVIEW.md)
 - [Deployment readiness](DEPLOYMENT_READINESS_2026-09-01.md)
-

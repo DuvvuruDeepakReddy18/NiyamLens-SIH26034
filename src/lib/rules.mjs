@@ -1,3 +1,5 @@
+import { findConsumerAddress, findConsumerPhone } from './consumerContact.mjs'
+
 export const RULE_PACK = {
   id: 'LMPC-RC-2026.09',
   title: 'Legal Metrology (Packaged Commodities) Rules, 2011',
@@ -5,7 +7,11 @@ export const RULE_PACK = {
   sources: [
     {
       label: 'Department of Consumer Affairs — consolidated rules',
-      url: 'https://doca.gov.in/lm-ebook/wp-content/uploads/2024/12/FInal-Book-Legal-Metrology-with-amendments.pdf',
+      url: 'https://consumeraffairs.gov.in/public/upload/admin/cmsfiles/whatsnews/Book_on_Legal_Metrology_Packaged_Commodities_Rules%2C2011_with_all_amendments_whatsnews.pdf',
+    },
+    {
+      label: 'Department of Consumer Affairs — Legal Metrology overview',
+      url: 'https://consumeraffairs.gov.in/pages/legal-metrology-overview',
     },
     {
       label: 'Department of Consumer Affairs — Packaged Commodities FAQs',
@@ -82,7 +88,7 @@ const FIELD_RULES = {
   consumerPhone: {
     label: 'Consumer-care telephone',
     rule: 'Rule 6(2) — telephone number of the consumer-complaint contact',
-    pattern: /(?:\+?91[\s-]?)?(?:1800[\s-]?\d{3}[\s-]?\d{3,4}|(?:0\d{2,4}[\s-]?)?\d{6,10}|[6-9]\d{9})\b/i,
+    pattern: /$^/,
   },
   consumerAddress: {
     label: 'Consumer-care address',
@@ -151,8 +157,6 @@ export function isSmallPack(quantity, unit) {
 }
 
 function requiredFieldIds(category, perishable = false) {
-  if (category === 'food') return ['mrp', 'mrpFormat', 'netQuantity', 'consumerCare', 'consumerAddress', 'consumerPhone', 'consumerEmail']
-
   const fields = ['genericName', 'mrp', 'mrpFormat', 'netQuantity', 'packDate', 'manufacturer', 'consumerCare', 'consumerAddress', 'consumerPhone', 'consumerEmail', 'unitSalePrice']
   if (category === 'imported') fields.push('countryOrigin')
   if (perishable) fields.push('bestBefore')
@@ -176,13 +180,9 @@ export function getExemptionProfile(quantity, unit, meta = {}) {
 function declarationCheck(id, text, lowConfidence, meta = {}) {
   const definition = FIELD_RULES[id]
   let evidence = findEvidence(text, definition.pattern)
-  if (id === 'consumerAddress') {
-    const lines = text.split('\n').map((line) => line.trim()).filter(Boolean)
-    const careIndex = lines.findIndex((line) => /\b(?:CONSUMER|CUSTOMER)\s*(?:CARE|COMPLAINT)|\bHELPLINE\b|\bCOMPLAINTS?\b/i.test(line))
-    const block = careIndex >= 0 ? lines.slice(careIndex, careIndex + 3).join(' · ') : ''
-    const hasAddress = /\b\d{6}\b|\b(?:ROAD|RD\.?|STREET|LANE|NAGAR|COLONY|BUILDING|BLDG|FLOOR|CITY|DISTRICT|STATE|INDIA)\b/i.test(block)
-    evidence = hasAddress ? { found: true, value: block, line: block } : { found: false, value: '', line: '' }
-  }
+  if (id === 'consumerPhone') evidence = findConsumerPhone(text)
+  const addressEvidence = id === 'consumerAddress' ? findConsumerAddress(text) : null
+  if (addressEvidence) evidence = addressEvidence
   if (evidence.found) {
     return {
       id,
@@ -216,6 +216,17 @@ function declarationCheck(id, text, lowConfidence, meta = {}) {
       status: 'pass',
       reason: 'Inspector-verified product / generic name supplied in the structured context.',
       evidence: String(meta.productName).trim(),
+    }
+  }
+
+  if (id === 'consumerAddress' && addressEvidence?.careFound) {
+    return {
+      id,
+      label: definition.label,
+      rule: definition.rule,
+      status: 'review',
+      reason: 'A consumer-care channel was detected, but its postal address could not be distinguished reliably from other label text.',
+      evidence: 'Consumer-care address requires officer confirmation',
     }
   }
 
@@ -395,7 +406,7 @@ export function evaluateCompliance({ text = '', meta = {} }) {
       label: 'Food-package scope',
       rule: 'Department FAQ — Legal Metrology / food-label split',
       status: 'info',
-      reason: 'This profile evaluates MRP, net quantity and consumer-care declarations under Legal Metrology; food-law declarations remain outside this rule pack.',
+      reason: 'This profile evaluates the encoded Legal Metrology declarations and typography checks; food-law declarations remain outside this rule pack.',
       evidence: 'Category selected: food product',
     })
   }
