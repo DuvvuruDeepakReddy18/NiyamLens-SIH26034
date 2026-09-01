@@ -118,6 +118,7 @@ This is a fully functional competition prototype, not an enforcement-grade statu
 
 Further detail:
 
+- [Downloadable team feature and verification PDF](docs/NiyamLens_Team_Feature_Verification_Guide.pdf)
 - [Team feature and verification guide](docs/TEAM_FEATURE_VERIFICATION_GUIDE.md)
 - [Architecture and trust model](docs/ARCHITECTURE.md)
 - [Legal review register](docs/LEGAL_REVIEW.md)
