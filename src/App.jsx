@@ -893,7 +893,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       const record = { ...buildRecord(finalChain), auditVerified: await verifyAuditChain(finalChain) }
       await onSaveRecord(record)
       setSaved(true)
-      onChallengeComplete?.(record)
+      if (challenge) onChallengeComplete?.(record)
     } catch (error) {
       setOcrState((current) => ({ ...current, error: error.message || 'The inspection could not be stored.' }))
     } finally {
