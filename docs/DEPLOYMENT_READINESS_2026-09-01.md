@@ -1,8 +1,10 @@
 # Deployment readiness — NiyamLens 0.2.0
 
-**Checked:** 1 September 2026  
-**Target:** Static Vite deployment on Vercel  
-**Release status:** Deployable competition prototype; deployment not yet executed
+- **Checked:** 1 September 2026
+- **Target:** Static Vite deployment on Vercel
+- **Release status:** Deployed and production-verified competition prototype
+- **Source:** <https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034>
+- **Production:** <https://niyamlens-sih26034.vercel.app>
 
 ## Release gates
 
@@ -16,7 +18,10 @@
 | Production dependency audit | PASS | 0 known production vulnerabilities from `npm audit --omit=dev` |
 | Deployment configuration | PASS | `vercel.json` defines Vite build/output and cache headers |
 | Vercel authentication | PASS | Local CLI authenticated as `duvvurudeepakreddy18` |
-| GitHub remote and backup | **BLOCKED** | Parent Git repository has no commits and no remote; active GitHub CLI account is `BANU-09`, with `DuvvuruDeepakReddy18` also authenticated but inactive |
+| GitHub remote and backup | PASS | Private repository under `DuvvuruDeepakReddy18`; `main` is connected to Vercel |
+| Live HTTPS deployment | PASS | Production alias responds successfully and serves the service worker plus bundled OCR assets |
+| Live end-to-end workflow | PASS | Production upload, rectification, extraction, verdict, reporting, override/reopen and blind-challenge checks completed with zero browser errors |
+| Live offline field mode | PASS | Network-disabled reload and on-device OCR completed at 91% confidence with 9 parsed signals |
 | Department/laboratory approval | PENDING | Required before enforcement use; not a blocker for an SIH/SAH prototype deployment |
 
 ## Deployment characteristics
@@ -28,13 +33,12 @@
 - Native barcode scanning depends on Chromium `BarcodeDetector`; manual GTIN and four-corner correction remain available fallbacks.
 - Local audit hashes detect mutation but are not an external/WORM audit anchor.
 
-## Deploy procedure
+## Redeploy procedure
 
-1. Create a dedicated GitHub repository under the team-selected account.
-2. Commit the `niyamlens` directory, including `public/ocr`; do not commit `node_modules`, `dist`, `.vercel` or QA screenshots.
-3. Push the default branch and connect it to Vercel, or deploy directly with `npx vercel@latest --prod`.
-4. On the deployed HTTPS URL, run one live packet through capture, OCR, calibration, finalization and report reopen.
-5. Toggle the browser offline and confirm reload plus OCR.
+1. Commit the `niyamlens` changes, including intentional changes under `public/ocr`; do not commit `node_modules`, `dist`, `.vercel` or QA screenshots.
+2. Push `main` to the connected GitHub repository for the normal Vercel deployment flow, or deploy directly with `npx vercel@latest --prod`.
+3. On the deployed HTTPS URL, run one live packet through capture, OCR, calibration, finalization and report reopen.
+4. Toggle the browser offline and confirm reload plus OCR.
 
 ## Rollback triggers
 
