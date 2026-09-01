@@ -1,0 +1,125 @@
+# NiyamLens — SIH26034 Competition Prototype
+
+NiyamLens is a local-first inspection system for packaged-commodity declarations. It turns photographs of a real package into a reviewable evidence packet: image quality, original hashes, OCR text and word regions, structured declarations, calibrated typography, deterministic rule findings, an audit chain and a printable report.
+
+The product is designed around the question a judge will ask: **can it survive a random packet in real time?** The Blind Challenge route disables controlled fixtures, starts a sealed timer and records every material action.
+
+## Run
+
+```powershell
+npm install
+npm run dev -- --host 127.0.0.1
+```
+
+Open `http://127.0.0.1:5173`.
+
+English, Hindi, Telugu and Tamil OCR assets are bundled under `public/ocr`, so the engine does not depend on a public CDN. Saved inspections and evidence remain in the browser's local IndexedDB.
+
+## What is implemented
+
+- Real camera/file intake for up to four label panels.
+- SHA-256 digest of every original image before preprocessing.
+- Image-quality gates for sharpness, brightness, contrast and glare.
+- Rotation, grayscale and contrast preprocessing without replacing the original.
+- Tesseract OCR in English, Hindi, Telugu or Tamil combinations.
+- OCR word boxes mapped to clickable declaration evidence regions.
+- Deterministic extraction of MRP, quantity, dates, responsible entity, consumer care, origin, unit price and barcode text.
+- Native `BarcodeDetector` support with corner geometry, card-free panel flattening and manual GTIN fallback. Barcode geometry corrects perspective but does not establish absolute millimetres.
+- Four-corner projective homography to flatten skewed label panels.
+- Reference-card detection, two-point manual calibration and WebXR depth-capability check.
+- Flat-panel and cylindrical-panel area calculators with uncertainty propagation.
+- Per-panel calibration, per-region physical line-box estimates and text-width evaluation. Transforming a panel invalidates its calibration instead of silently reusing stale pixels.
+- Versioned rules-as-code with confidence-aware abstention.
+- Rule 7 / Table I area tiers and boundary uncertainty.
+- Rule 26 small-package, tobacco, pan masala, fast-food, formulation and medical-device profiles.
+- Blind Challenge mode with controlled-packet lockout and elapsed timer.
+- Hash-linked audit events and tamper verification.
+- Local officer/supervisor separation, assignments and reason-required overrides.
+- PBKDF2-SHA256 (600,000 iterations) + AES-256-GCM encrypted evidence export/import, including large image-bearing records and legacy-v1 import.
+- IndexedDB evidence register, dashboard, history, JSON export and print/PDF packet.
+- Validation Lab for quoted JSON/CSV datasets with verdict accuracy, field-detection precision/recall/F1, extracted-value accuracy, false-violation rate and abstention rate.
+- A visible approval register that never presents a prototype interpretation as department-approved law.
+- Installable PWA shell.
+
+## Judge demo path
+
+1. Open **Blind challenge** and ask the judge to choose any packet.
+2. Start the challenge, capture all declaration panels and show the original hashes.
+3. Run OCR; click an extracted declaration to highlight the matched image region.
+4. Show image-quality warnings, package classification and any exemption logic.
+5. Calculate the panel area, calibrate the reference and inspect the uncertainty interval.
+6. Finalize the run, open the evidence packet and show **Audit chain verified**.
+7. Switch to Supervisor in **Officer operations**, record a reasoned disposition and show that the automated status remains preserved.
+8. Open **Validation lab** and explain that field claims require an imported labelled dataset; synthetic fixtures are never presented as accuracy evidence.
+
+See [docs/JUDGE_DEMO.md](docs/JUDGE_DEMO.md) for the timed script.
+
+## Verification
+
+```powershell
+npm test
+npm run build
+npm run qa:ui
+npm run qa:ocr
+npm run qa:pwa
+```
+
+Current verified baseline:
+
+- 37 automated tests passing.
+- Production Vite build passing.
+- Full browser workflow passing with zero recorded console/page errors.
+- Production service-worker reload and OCR passing with the browser fully offline.
+- Actual sample OCR: 91% confidence, 9 structured signals and 9 mapped evidence regions.
+
+The OCR QA blocks external network requests and loads the bundled engine assets. The sample OCR number is still a single regression scene, **not field accuracy**. Import real labelled records with `expectedValues` in Validation Lab to calculate dataset-specific metrics.
+
+## Deployment
+
+The repository includes `vercel.json`; Vercel can build it as a static Vite application with `npm run build` and serve `dist`. Camera capture and service workers require HTTPS outside localhost, which Vercel supplies.
+
+```powershell
+npx vercel@latest --prod
+```
+
+Deployment does not create a central database: inspection history, assignments and evidence remain local to each browser through IndexedDB/local storage. Production departmental identity, shared case synchronization and externally anchored audit storage remain future server-side work.
+
+## Core architecture
+
+```text
+Camera / files
+  -> original digest + quality gate
+  -> reversible OCR preprocessing
+  -> multilingual OCR + word geometry
+  -> structured declaration extraction
+  -> inspector context + per-panel geometry + scale
+  -> versioned deterministic rules + uncertainty
+  -> PASS / FLAG / REVIEW / EXEMPT
+  -> hash-linked audit chain
+  -> IndexedDB register / encrypted transfer / printable packet
+```
+
+Important modules:
+
+- `src/lib/evidence.mjs` — intake, integrity and preprocessing.
+- `src/lib/vision.mjs` — quality analysis, OCR geometry, reference and depth capability.
+- `src/lib/extraction.mjs` — deterministic OCR-to-declaration parsing.
+- `src/lib/rules.mjs` — versioned compliance and uncertainty engine.
+- `src/lib/ruleMatrix.mjs` — review matrix, approval gates and legal boundary fixtures.
+- `src/lib/audit.mjs` — hash-linked local audit chain.
+- `src/lib/secureBundle.mjs` — encrypted offline evidence transfer.
+- `src/lib/benchmark.mjs` — labelled-dataset metrics.
+- `src/lib/storage.mjs` — local evidence register.
+- `src/App.jsx` — inspection, challenge, validation, operations and reports.
+
+## Important boundary
+
+This is a fully functional competition prototype, not an enforcement-grade statutory system and not legal advice. Its local hash chain detects mutation but is not an externally anchored or WORM audit ledger. Before official use, the sponsoring department must approve the amendment-complete applicability matrix, measurement method, field dataset, identity system, retention policy and security architecture. The system surfaces those gates instead of fabricating approval.
+
+Further detail:
+
+- [Architecture and trust model](docs/ARCHITECTURE.md)
+- [Legal review register](docs/LEGAL_REVIEW.md)
+- [Field validation protocol](docs/FIELD_VALIDATION_PROTOCOL.md)
+- [Judge demonstration runbook](docs/JUDGE_DEMO.md)
+- [Deployment readiness](docs/DEPLOYMENT_READINESS_2026-09-01.md)

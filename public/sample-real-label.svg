@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1400" viewBox="0 0 1000 1400">
+  <rect width="1000" height="1400" fill="#f4efe1"/>
+  <rect x="90" y="80" width="820" height="1240" rx="32" fill="#ffffff" stroke="#102a33" stroke-width="8"/>
+  <rect x="90" y="80" width="820" height="230" rx="28" fill="#0d594d"/>
+  <text x="500" y="178" text-anchor="middle" font-family="Georgia,serif" font-size="66" font-weight="bold" fill="#ffffff">FIELD HARVEST</text>
+  <text x="500" y="248" text-anchor="middle" font-family="Arial,sans-serif" font-size="40" font-weight="bold" fill="#6ff0c7">TURMERIC POWDER</text>
+  <g font-family="Arial,sans-serif" font-size="35" fill="#102a33">
+    <text x="150" y="410" font-weight="bold">MRP Rs. 48.00 (inclusive of all taxes)</text>
+    <text x="150" y="480" font-weight="bold">NET QTY 100 g</text>
+    <text x="150" y="550">PACKED 08/2026</text>
+    <text x="150" y="620">MANUFACTURED BY: FIELD HARVEST FOODS</text>
+    <text x="150" y="680">Hyderabad, Telangana 500081</text>
+    <text x="150" y="750">CONSUMER CARE: care@fieldharvest.in</text>
+    <text x="150" y="810">Helpline: 1800 111 2026</text>
+    <text x="150" y="880">UNIT SALE PRICE Rs. 0.48/g</text>
+  </g>
+  <rect x="150" y="1010" width="210" height="60" rx="7" fill="#00a37a"/>
+  <text x="255" y="1052" text-anchor="middle" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#ffffff">20 mm REF</text>
+  <g fill="#102a33">
+    <rect x="560" y="995" width="8" height="170"/><rect x="578" y="995" width="4" height="170"/><rect x="592" y="995" width="11" height="170"/><rect x="614" y="995" width="5" height="170"/><rect x="630" y="995" width="13" height="170"/><rect x="654" y="995" width="5" height="170"/><rect x="668" y="995" width="8" height="170"/><rect x="686" y="995" width="14" height="170"/><rect x="710" y="995" width="4" height="170"/><rect x="724" y="995" width="10" height="170"/>
+  </g>
+  <text x="650" y="1205" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" fill="#102a33">8901234567890</text>
+  <text x="500" y="1280" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" fill="#687980">LOCAL QA FIXTURE — NOT A MARKET PRODUCT</text>
+</svg>
