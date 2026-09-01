@@ -55,7 +55,7 @@ import { APPROVAL_GATES, RULE_EDGE_CASES, RULE_MATRIX, RULE_MATRIX_VERSION } fro
 import { decryptBundle, encryptBundle } from './lib/secureBundle.mjs'
 import { evaluateCompliance, FONT_TIERS, RULE_PACK } from './lib/rules.mjs'
 import { listInspections, saveInspection } from './lib/storage.mjs'
-import { analyzeImageQuality, detectReferenceCard, flattenOcrWords, matchDeclarationRegions, measureRegion, webXrDepthSupport } from './lib/vision.mjs'
+import { analyzeImageQuality, createOcrInputVariants, createOcrRegionVariant, detectReferenceCard, flattenOcrWords, matchDeclarationRegions, measureRegion, mergeOcrPassTexts, webXrDepthSupport } from './lib/vision.mjs'
 
 const NAV_ITEMS = [
   { id: 'inspect', label: 'New inspection', icon: ScanLine },
@@ -824,13 +824,16 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     try {
       setOcrState({ running: true, progress: 2, label: 'Loading OCR engine', error: '' })
       let panelIndex = 0
+      let completedPasses = 0
+      const referenceCandidates = await Promise.all(evidenceItems.map((item) => detectReferenceCard(item.analysisUrl).catch(() => ({ detected: false }))))
+      const totalPasses = evidenceItems.length * 2 + referenceCandidates.filter((candidate) => candidate.detected).length
       worker = await createWorker(meta.ocrLanguage || 'eng', 1, {
         workerPath: '/ocr/worker.min.js',
         corePath: '/ocr/core',
         langPath: '/ocr/lang',
         logger: (message) => {
-          const panelProgress = message.progress || 0
-          const progress = Math.round(((panelIndex + panelProgress) / evidenceItems.length) * 100)
+          const passProgress = message.progress || 0
+          const progress = Math.round(((completedPasses + passProgress) / totalPasses) * 100)
           setOcrState({ running: true, progress, label: `Panel ${panelIndex + 1}/${evidenceItems.length} · ${message.status || 'reading label'}`, error: '' })
         },
       })
@@ -840,12 +843,28 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       const recognizedItems = []
       for (panelIndex = 0; panelIndex < evidenceItems.length; panelIndex += 1) {
         const item = evidenceItems[panelIndex]
-        const { data } = await worker.recognize(item.analysisUrl, {}, { text: true, blocks: true, tsv: true })
-        packets.push(`[PANEL ${panelIndex + 1}: ${item.name}]\n${String(data.text || '').trim()}`)
-        confidences.push(Number(data.confidence || 0))
-        const words = flattenOcrWords(data.blocks, item.id, item.width, item.height)
-        collectedWords.push(...words)
-        recognizedItems.push({ ...item, ocrText: String(data.text || ''), ocrConfidence: Number(data.confidence || 0), ocrWords: words })
+        const variants = await createOcrInputVariants(item.analysisUrl)
+        const referenceCandidate = referenceCandidates[panelIndex]
+        if (referenceCandidate?.detected) variants.push(await createOcrRegionVariant(item.analysisUrl, referenceCandidate.bbox))
+        const passes = []
+        for (const variant of variants) {
+          await worker.setParameters({
+            tessedit_pageseg_mode: variant.pageSegmentationMode,
+            preserve_interword_spaces: '1',
+            user_defined_dpi: '300',
+          })
+          const { data } = await worker.recognize(variant.dataUrl, {}, { text: true, blocks: true, tsv: true })
+          const words = variant.spatial === false ? [] : flattenOcrWords(data.blocks, item.id, variant.width, variant.height)
+          passes.push({ id: variant.id, text: String(data.text || ''), confidence: Number(data.confidence || 0), words, spatial: variant.spatial !== false })
+          if (variant.spatial !== false) confidences.push(Number(data.confidence || 0))
+          collectedWords.push(...words)
+          completedPasses += 1
+        }
+        const mergedText = mergeOcrPassTexts(passes.map((pass) => pass.text))
+        packets.push(`[PANEL ${panelIndex + 1}: ${item.name}]\n${mergedText}`)
+        const fullPanelPasses = passes.filter((pass) => pass.spatial)
+        const panelConfidence = fullPanelPasses.length ? fullPanelPasses.reduce((sum, pass) => sum + pass.confidence, 0) / fullPanelPasses.length : 0
+        recognizedItems.push({ ...item, ocrText: mergedText, ocrConfidence: Number(panelConfidence.toFixed(1)), ocrWords: passes.flatMap((pass) => pass.words), ocrPasses: passes.map(({ id, confidence }) => ({ id, confidence: Number(confidence.toFixed(1)) })) })
       }
       const combinedText = packets.join('\n\n')
       const averageConfidence = confidences.length ? confidences.reduce((sum, value) => sum + value, 0) / confidences.length : 0
@@ -854,7 +873,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       setEvidenceItems(recognizedItems)
       setMeta((current) => ({ ...current, ocrConfidence: Number(averageConfidence.toFixed(1)) }))
       applyExtraction(extractDeclarations(combinedText))
-      await recordAudit('ocr_completed', { panels: evidenceItems.length, confidence: Number(averageConfidence.toFixed(1)), wordBoxes: collectedWords.length, language: meta.ocrLanguage })
+      await recordAudit('ocr_completed', { panels: evidenceItems.length, confidence: Number(averageConfidence.toFixed(1)), wordBoxes: collectedWords.length, language: meta.ocrLanguage, strategy: 'dual-polarity-layout' })
       setOcrState({ running: false, progress: 100, label: `OCR complete across ${evidenceItems.length} panel${evidenceItems.length > 1 ? 's' : ''} — verify evidence`, error: '' })
     } catch (error) {
       setOcrState({
@@ -996,7 +1015,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
                 <div><span style={{ width: `${ocrState.progress}%` }} /></div>
                 <small>{ocrState.label}</small>
               </div>
-              <span className="confidence-chip">OCR {Number(meta.ocrConfidence || 0).toFixed(0)}%</span>
+              <span className="confidence-chip">OCR engine {Number(meta.ocrConfidence || 0).toFixed(0)}%</span>
             </div>
             {ocrState.error && <div className="inline-warning"><AlertTriangle size={17} />{ocrState.error}</div>}
             <textarea

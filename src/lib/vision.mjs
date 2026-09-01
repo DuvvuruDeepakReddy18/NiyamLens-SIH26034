@@ -7,6 +7,120 @@ const loadImage = (url) => new Promise((resolve, reject) => {
 
 const normalizeToken = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9₹@.]+/g, ' ').trim()
 
+const renderOcrVariant = (image, { invert = false } = {}) => {
+  const sourceWidth = image.naturalWidth || image.width
+  const sourceHeight = image.naturalHeight || image.height
+  const scale = Math.max(1, Math.min(2.4, 2400 / Math.max(sourceWidth, sourceHeight)))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(sourceWidth * scale))
+  canvas.height = Math.max(1, Math.round(sourceHeight * scale))
+  const context = canvas.getContext('2d')
+  context.imageSmoothingEnabled = true
+  context.imageSmoothingQuality = 'high'
+  context.fillStyle = '#fff'
+  context.fillRect(0, 0, canvas.width, canvas.height)
+  context.filter = invert ? 'grayscale(1) invert(1) contrast(145%)' : 'contrast(112%)'
+  context.drawImage(image, 0, 0, canvas.width, canvas.height)
+  return { dataUrl: canvas.toDataURL('image/png'), width: canvas.width, height: canvas.height }
+}
+
+export async function createOcrInputVariants(sourceUrl) {
+  const image = await loadImage(sourceUrl)
+  return [
+    { id: 'standard', pageSegmentationMode: '3', ...renderOcrVariant(image) },
+    { id: 'reverse-contrast', pageSegmentationMode: '11', ...renderOcrVariant(image, { invert: true }) },
+  ]
+}
+
+export async function createOcrRegionVariant(sourceUrl, bbox) {
+  const image = await loadImage(sourceUrl)
+  const sourceWidth = image.naturalWidth || image.width
+  const sourceHeight = image.naturalHeight || image.height
+  const x0 = Math.max(0, Number(bbox?.x0) || 0)
+  const y0 = Math.max(0, Number(bbox?.y0) || 0)
+  const x1 = Math.min(sourceWidth, Number(bbox?.x1) || sourceWidth)
+  const y1 = Math.min(sourceHeight, Number(bbox?.y1) || sourceHeight)
+  const width = x1 - x0
+  const height = y1 - y0
+  if (width < 20 || height < 10) throw new Error('The OCR region is too small to read reliably.')
+  const padding = Math.max(6, Math.round(Math.min(width, height) * .14))
+  const sourceX = Math.max(0, x0 - padding)
+  const sourceY = Math.max(0, y0 - padding)
+  const cropWidth = Math.min(sourceWidth - sourceX, width + padding * 2)
+  const cropHeight = Math.min(sourceHeight - sourceY, height + padding * 2)
+  const scale = Math.max(2, Math.min(6, 1200 / cropWidth))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(cropWidth * scale))
+  canvas.height = Math.max(1, Math.round(cropHeight * scale))
+  const context = canvas.getContext('2d')
+  context.imageSmoothingEnabled = true
+  context.imageSmoothingQuality = 'high'
+  context.fillStyle = '#fff'
+  context.fillRect(0, 0, canvas.width, canvas.height)
+  context.filter = 'grayscale(1) invert(1) contrast(165%)'
+  context.drawImage(image, sourceX, sourceY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height)
+  return { id: 'reference-region', pageSegmentationMode: '7', dataUrl: canvas.toDataURL('image/png'), width: canvas.width, height: canvas.height, spatial: false }
+}
+
+const normalizeOcrLine = (value) => String(value || '')
+  .replace(/([A-Za-z])\$(?=\s|$)/g, '$1S')
+  .replace(/^[^A-Za-z0-9]*(\d+(?:\.\d+)?)\s*mm\s*r[e3][rf][^A-Za-z0-9]*$/i, '$1 mm REF')
+  .replace(/\s+/g, ' ')
+  .trim()
+
+const comparableOcrLine = (value) => normalizeOcrLine(value).toLowerCase().replace(/[^a-z0-9₹@.]+/g, ' ').trim()
+
+const levenshteinDistance = (left, right) => {
+  const previous = Array.from({ length: right.length + 1 }, (_, index) => index)
+  for (let i = 1; i <= left.length; i += 1) {
+    let diagonal = previous[0]
+    previous[0] = i
+    for (let j = 1; j <= right.length; j += 1) {
+      const above = previous[j]
+      previous[j] = Math.min(previous[j] + 1, previous[j - 1] + 1, diagonal + (left[i - 1] === right[j - 1] ? 0 : 1))
+      diagonal = above
+    }
+  }
+  return previous[right.length]
+}
+
+const lineSimilarity = (left, right) => {
+  const a = comparableOcrLine(left)
+  const b = comparableOcrLine(right)
+  if (!a || !b) return 0
+  if (a === b) return 1
+  if ((a.includes(b) || b.includes(a)) && Math.min(a.length, b.length) >= 5) return Math.min(a.length, b.length) / Math.max(a.length, b.length)
+  return 1 - levenshteinDistance(a, b) / Math.max(a.length, b.length)
+}
+
+const lineQuality = (value) => {
+  const line = normalizeOcrLine(value)
+  const meaningful = (line.match(/[A-Za-z0-9₹@]/g) || []).length
+  const noise = (line.match(/[^A-Za-z0-9₹@.,:/()&+\-\s]/g) || []).length
+  return meaningful - noise * 2
+}
+
+export function mergeOcrPassTexts(texts = []) {
+  const merged = []
+  for (const text of texts) {
+    const lines = String(text || '').replace(/\r/g, '').split('\n').map(normalizeOcrLine).filter(Boolean)
+    for (const line of lines) {
+      let bestIndex = -1
+      let bestSimilarity = 0
+      merged.forEach((existing, index) => {
+        const similarity = lineSimilarity(existing, line)
+        if (similarity > bestSimilarity) { bestIndex = index; bestSimilarity = similarity }
+      })
+      if (bestIndex >= 0 && bestSimilarity >= .78) {
+        if (lineQuality(line) > lineQuality(merged[bestIndex])) merged[bestIndex] = line
+      } else if (lineQuality(line) >= 3 && !(/^.{1,8}$/.test(line) && !/\d/.test(line) && !/[A-Z]{2}/.test(line))) {
+        merged.push(line)
+      }
+    }
+  }
+  return merged.join('\n')
+}
+
 export function flattenOcrWords(blocks, panelId, fallbackWidth = 1, fallbackHeight = 1) {
   if (!Array.isArray(blocks)) return []
   const words = []

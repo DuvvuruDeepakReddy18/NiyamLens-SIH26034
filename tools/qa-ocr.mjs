@@ -31,15 +31,32 @@ const confidence = await page.locator('.confidence-chip').innerText()
 const productName = await page.getByLabel('Product / generic name').inputValue()
 const parsedSignals = await page.locator('.extraction-grid .detected').count()
 const mappedRegions = await page.locator('.declaration-region').count()
+const expectedLines = [
+  'FIELD HARVEST',
+  'TURMERIC POWDER',
+  'MRP Rs. 48.00 (inclusive of all taxes)',
+  'NET QTY 100 g',
+  'PACKED 08/2026',
+  'MANUFACTURED BY: FIELD HARVEST FOODS',
+  'Hyderabad, Telangana 500081',
+  'CONSUMER CARE: care@fieldharvest.in',
+  'Helpline: 1800 111 2026',
+  'UNIT SALE PRICE Rs. 0.48/g',
+  '20 mm REF',
+  '8901234567890',
+]
+const normalizedText = text.replace(/^\[PANEL[^\n]*\]\s*/i, '').replace(/\s+/g, ' ').trim()
+const missingExpectedLines = expectedLines.filter((line) => !normalizedText.includes(line))
 console.log(JSON.stringify({
   completed: true,
   confidence,
   productName,
   parsedSignals,
   mappedRegions,
-  textPreview: text.replace(/\s+/g, ' ').slice(0, 180),
+  recognizedText: text,
+  missingExpectedLines,
   externalRequests,
   errors,
 }, null, 2))
 await browser.close()
-if (errors.length || externalRequests.length) process.exitCode = 1
+if (errors.length || externalRequests.length || missingExpectedLines.length) process.exitCode = 1

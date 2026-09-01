@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { flattenOcrWords, matchDeclarationRegions, measureRegion, selectReferenceCandidate } from '../src/lib/vision.mjs'
+import { flattenOcrWords, matchDeclarationRegions, measureRegion, mergeOcrPassTexts, selectReferenceCandidate } from '../src/lib/vision.mjs'
 
 const blocks = [{
   paragraphs: [{
@@ -40,4 +40,16 @@ test('reference-card selection rejects sparse green blobs and prefers a filled m
   ])
   assert.equal(selected.width, 120)
   assert.ok(selected.fillRatio > .8)
+})
+
+test('dual-pass OCR merging repairs a common trailing-S substitution and rejects short noise', () => {
+  const merged = mergeOcrPassTexts([
+    'MANUFACTURED BY: FIELD HARVEST FOOD$\nMRP Rs. 48.00',
+    'TURMERIC POWDER\nIl\nzm rer\n[ 20 mmrer |',
+  ])
+  assert.match(merged, /FIELD HARVEST FOODS/)
+  assert.match(merged, /TURMERIC POWDER/)
+  assert.match(merged, /20 mm REF/)
+  assert.doesNotMatch(merged, /^Il$/m)
+  assert.doesNotMatch(merged, /^zm rer$/m)
 })

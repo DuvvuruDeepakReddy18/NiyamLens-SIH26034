@@ -66,13 +66,13 @@ npm run qa:pwa
 
 Current verified baseline:
 
-- 44 automated tests passing.
+- 45 automated tests passing.
 - Production Vite build passing.
 - Full browser workflow passing with zero recorded console/page errors.
 - Production service-worker reload and OCR passing with the browser fully offline.
-- Actual sample OCR: 91% confidence, 10 structured signals and 10 mapped evidence regions.
+- Exact sample-label OCR regression passing: all 12 expected lines recovered with no manual correction, plus 10 structured signals and 10 mapped evidence regions.
 
-The OCR QA blocks external network requests and loads the bundled engine assets. The sample OCR number is still a single regression scene, **not field accuracy**. Import real labelled records with `expectedValues` in Validation Lab to calculate dataset-specific metrics.
+The OCR QA blocks external network requests and loads the bundled engine assets. The UI labels Tesseract's score as **engine confidence**, not accuracy. The exact-text result is still a single regression scene, **not field accuracy**. Import real labelled records with `expectedValues` in Validation Lab to calculate dataset-specific metrics.
 
 ## Deployment
 
