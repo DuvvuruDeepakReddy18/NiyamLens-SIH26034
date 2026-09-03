@@ -7,7 +7,7 @@ const loadImage = (url) => new Promise((resolve, reject) => {
 
 const normalizeToken = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9₹@.]+/g, ' ').trim()
 
-const renderOcrVariant = (image, { invert = false } = {}) => {
+const renderOcrVariant = (image, { grayscale = false, invert = false, contrast = 112 } = {}) => {
   const sourceWidth = image.naturalWidth || image.width
   const sourceHeight = image.naturalHeight || image.height
   const scale = Math.max(1, Math.min(2.4, 2400 / Math.max(sourceWidth, sourceHeight)))
@@ -19,7 +19,7 @@ const renderOcrVariant = (image, { invert = false } = {}) => {
   context.imageSmoothingQuality = 'high'
   context.fillStyle = '#fff'
   context.fillRect(0, 0, canvas.width, canvas.height)
-  context.filter = invert ? 'grayscale(1) invert(1) contrast(145%)' : 'contrast(112%)'
+  context.filter = `${grayscale || invert ? 'grayscale(1)' : 'grayscale(0)'}${invert ? ' invert(1)' : ''} contrast(${contrast}%)`
   context.drawImage(image, 0, 0, canvas.width, canvas.height)
   return { dataUrl: canvas.toDataURL('image/png'), width: canvas.width, height: canvas.height }
 }
@@ -27,8 +27,9 @@ const renderOcrVariant = (image, { invert = false } = {}) => {
 export async function createOcrInputVariants(sourceUrl) {
   const image = await loadImage(sourceUrl)
   return [
-    { id: 'standard', pageSegmentationMode: '3', ...renderOcrVariant(image) },
-    { id: 'reverse-contrast', pageSegmentationMode: '11', ...renderOcrVariant(image, { invert: true }) },
+    { id: 'standard-sparse', pageSegmentationMode: '11', ...renderOcrVariant(image) },
+    { id: 'grayscale-block', pageSegmentationMode: '6', ...renderOcrVariant(image, { grayscale: true, contrast: 132 }) },
+    { id: 'reverse-sparse', pageSegmentationMode: '11', ...renderOcrVariant(image, { invert: true, contrast: 145 }) },
   ]
 }
 

@@ -1,0 +1,229 @@
+{
+  "generatedAt": "2026-09-03T04:43:29.347Z",
+  "dataset": "NiyamLens Open Food Facts India real-label pilot",
+  "datasetVersion": "2026-09-03.2",
+  "engine": "Google Cloud Vision annotations distributed with the Open Food Facts AWS image dataset",
+  "cases": 10,
+  "aggregateTokenRecall": 0.966,
+  "note": "Reference baseline only. NiyamLens does not read these annotations during OCR and no Google API key is bundled in the app.",
+  "results": [
+    {
+      "id": "8908009059383-2",
+      "productName": "Focaccia Sourdough Bread",
+      "expectedTokens": [
+        "ingredients",
+        "wheat",
+        "flour",
+        "yeast",
+        "salt",
+        "olive"
+      ],
+      "matchedTokens": [
+        "ingredients",
+        "wheat",
+        "flour",
+        "yeast",
+        "salt",
+        "olive"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1
+    },
+    {
+      "id": "8908009059383-3",
+      "productName": "Focaccia Sourdough Bread",
+      "expectedTokens": [
+        "nutrition",
+        "energy",
+        "protein",
+        "carbohydrate",
+        "sugar",
+        "sodium"
+      ],
+      "matchedTokens": [
+        "nutrition",
+        "energy",
+        "protein",
+        "carbohydrate",
+        "sugar",
+        "sodium"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1
+    },
+    {
+      "id": "8906014888868-3",
+      "productName": "Organic Jaggery Powder",
+      "expectedTokens": [
+        "nutrition",
+        "energy",
+        "carbohydrate",
+        "sugar",
+        "protein",
+        "sodium"
+      ],
+      "matchedTokens": [
+        "nutrition",
+        "energy",
+        "carbohydrate",
+        "sugar",
+        "protein",
+        "sodium"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1
+    },
+    {
+      "id": "8906014888868-5",
+      "productName": "Organic Jaggery Powder",
+      "expectedTokens": [
+        "mrp",
+        "packed",
+        "use",
+        "by",
+        "fssai",
+        "contact"
+      ],
+      "matchedTokens": [
+        "mrp",
+        "packed",
+        "use",
+        "by",
+        "contact"
+      ],
+      "missingTokens": [
+        "fssai"
+      ],
+      "tokenRecall": 0.833
+    },
+    {
+      "id": "8904083301837-2",
+      "productName": "Cow Ghee",
+      "expectedTokens": [
+        "nutritional",
+        "energy",
+        "protein",
+        "carbohydrate",
+        "total",
+        "fat"
+      ],
+      "matchedTokens": [
+        "nutritional",
+        "energy",
+        "protein",
+        "carbohydrate",
+        "total",
+        "fat"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1
+    },
+    {
+      "id": "8906055442586-3",
+      "productName": "Organic Coconut Oil",
+      "expectedTokens": [
+        "nutrition",
+        "energy",
+        "total",
+        "fat",
+        "saturated",
+        "trans"
+      ],
+      "matchedTokens": [
+        "nutrition",
+        "energy",
+        "total",
+        "fat",
+        "saturated",
+        "trans"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1
+    },
+    {
+      "id": "8906055442586-4",
+      "productName": "Organic Coconut Oil",
+      "expectedTokens": [
+        "product",
+        "india",
+        "organic",
+        "use",
+        "by",
+        "tampered"
+      ],
+      "matchedTokens": [
+        "product",
+        "india",
+        "organic",
+        "use",
+        "by",
+        "tampered"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1
+    },
+    {
+      "id": "8901063142862-4",
+      "productName": "NutriChoice Digestive Zero",
+      "expectedTokens": [
+        "industries",
+        "fssai",
+        "feedback",
+        "lic"
+      ],
+      "matchedTokens": [
+        "industries",
+        "fssai",
+        "feedback",
+        "lic"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1
+    },
+    {
+      "id": "8901063142862-5",
+      "productName": "NutriChoice Digestive Zero",
+      "expectedTokens": [
+        "ingredients",
+        "wheat",
+        "flour",
+        "palm",
+        "milk",
+        "contains"
+      ],
+      "matchedTokens": [
+        "ingredients",
+        "wheat",
+        "flour",
+        "palm",
+        "milk",
+        "contains"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1
+    },
+    {
+      "id": "8901764082405-6",
+      "productName": "Kinley Packaged Drinking Water 1 L",
+      "expectedTokens": [
+        "ingredients",
+        "treated",
+        "water",
+        "coca",
+        "fssai",
+        "consumer"
+      ],
+      "matchedTokens": [
+        "ingredients",
+        "treated",
+        "water",
+        "coca",
+        "consumer"
+      ],
+      "missingTokens": [
+        "fssai"
+      ],
+      "tokenRecall": 0.833
+    }
+  ]
+}

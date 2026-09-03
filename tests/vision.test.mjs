@@ -42,7 +42,7 @@ test('reference-card selection rejects sparse green blobs and prefers a filled m
   assert.ok(selected.fillRatio > .8)
 })
 
-test('dual-pass OCR merging repairs a common trailing-S substitution and rejects short noise', () => {
+test('multi-pass OCR merging repairs a common trailing-S substitution and rejects short noise', () => {
   const merged = mergeOcrPassTexts([
     'MANUFACTURED BY: FIELD HARVEST FOOD$\nMRP Rs. 48.00',
     'TURMERIC POWDER\nIl\nzm rer\n[ 20 mmrer |',

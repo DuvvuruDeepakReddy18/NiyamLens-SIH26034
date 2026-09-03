@@ -826,7 +826,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       let panelIndex = 0
       let completedPasses = 0
       const referenceCandidates = await Promise.all(evidenceItems.map((item) => detectReferenceCard(item.analysisUrl).catch(() => ({ detected: false }))))
-      const totalPasses = evidenceItems.length * 2 + referenceCandidates.filter((candidate) => candidate.detected).length
+      const totalPasses = evidenceItems.length * 3 + referenceCandidates.filter((candidate) => candidate.detected).length
       worker = await createWorker(meta.ocrLanguage || 'eng', 1, {
         workerPath: '/ocr/worker.min.js',
         corePath: '/ocr/core',
@@ -856,14 +856,14 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
           const { data } = await worker.recognize(variant.dataUrl, {}, { text: true, blocks: true, tsv: true })
           const words = variant.spatial === false ? [] : flattenOcrWords(data.blocks, item.id, variant.width, variant.height)
           passes.push({ id: variant.id, text: String(data.text || ''), confidence: Number(data.confidence || 0), words, spatial: variant.spatial !== false })
-          if (variant.spatial !== false) confidences.push(Number(data.confidence || 0))
           collectedWords.push(...words)
           completedPasses += 1
         }
         const mergedText = mergeOcrPassTexts(passes.map((pass) => pass.text))
         packets.push(`[PANEL ${panelIndex + 1}: ${item.name}]\n${mergedText}`)
         const fullPanelPasses = passes.filter((pass) => pass.spatial)
-        const panelConfidence = fullPanelPasses.length ? fullPanelPasses.reduce((sum, pass) => sum + pass.confidence, 0) / fullPanelPasses.length : 0
+        const panelConfidence = fullPanelPasses.length ? Math.max(...fullPanelPasses.map((pass) => pass.confidence)) : 0
+        confidences.push(panelConfidence)
         recognizedItems.push({ ...item, ocrText: mergedText, ocrConfidence: Number(panelConfidence.toFixed(1)), ocrWords: passes.flatMap((pass) => pass.words), ocrPasses: passes.map(({ id, confidence }) => ({ id, confidence: Number(confidence.toFixed(1)) })) })
       }
       const combinedText = packets.join('\n\n')
@@ -873,7 +873,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       setEvidenceItems(recognizedItems)
       setMeta((current) => ({ ...current, ocrConfidence: Number(averageConfidence.toFixed(1)) }))
       applyExtraction(extractDeclarations(combinedText))
-      await recordAudit('ocr_completed', { panels: evidenceItems.length, confidence: Number(averageConfidence.toFixed(1)), wordBoxes: collectedWords.length, language: meta.ocrLanguage, strategy: 'dual-polarity-layout' })
+      await recordAudit('ocr_completed', { panels: evidenceItems.length, confidence: Number(averageConfidence.toFixed(1)), wordBoxes: collectedWords.length, language: meta.ocrLanguage, strategy: 'three-pass-adaptive-layout-best-confidence' })
       setOcrState({ running: false, progress: 100, label: `OCR complete across ${evidenceItems.length} panel${evidenceItems.length > 1 ? 's' : ''} — verify evidence`, error: '' })
     } catch (error) {
       setOcrState({

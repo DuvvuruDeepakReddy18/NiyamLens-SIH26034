@@ -10,7 +10,10 @@
     "test": "node --test tests/*.test.mjs",
     "qa:ui": "node tools/qa-ui.mjs",
     "qa:ocr": "node tools/qa-ocr.mjs",
-    "qa:pwa": "node tools/qa-pwa.mjs"
+    "qa:pwa": "node tools/qa-pwa.mjs",
+    "dataset:real:fetch": "node tools/fetch-real-label-benchmark.mjs",
+    "qa:ocr:real": "node tools/qa-ocr-real.mjs",
+    "qa:ocr:google-baseline": "node tools/qa-google-vision-baseline.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

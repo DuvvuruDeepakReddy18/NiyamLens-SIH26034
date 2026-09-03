@@ -1,0 +1,308 @@
+{
+  "generatedAt": "2026-09-03T04:42:55.138Z",
+  "appUrl": "http://127.0.0.1:5173/",
+  "dataset": "NiyamLens Open Food Facts India real-label pilot",
+  "datasetVersion": "2026-09-03.2",
+  "cases": 10,
+  "products": 6,
+  "aggregateTokenRecall": 0.759,
+  "averageEngineConfidence": 65.4,
+  "totalParsedSignals": 18,
+  "manualCorrectionsApplied": false,
+  "note": "Expected tokens were human-annotated before the run. Recognized text is the unedited browser OCR output. This pilot measures OCR token recovery only; it does not establish field accuracy or legal compliance accuracy.",
+  "ocrDiagnosticCount": 19,
+  "errors": [],
+  "results": [
+    {
+      "id": "8908009059383-2",
+      "productName": "Focaccia Sourdough Bread",
+      "form": "flexible pouch",
+      "role": "ingredients",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8908009059383/2.jpg",
+      "expectedTokens": [
+        "ingredients",
+        "wheat",
+        "flour",
+        "yeast",
+        "salt",
+        "olive"
+      ],
+      "matchedTokens": [
+        "wheat",
+        "flour",
+        "salt"
+      ],
+      "missingTokens": [
+        "ingredients",
+        "yeast",
+        "olive"
+      ],
+      "tokenRecall": 0.5,
+      "confidence": 84,
+      "parsedSignals": 1,
+      "recognizedText": "[PANEL 1: 2.jpg]\nheat Flour\n, Wheat Gluten,\ne Oil), lodised\n0. Rosemary,\nyme Natural\nORY\nZ E wr J |\n: table Oil), lodised\nSalt, Cane Sugar,\ne red Wheat Flour,\nOle Oil Flovour\nat Gluten\nRosemary,",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8908009059383-3",
+      "productName": "Focaccia Sourdough Bread",
+      "form": "flexible pouch",
+      "role": "nutrition",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8908009059383/3.jpg",
+      "expectedTokens": [
+        "nutrition",
+        "energy",
+        "protein",
+        "carbohydrate",
+        "sugar",
+        "sodium"
+      ],
+      "matchedTokens": [
+        "nutrition",
+        "energy",
+        "protein",
+        "carbohydrate",
+        "sugar",
+        "sodium"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1,
+      "confidence": 70,
+      "parsedSignals": 1,
+      "recognizedText": "[PANEL 1: 3.jpg]\nFacts - Per 100g (Approx)\n80g (1 piece)\nof servings\nTypicol Valves\nPer Serve\nEnergy (Kcol)\n20948\n26185\n10.94\nProtein (g)\nCarbohydrate (g)\n4529\n393\nTotal Sugar (g)\nAdded Sugor (g)\n544\nFat a\nDietory Fibre (g)\nTotal Fot (9)\n289\nTrons Fot (g)\n000\nSaturcted Fot (Q)\n0.26\nCholesterol (mg)\n0.00\nSodium (Mg)\n357.32\n*% RDA tells you how much a nutr\ncontributes to your daily diet. 2.0CC «\ngeneral nutrition advice for adults\nAller: Declaration: Contains Wheao\nfocility thot olso processes nuts, soy & milk .\nStore in 0 cool ond dry place awo\n“The Heolth Factory’, ‘Bread Ba\nZero Maida’ ore trademarks of\nn : Qa piece)\ni ViNgs 2\nNEWELS\nGeo 1-0\nfi tells you how much a nutrient in one serving\nbe ributes to your daily diet. 2.000 «col per doy is the\nAllergen Declaration: Contains Wheat Processed in\nStore in 0 cool and dry place away | firect sunlight\n“The Heolth Factory’, ‘Bread Badlo. A t Nol Ya\n100g (Approx.)\n(1 piece)\nph} 26185 047%\n529 Fe\n[680 Age\nWAS\nECE\nBow much @ nutrient in one serving\nyour daily diet. 2.000 kcol per doy is the\nadvice for adults\nction: Contains Wh\nfocility thot also processes nuts, s",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8906014888868-3",
+      "productName": "Organic Jaggery Powder",
+      "form": "flexible pouch",
+      "role": "nutrition-barcode",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8906014888868/3.jpg",
+      "expectedTokens": [
+        "nutrition",
+        "energy",
+        "carbohydrate",
+        "sugar",
+        "protein",
+        "sodium"
+      ],
+      "matchedTokens": [
+        "nutrition",
+        "energy",
+        "carbohydrate",
+        "sugar",
+        "protein",
+        "sodium"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1,
+      "confidence": 70,
+      "parsedSignals": 1,
+      "recognizedText": "[PANEL 1: 3.jpg]\nGANIC JAGGERY PO\nTHAT\nServing per poner 5\n100gm\nServing Size:\n00 gm\" |% RDA Pes\n368.00\nEnergy Keal\nTotal Fat g\nSaturated Fat g\nTrans Fat\nCholesterol mg\nSTORE Ii\nSodium mg\n10.3\nDRY F\nTotal Carbohydrate g\nAVOID DIREC\nTotal Sugar g\n90.3\nCERTIFIED (\nAdded Sugor g\nPER NPOP S\nECOCERT IN\nProtein g\nACCRED\n; NAT. Not More Than,\nThan, Keol: Kilo Calorie, IU: International Uni,\nNO. NPOF\nmg WOR, kes Minimum,\nhe Tame of\nRDA) tells you wag\n*The % Recom\nserving of\n1es 10 a daily diet\nPRODUCT F\nmuch @ puinent Wn 0\n| Enesgy o doy 1S\nfor or nutution odvice\nACK\n2,000 ko\nNPOP S\nNDA\ningredients :\nOrganic Joggery Powder\n(FOR DOMEST\nTn PAT\not| an 4\nORGANIC Noch pO Ea\nNUTRITION FACTS [ PROcessED ©\nServing per pack Container: 5 : ke\nopto se00| 18 FR I\n[ odrg BOTT 0 |\nGogiteg |7w0| | MANN.\nows | 9131 A\nJomiSworg | 903]\nNh Ea 07] || ecocemrn\nANAT. Not More Than, Keol: Kilo Calorie, gees Unit, ACCRED\n‘ i MA Nn... MUNIMUm\n| Wl Bs NO. NPOF\n| Tt feconmied Dor MEISEL, yan” | PRODUGEF\n0 Kol pn a doy 1s used fos genarol ution odvice AN\n: IT NPOP STANDA\ningredients : Organic Joggery Powder (EOR DOMEST\n: Scan to get\nLs Tt hn EATEN Cg FY 4\nORGANIC ooc y PO\nD AR\nror 100g” |% RDA Per Se\nJERE\n9060\nKilo Colorie, IU: International Un,\n4 NAT Not More Than, Keol:\nam, Min.. Minimum,\n@ MA the\nAllowonte (3% RDA) tells you how\n\"The % Recommended 0\nood contmbutes na daly dint\nmuch @ putnent |\nfi 0 SEV\na day Is used\nfor general nuthin advice\nANGQ PACK\n7,000 Ken! Energy\nJoggery Powder\nIngredients : Organic\nTn CATT\nget | am 4",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8906014888868-5",
+      "productName": "Organic Jaggery Powder",
+      "form": "flexible pouch",
+      "role": "mrp-pack-date",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8906014888868/5.jpg",
+      "expectedTokens": [
+        "mrp",
+        "packed",
+        "use",
+        "by",
+        "fssai",
+        "contact"
+      ],
+      "matchedTokens": [
+        "mrp",
+        "packed",
+        "use",
+        "by",
+        "fssai",
+        "contact"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1,
+      "confidence": 76,
+      "parsedSignals": 8,
+      "recognizedText": "[PANEL 1: 5.jpg]\n1745\nDOF\nunit see fire\niia ABAD!\nDat he | Opp.\n3 0 179 22131151, 992512 252 51\n30002 Solete Phone\nLIC. ND. 1072299901 Oriel\nwed Users)\n247, 252309\n™ yg WOOrsiep\nORAHRY delivery | A 4h\nBATC . of The SAS, rr A .\nHINGE BF JP 030726650745\nPACKED ON: 02/08/2026\naj 0) USP RS 0.1873\nMRP T - USPX:\n(Inclusive of all taxes)\n: For packing unit see first 2 letters of batch no.\nrd by: GULAB OIL AND FOOD (AHMEDABAD) PVT. LTD. (Registered Users)\nreliva Milk Compound, Nr. Dargah, Opp. Century Market,Ofs. Premdarwaja,\nKalupur, Ahmedabad-380002, Gujarat. Phone: 079 22131151, 9925125251\nfssai 1I0.N0.10722399001c]\nskd. by: GF: GULAB OIL & FOODS PVT. LTD (Registered Usersl\nPlot No.161/1, SIDC, Veraval (Shapar) 360024, Rt\nTa. Kotda (Sangani), Dist. Rajkot, Gujarat. Phone : 02827 254247, 252309\nfsa LIC. N0.10017021002708\nRS No 288\"Kadi Detroj Road, at Balasar, Ta. Kadi, Kadi,Mehsana, Gujarat - 3827\nfat’ IC. N0.10724999000301\nwe care about your feedback. Contact us - 92760 ON51 (Customer Care Excecutive)\nhi@truestoryorganics.com truestoryorganics.com\na , <P F WADE IN\nRy G9 2, INDIA\nBATCH\nGF JPO30\n26650745\nPACKED\n0270872026\n01-08-2027\nUSE BY:\n0.00 USP\n0.1879\nMRP X-US\nwad by: GULAB OIL AND F\nOOD (AHMEDABAD) PVT. LTD. (Registered Users)\nreliva Milt Compound, Nr. Dargah, Opp.\nCentury Market,0/s. Premdarwaja,\nKalupur, Ahmedabad -380002, Gujara\nt. Phone: 079 22131151, 9825125251\nssa’ 116.N0.107229990012!\npkd. by GF: GULAB OIL &\nFOODS PVT. LTD (Registered Users)\nPlot No.161/1, SIDC,\nVeraval (Shapar) 360024,\narat. Phone: 02827 254\nTa. Kotda (Sangani), Dist. Rajkot, Guj\nAD) PVT.LTD\n‘Registered Users)\nby: BL: GULAB OIL & FOODS (AHMEDAB\nKadi, Mehsana, Guja\nRS No 208%Kadi Detroj Road, at Balasar, Ta. Kadi,\ndback. Contact us - 92760 O51\n(Customer Care Excecutivel\nwe care about your fee\nhi@truestoryorg\nanics.com | truestoryorga\nMADE IN\nINDIA",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8904083301837-2",
+      "productName": "Cow Ghee",
+      "form": "curved jar",
+      "role": "nutrition",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8904083301837/2.jpg",
+      "expectedTokens": [
+        "nutritional",
+        "energy",
+        "protein",
+        "carbohydrate",
+        "total",
+        "fat"
+      ],
+      "matchedTokens": [
+        "nutritional",
+        "energy",
+        "protein",
+        "carbohydrate",
+        "total",
+        "fat"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1,
+      "confidence": 83,
+      "parsedSignals": 1,
+      "recognizedText": "[PANEL 1: 2.jpg]\nBN 198 servings per pack\nServing size is 1 Tsp. (4.6g)\nEnergy (kcal)\n898.2 iE\nTotal Fat (g)\n99.8\nSaturated Fat [g) <68.0\nMono unsaturated Fat (g) 28.6\nPoly unsaturated Fat (g) 32\n31 G1\nTrans Fat (g)\nCholesterol (mg)\n150.0\nCarbohydrate (g)\nTotal Sugars (g)\nAdded Sugars (g)\nProtein (g)\nSodium (mg)\n‘Recommended Dietary Allowance (RDA) per serve\nis calculated on the basis of 2000 kcal energy for\nan average adult,\n‘Average values\nata, PR\nAMOUNT PER 100g\" 463° %RDA*\nEnergy (kcal) 898.2 2.1%\n| Total Fat (g) 99.8 6.9%\nSN Mono unsaturated Fat [g) 286 | 13 | .\nPB Polyunsaturated Fat [g) 32] 01 -\nTrans Fat (g) <14 3.2%\nCholesterol (mg) 1500] 69 | -\nCarbohydrate(g) 00] 00 -\nTotal Sugars (g) 00] 00 | 3\nAdded Sugars(g) 00] 00 | 00%\n| Protein (g) 00 00 .\nSodium (mg) 60] 03 | 00%\nNUTRITIONAL INFORMATION (Approx)\nServing size is 1 Tsp\nAMOUNT PER 100g\"\n4.69\n898.2",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8906055442586-3",
+      "productName": "Organic Coconut Oil",
+      "form": "curved bottle",
+      "role": "nutrition",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8906055442586/3.jpg",
+      "expectedTokens": [
+        "nutrition",
+        "energy",
+        "total",
+        "fat",
+        "saturated",
+        "trans"
+      ],
+      "matchedTokens": [
+        "fat"
+      ],
+      "missingTokens": [
+        "nutrition",
+        "energy",
+        "total",
+        "saturated",
+        "trans"
+      ],
+      "tokenRecall": 0.167,
+      "confidence": 37,
+      "parsedSignals": 1,
+      "recognizedText": "[PANEL 1: 3.jpg]\nmentioned above or wr\nNUT\nN INFORMATION\nPER 100 g (Approx. values)\nr container 5 |\n% cup (100 g)\n899 Kcal\nSE. 8 BF 5 2 8\" 5 4s\nBE Tr ee Se Se Se See EE SE\na LH\n100g\nHER\nFat. . oe SB a hy\nturated Fat\n6.29\n126\nted Fat... ..\n-1.70\nCR SET EOE SRNR GRe SE SU UGE ERT JE RE\n0 mg\nEP 20 3 0% an\n...0mg\nCee The TR TE te ar\n\" A a H B: pT fir, a RAG {UE\nEESESR +1 AER AA Ce N\nEEE AR Ea Bs AE He a he S\nBeane gf LSE BA i BE SR ah :\nEF ore ee SE EAR My ERE SUL a a 1\nER CARN aril peiatmtiark Ei Bi aaa\nts BA EER AR\nrs CARE RT ay REGU EE :\nELE Sede Te a = i RAE FRE\nRr rT A TRH ATTIRE ETAT (SLRS 2 BE\n= E a he RR TA an a Seen\nA A ES a = HEIR TE ASE HE LAR LEAT :\nTI TE TE ET SE RE Ta :\n: Coe Sa SERRE BEER IG DRAB RA RR SES ERR\n> < Et 1b Teal aA BALES LRAT ARR REA Bat\nRes Foss ts ARR ET rT HE EA Lr AR I Be\ngras = RET oH ARES Aaa aks RAE ART\nPe [a a RIEU AREA HERA\nEu a 8 RT THEA TR A M T \\ (TR he dey os\nse bob ows UF AT SERRE O RASC : =.\n© Re Yoon TE EE EE\ni CV AC A sae SET 1 1 (LE el AE ER eS FE Se 5 0\nee Sar rae ER RU TEA Rt Shs g 1 .\nFiera Cs RRL AT TL Se\nA iin 1 4-1 88 AeA LALLA RE A ERTL AA TRA Tinta .\nis Ota Tr rE ees >= a ie ee 00 g\nEREE dint dh Ai cool i RE RE RE SE IRE SER RE BE 2 * :\n£75 Etc nen alt ridin Ea HRs a :\nTT LSE TE TE DIU HER TL PE ET aA SR Sg ee\nEAR NE Ae ER AREA NLP HT AH TT TE Te :\n[5252 ha og SHE ETRE ae) HARE BEE GORI he\nLea AAR RASA § KAN gs so 6 5 0 5 6 5 0» 0» so »\nign = Ra i ARMS Rhos th at Ee ARERR\n= a AT A A RR TA RE CE ER rE SE,\nRR Sy\nMoensuncah\nCHR a dota ate Ad dod de Bo doting ch od FUSER Se Te SS\nSHURE Fits! 1 . » g 3\n_ Polyunsaturated Fat / 4\n[5 tos iathord’ Ad dat 4 ed: TH YS x. LEE SRE ER EE NE RR\n5 IE a a A Rc ey\n1&2 nl A ELA Caer Cs a To Rat 4 Vs Vers 0 2 ald\nBE yr. ) R850 ARTA TREES 2 RUA RT TEC Se\nET re drat dbo dt oF 0 SE Bal ORE Be SR TRE BN BR BL RS GRR PE Sth ¥\nPAE ERED SPEAR Ass is Be (HS 2? 3\nRs, 3 HULA SEE re 1 m g\nrT ! . Sim 0\nOm meatus oR Ga og ED 20 5 0% 5 rR ENED\nets Fe ARATE Fe i ; 2 AERA 4 NG ; 3\nos ELT SE I rr WE ae: 3 i =\" y\naa i Hh se rs aa ca : .\nARES ent A ee A Ve ana a iy JAC det! kat i é\nACES\n00g (Ap\nprox. values)\ner 9.1\nper contain\nA AE\nZL L\nHAAS\nYosalt Lol\n30104\nRENEE 8-89-89\nai 5 wn\ndR. ..........8990\nBEG\nASS\naturated Fat... .....6.20\nA, 154\nes 174\n{00 EE EAE UE TEE TRE UE RE SE JOE RE BE RE\nLOE BNF ST TE TEE RE Ee Te Th EE NE RE\nLL. mg",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8906055442586-4",
+      "productName": "Organic Coconut Oil",
+      "form": "curved bottle",
+      "role": "barcode-pack-date",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8906055442586/4.jpg",
+      "expectedTokens": [
+        "product",
+        "india",
+        "organic",
+        "use",
+        "by",
+        "tampered"
+      ],
+      "matchedTokens": [
+        "product",
+        "india",
+        "by",
+        "tampered"
+      ],
+      "missingTokens": [
+        "organic",
+        "use"
+      ],
+      "tokenRecall": 0.667,
+      "confidence": 56,
+      "parsedSignals": 2,
+      "recognizedText": "[PANEL 1: 4.jpg]\nU2LU0VJ%)\nWWW. nid com |\nPRODUCT OF INDIA\n8906055442586\nFROM\nONE OIL\nT5230 C: 9109\nfo, ot Yt\nDO NOT\nFF 699. ais\nPURCHASE\nBOTTLEIF\n- 197000022\nTAMPERED WITH\n3s A ¢ AAT\nKEEP CITY\nEEE am\nagen ¢, +91 1230009 oN \\ A\nkf custo” - |\ni @ www.organictattva.com a» = \\\npove? Ns 10 For interesting knowledge bytes : |\n_aMATI. Follow us :\nales) @organictattva §] |\ncom Yo cop (1009) 3\n— go9keal PRODUCT OF INDIA®S,\na 529 y\n7g E\nHR mg i\nFE ..0m 4\niy op. FREE FROM Br\n\\ ENTS at 30 &, 910 J ARGEMONE OIL £2 £1\n533.00 NE\nAmE of NOT |\nes USPT 899. 0040 PURCHASE 5) BB\nin Ta? BOTTLEF =\n0. 07970000225 Fpeneowimm\nHOD Diy 21703725 —\nSE BY 30/03/27 —\n+91 12V 7200072\nK an custo\nWW orqanictattva.com\nct 0 \"gdress\nFor interesting knowledge bytes\nFollow us\n@organictattva\n(1009)\n899 Kcal\n899\n6.29\n1.79\n0mg\nTENTS at C: 9109\nF 699.0040\n0797000225\n24 113. i\nLf F BY °\n3 3/37\nFORE",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8901063142862-4",
+      "productName": "NutriChoice Digestive Zero",
+      "form": "flexible pouch",
+      "role": "manufacturer-fssai",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8901063142862/4.jpg",
+      "expectedTokens": [
+        "industries",
+        "fssai",
+        "feedback",
+        "lic"
+      ],
+      "matchedTokens": [
+        "industries",
+        "lic"
+      ],
+      "missingTokens": [
+        "fssai",
+        "feedback"
+      ],
+      "tokenRecall": 0.5,
+      "confidence": 46,
+      "parsedSignals": 1,
+      "recognizedText": "[PANEL 1: 4.jpg]\net cxeuk 4\n7-800-42544491-\n3 Industries Su) Prestige Shantint\n\\hitefield, Bangaiore- -560048, Karngia\nsathack@br itindia.com\nlic. No. 1007504300112\na 57\nho BGT Tal\nEX eC NR\n7'1-800-4254449/1. 9 NS\nMndustries Ld, Prestige Shan\nedhe ck@b india.coim\nBT PANO Oh\nDIGESTIVE\n+00 q pack\nWitefield, -560048, Karnak\n5 QJ\nANS",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8901063142862-5",
+      "productName": "NutriChoice Digestive Zero",
+      "form": "flexible pouch",
+      "role": "ingredients",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8901063142862/5.jpg",
+      "expectedTokens": [
+        "ingredients",
+        "wheat",
+        "flour",
+        "palm",
+        "milk",
+        "contains"
+      ],
+      "matchedTokens": [
+        "ingredients",
+        "wheat",
+        "flour",
+        "palm",
+        "milk",
+        "contains"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1,
+      "confidence": 67,
+      "parsedSignals": 1,
+      "recognizedText": "[PANEL 1: 5.jpg]\nANNA\nINGREDIENTS:\nWHEAT FLOUR (ATTA\nSWEETENERS [965(i) &\n(61%), REFINED PALM OIL,\nIi) AND 955], WHEAT BRAN (5.4%),\nSOLIDS, I0DISED\nRAISING AGENTS [503\nii) & 500(ii)], MALTODEXTRIN, MILK\n, EMULSIFIERS [322(1), 471 & 4722],\nMALT EXTRACT, NA\nRE IDENTICAL & ARTIFICIAL (MILK)\nFLAVOURING SUB\nTANCES, ANTIOXIDANT (307¢), DOUGH\nCONDITIONER (223\n) AND SPICE.\n{Numbers in brackets as per International Numbering System)\nCONTAINS WHEAT, MILK, SCY, BARLEY AND SULPHITE.\nNVITY\nTL rr MKT\nMs rh rr LP gla\nee ms Si Nv lie SR\nRear eS Er —\nWREDIER TS (ATTA BE a\nHEAT FLO MV (61%), REFINED PALM OIL, all\nSWEETENERS [965(j) & Hohe 955], WHEAT BRAN (5.4%),\n~ BRAISING AGENTS (503i) & 500(ji)}, MALTODEXTRIN, MILK\nSOLIDS, I0DISED SALT, EMULSIFIERS [322(i). 471 & 4772],\nMALT EXTRACT, NATURE IDENTICAL & ARTIFICIAL) 8\nFLAVOURING SUBSTANCES, ANTIOXIDANT (307¢), DOUGH\nCONDITIONER (223) AND SPICE.\nFa dad gr\nig [ Ri fe\nne VIN NR Tr\nSq i A ee\nf] Nw % wn 5, oS hy 2 Ee\nLrye X * be hk , ra Ny o\nare 8) IY; abEl. :\ngn SPN\n(= ng ae pe\ngw SK\nTE ty\nfa XH\nCOMTAINS WHEAT, MILK, SCY, BARLEY AND ca",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8901764082405-6",
+      "productName": "Kinley Packaged Drinking Water 1 L",
+      "form": "curved bottle",
+      "role": "curved-label-stress-case",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8901764082405/6.jpg",
+      "expectedTokens": [
+        "ingredients",
+        "treated",
+        "water",
+        "coca",
+        "fssai",
+        "consumer"
+      ],
+      "matchedTokens": [
+        "treated",
+        "water",
+        "coca",
+        "consumer"
+      ],
+      "missingTokens": [
+        "ingredients",
+        "fssai"
+      ],
+      "tokenRecall": 0.667,
+      "confidence": 65,
+      "parsedSignals": 1,
+      "recognizedText": "[PANEL 1: 6.jpg]\nFAR\nATER\n(ALC\n00 Iv\npill | Hal\n1172\n119\n11d\nOGREDIENTS: TREATED WATER, MINERALS fuser ONT:\nSEIN 05 no CALC {1.2* mg) AND SODIUM (01mg) S166\n<I BY SOUTH TLR CoPLTD, 165171 5:\n2 FUT INOL GROWTH CENTRE, NH7, GANGAIKONDAN VILLAGE 5\nEE or TALTADU-67362. Lic Ho. 10110420001 ceri\nTi A Ru COG EOLA BEVERAGE Hd - p—\neddy GOLF CRS RD, SEC-56. =i\nify OTS ont = 1\nCONSUMER RESP Comma gr [STORE INA COLA — ©\nLge SPRY, BUEE I ey\nAy w 3 . » o NER Ew : ww rr\nNGREDIENTS: TREATED WATER. MINERALS\nSALTS OF\n00NzE\nND SODIUM (0.1\" mg)\n1S 1464]\nMIGHESIUM (0.8* mg), CALCIUM (1.2* mo)\n‘NUDED QUANTITY PER 100 ml\nWGBY SOUTH INDIA BOTTLING Co.PVT.LTD., B162-170,\n2 | DIST. TAMILNADU-627352. Lic No. 1001104200001\nINDUSTAN COCA-COLA BEVERAGES PVT. LTD., C\n00s, BAANI ADDRES\n$1, GOLF CRS RD, SEC-56,\nBEST Be\n12201\nRYANA\nE MONTHS\nMANUFACTURE\n100124\nra OSUNER RESPONSE COORDINATOR AT:\nSTORE INA\nDRY\ncomCC",
+      "manualCorrectionsApplied": false
+    }
+  ]
+}

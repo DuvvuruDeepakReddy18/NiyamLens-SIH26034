@@ -6,3 +6,7 @@ __pycache__/
 .DS_Store
 qa-*.png
 .vercel/
+datasets/openfoodfacts-india/data_keys.gz
+datasets/openfoodfacts-india/india_products_*.csv
+datasets/openfoodfacts-india/candidates/
+datasets/openfoodfacts-india/real-labels/

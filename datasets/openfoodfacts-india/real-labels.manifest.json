@@ -1,0 +1,85 @@
+{
+  "name": "NiyamLens Open Food Facts India real-label pilot",
+  "version": "2026-09-03.2",
+  "purpose": "Reproducible OCR stress test on contributor photographs of real Indian-market packages. This is not a compliance ground-truth dataset.",
+  "source": {
+    "name": "Open Food Facts Images on AWS Open Data",
+    "catalogUrl": "https://registry.opendata.aws/openfoodfacts-images/",
+    "documentationUrl": "https://openfoodfacts.github.io/openfoodfacts-server/api/aws-images-dataset/",
+    "imageLicense": "CC BY-SA",
+    "databaseLicense": "ODbL 1.0"
+  },
+  "selectionPolicy": "Recent India records with readable declaration panels, plus one deliberately difficult curved-bottle stress case. Front-only marketing images are excluded from the scored cases.",
+  "products": [
+    {
+      "code": "8908009059383",
+      "productName": "Focaccia Sourdough Bread",
+      "brand": "The Health Factory",
+      "form": "flexible pouch",
+      "productUrl": "https://world.openfoodfacts.org/product/8908009059383",
+      "images": [
+        { "imageId": 2, "role": "ingredients", "benchmark": true, "expectedTokens": ["ingredients", "wheat", "flour", "yeast", "salt", "olive"] },
+        { "imageId": 3, "role": "nutrition", "benchmark": true, "expectedTokens": ["nutrition", "energy", "protein", "carbohydrate", "sugar", "sodium"] },
+        { "imageId": 4, "role": "fssai-license", "benchmark": false, "expectedTokens": ["fssai", "lic", "11522998000168"] }
+      ]
+    },
+    {
+      "code": "8906014888868",
+      "productName": "Organic Jaggery Powder",
+      "brand": "True Story",
+      "form": "flexible pouch",
+      "productUrl": "https://world.openfoodfacts.org/product/8906014888868",
+      "images": [
+        { "imageId": 2, "role": "nutrition", "benchmark": false, "expectedTokens": ["nutritional", "energy", "carbohydrates", "protein", "sugars"] },
+        { "imageId": 3, "role": "nutrition-barcode", "benchmark": true, "expectedTokens": ["nutrition", "energy", "carbohydrate", "sugar", "protein", "sodium"] },
+        { "imageId": 5, "role": "mrp-pack-date", "benchmark": true, "expectedTokens": ["mrp", "packed", "use", "by", "fssai", "contact"] }
+      ]
+    },
+    {
+      "code": "8904083301837",
+      "productName": "Cow Ghee",
+      "brand": "Milky Mist",
+      "form": "curved jar",
+      "productUrl": "https://world.openfoodfacts.org/product/8904083301837",
+      "images": [
+        { "imageId": 1, "role": "front", "benchmark": false, "expectedTokens": ["milky", "mist", "cow", "ghee"] },
+        { "imageId": 2, "role": "nutrition", "benchmark": true, "expectedTokens": ["nutritional", "energy", "protein", "carbohydrate", "total", "fat"] },
+        { "imageId": 3, "role": "full-curved-label", "benchmark": false, "expectedTokens": ["milky", "mist", "ghee", "nutrition"] }
+      ]
+    },
+    {
+      "code": "8906055442586",
+      "productName": "Organic Coconut Oil",
+      "brand": "Organic Tattva",
+      "form": "curved bottle",
+      "productUrl": "https://world.openfoodfacts.org/product/8906055442586",
+      "images": [
+        { "imageId": 2, "role": "ingredients-net-contents", "benchmark": false, "expectedTokens": ["ingredients", "organic", "coconut", "oil", "net", "contents"] },
+        { "imageId": 3, "role": "nutrition", "benchmark": true, "expectedTokens": ["nutrition", "energy", "total", "fat", "saturated", "trans"] },
+        { "imageId": 4, "role": "barcode-pack-date", "benchmark": true, "expectedTokens": ["product", "india", "organic", "use", "by", "tampered"] }
+      ]
+    },
+    {
+      "code": "8901063142862",
+      "productName": "NutriChoice Digestive Zero",
+      "brand": "Britannia",
+      "form": "flexible pouch",
+      "productUrl": "https://world.openfoodfacts.org/product/8901063142862",
+      "images": [
+        { "imageId": 2, "role": "ingredients-rotated-hard-case", "benchmark": false, "rotation": 90, "expectedTokens": ["ingredients", "wheat", "flour", "edible", "vegetable"] },
+        { "imageId": 4, "role": "manufacturer-fssai", "benchmark": true, "expectedTokens": ["industries", "fssai", "feedback", "lic"] },
+        { "imageId": 5, "role": "ingredients", "benchmark": true, "expectedTokens": ["ingredients", "wheat", "flour", "palm", "milk", "contains"] }
+      ]
+    },
+    {
+      "code": "8901764082405",
+      "productName": "Kinley Packaged Drinking Water 1 L",
+      "brand": "Kinley",
+      "form": "curved bottle",
+      "productUrl": "https://world.openfoodfacts.org/product/8901764082405",
+      "images": [
+        { "imageId": 6, "role": "curved-label-stress-case", "benchmark": true, "expectedTokens": ["ingredients", "treated", "water", "coca", "fssai", "consumer"] }
+      ]
+    }
+  ]
+}

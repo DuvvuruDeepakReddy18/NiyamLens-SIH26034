@@ -61,6 +61,9 @@ npm test
 npm run build
 npm run qa:ui
 npm run qa:ocr
+npm run dataset:real:fetch
+npm run qa:ocr:real
+npm run qa:ocr:google-baseline
 npm run qa:pwa
 ```
 
@@ -71,8 +74,9 @@ Current verified baseline:
 - Full browser workflow passing with zero recorded console/page errors.
 - Production service-worker reload and OCR passing with the browser fully offline.
 - Exact sample-label OCR regression passing: all 12 expected lines recovered with no manual correction, plus 10 structured signals and 10 mapped evidence regions.
+- Real-label pilot: 75.9% token recall across 10 scored declaration photos from six Indian-market products, with no manual correction. The source dataset's precomputed Google Vision annotations score 96.6% on the same tokens and are retained only as a reference baseline.
 
-The OCR QA blocks external network requests and loads the bundled engine assets. The UI labels Tesseract's score as **engine confidence**, not accuracy. The exact-text result is still a single regression scene, **not field accuracy**. Import real labelled records with `expectedValues` in Validation Lab to calculate dataset-specific metrics.
+The OCR QA loads the bundled engine assets. The UI labels Tesseract's score as **engine confidence**, not accuracy. Neither the exact-text fixture nor the small real-label pilot establishes field or compliance accuracy. The real pilot intentionally preserves failed tokens and a curved-label stress case; see [dataset protocol](datasets/openfoodfacts-india/README.md) and the committed reports in `reports/`.
 
 ## Deployment
 
