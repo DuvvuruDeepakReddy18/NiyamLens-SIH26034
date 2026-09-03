@@ -17,6 +17,7 @@ This is the evidence record for the SIH26034 college-round prototype release. It
 | Precomputed Google Vision comparison | 93.7% token recall on the same frozen cases |
 | Manual transcription injected into benchmark | No |
 | Independent Chrome render check | Passed; no NiyamLens-origin console errors |
+| Public Vercel deployment | Passed at <https://niyamlens-sih26034.vercel.app/>; HTTP 200 and exact local/remote bundle fingerprint match |
 
 The real-label set is an OCR stress benchmark, not a compliance ground-truth dataset. Images are contributor photographs sourced through Open Food Facts. Front-only marketing images are excluded from the scored set; difficult declaration panels remain included.
 

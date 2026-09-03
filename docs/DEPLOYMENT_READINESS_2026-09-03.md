@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The current local source is buildable and deployable to Vercel. The public alias has not been updated with this change set yet. Local/deep OCR needs no secret; connected OCR remains disabled until the deployment has a server-side Google Vision key.
+The verified release is live at <https://niyamlens-sih26034.vercel.app/>. The public page serves the same production JavaScript fingerprint as the local build (`assets/index-CDM7N41v.js`). Local/deep OCR needs no secret; connected OCR remains intentionally disabled until the deployment has a server-side Google Vision key.
 
 ## Verified release evidence
 
@@ -17,7 +17,7 @@ The current local source is buildable and deployable to Vercel. The public alias
 | Real-photo standard OCR | MEASURED | 61.1% expected-token recall, 60.7% average reliability, 61.4% average engine confidence |
 | Real-photo deep OCR | MEASURED | 67.5% expected-token recall on the same cases; +6.4 percentage points |
 | Connected live provider | NOT RUN | Requires the team's own billing-enabled Google Cloud project and secret |
-| Public deployment of this revision | PENDING | Current changes are local until explicitly pushed/deployed |
+| Public deployment of this revision | PASS | Vercel production alias returned HTTP 200, served the matching bundle fingerprint and exposed rule pack `LMPC-RC-2026.09-RC4` |
 
 The real-photo pilot has 17 scored declaration-panel photos from ten products. It measures token recovery under deliberately difficult capture conditions and does not establish field accuracy, legal completeness or enforcement-grade performance.
 
