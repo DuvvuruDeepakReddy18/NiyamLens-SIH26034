@@ -1,6 +1,6 @@
 # Open Food Facts India real-label pilot
 
-This folder defines a reproducible field-photo OCR pilot for NiyamLens. It deliberately includes flat cartons, flexible pouches, a curved bottle label, glare, wrinkles, rotation and a retail sticker.
+This folder defines a reproducible field-photo OCR pilot for NiyamLens. It deliberately includes flat cartons, flexible pouches, a curved bottle label, glare, wrinkles, rotation, soft focus, multilingual printing and a retail sticker. Version 2026-09-03.3 contains 17 scored declaration-panel photographs from 10 products, plus unscored front/marketing stress images.
 
 ## What is committed
 
@@ -20,7 +20,7 @@ npm run qa:ocr:google-baseline
 
 ## Interpretation
 
-The expected tokens are human-annotated before running OCR. The QA script uploads each real photograph through the same UI a judge uses, clicks **Run browser OCR**, and reads the resulting text without editing the textarea. Token recall is therefore reproducible evidence of OCR behavior, not a claim of legal-compliance accuracy.
+The expected tokens are visually transcribed from the photographs before running OCR. The QA script uploads each real photograph through the same UI a judge uses, clicks **Run browser OCR**, and reads the resulting text without editing the textarea. Token recall is therefore reproducible evidence of OCR behavior, not a claim of legal-compliance accuracy.
 
 The Google Vision command scores the precomputed annotation files distributed with the source dataset as a reference ceiling. Those annotations are never loaded by the NiyamLens app and are not a fallback for unseen labels.
 

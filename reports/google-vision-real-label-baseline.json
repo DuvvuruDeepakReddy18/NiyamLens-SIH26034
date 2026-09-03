@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-09-03T04:43:29.347Z",
+  "generatedAt": "2026-09-03T06:43:04.125Z",
   "dataset": "NiyamLens Open Food Facts India real-label pilot",
-  "datasetVersion": "2026-09-03.2",
+  "datasetVersion": "2026-09-03.3",
   "engine": "Google Cloud Vision annotations distributed with the Open Food Facts AWS image dataset",
-  "cases": 10,
-  "aggregateTokenRecall": 0.966,
+  "cases": 17,
+  "aggregateTokenRecall": 0.937,
   "note": "Reference baseline only. NiyamLens does not read these annotations during OCR and no Google API key is bundled in the app.",
   "results": [
     {
@@ -224,6 +224,216 @@
         "fssai"
       ],
       "tokenRecall": 0.833
+    },
+    {
+      "id": "8901058891430-2",
+      "productName": "Maggi 2-Minute Noodles Family Delight",
+      "expectedTokens": [
+        "instant",
+        "noodles",
+        "seasoning",
+        "refined",
+        "wheat",
+        "flour",
+        "palm",
+        "iodized",
+        "salt",
+        "gluten"
+      ],
+      "matchedTokens": [
+        "instant",
+        "noodles",
+        "seasoning",
+        "refined",
+        "wheat",
+        "flour",
+        "palm",
+        "salt",
+        "gluten"
+      ],
+      "missingTokens": [
+        "iodized"
+      ],
+      "tokenRecall": 0.9
+    },
+    {
+      "id": "8901058891430-9",
+      "productName": "Maggi 2-Minute Noodles Family Delight",
+      "expectedTokens": [
+        "nutritional",
+        "information",
+        "energy",
+        "protein",
+        "carbohydrate",
+        "sugars",
+        "fibre",
+        "fat",
+        "sodium"
+      ],
+      "matchedTokens": [
+        "information",
+        "energy",
+        "protein",
+        "carbohydrate",
+        "fat",
+        "sodium"
+      ],
+      "missingTokens": [
+        "nutritional",
+        "sugars",
+        "fibre"
+      ],
+      "tokenRecall": 0.667
+    },
+    {
+      "id": "8901063017252-2",
+      "productName": "Britannia 50-50 Maska Chaska",
+      "expectedTokens": [
+        "nutrition",
+        "information",
+        "energy",
+        "protein",
+        "carbohydrate",
+        "sugars",
+        "fat",
+        "cholesterol"
+      ],
+      "matchedTokens": [
+        "nutrition",
+        "information",
+        "energy",
+        "protein",
+        "sugars",
+        "fat",
+        "cholesterol"
+      ],
+      "missingTokens": [
+        "carbohydrate"
+      ],
+      "tokenRecall": 0.875
+    },
+    {
+      "id": "8901063017252-20",
+      "productName": "Britannia 50-50 Maska Chaska",
+      "expectedTokens": [
+        "ingredients",
+        "refined",
+        "wheat",
+        "flour",
+        "sugar",
+        "milk",
+        "iodised",
+        "consumer",
+        "care",
+        "britannia"
+      ],
+      "matchedTokens": [
+        "ingredients",
+        "refined",
+        "wheat",
+        "flour",
+        "sugar",
+        "milk",
+        "iodised",
+        "consumer",
+        "care",
+        "britannia"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1
+    },
+    {
+      "id": "8901262260121-6",
+      "productName": "Amul Taaza Milky Milk",
+      "expectedTokens": [
+        "net",
+        "content",
+        "500",
+        "ml",
+        "mrp",
+        "inclusive",
+        "taxes",
+        "fssai",
+        "refrigeration",
+        "use"
+      ],
+      "matchedTokens": [
+        "net",
+        "content",
+        "500",
+        "ml",
+        "mrp",
+        "inclusive",
+        "taxes",
+        "refrigeration",
+        "use"
+      ],
+      "missingTokens": [
+        "fssai"
+      ],
+      "tokenRecall": 0.9
+    },
+    {
+      "id": "8901262260121-10",
+      "productName": "Amul Taaza Milky Milk",
+      "expectedTokens": [
+        "nutritional",
+        "information",
+        "energy",
+        "fat",
+        "carbohydrate",
+        "protein",
+        "sodium",
+        "net",
+        "content",
+        "refrigerated"
+      ],
+      "matchedTokens": [
+        "nutritional",
+        "information",
+        "energy",
+        "fat",
+        "carbohydrate",
+        "protein",
+        "sodium",
+        "net",
+        "content",
+        "refrigerated"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1
+    },
+    {
+      "id": "8902579001360-2",
+      "productName": "Frooti Mango Drink",
+      "expectedTokens": [
+        "thermally",
+        "processed",
+        "fruit",
+        "drink",
+        "ingredients",
+        "water",
+        "sugar",
+        "mango",
+        "pulp",
+        "energy",
+        "carbohydrate"
+      ],
+      "matchedTokens": [
+        "thermally",
+        "processed",
+        "fruit",
+        "drink",
+        "ingredients",
+        "water",
+        "sugar",
+        "mango",
+        "pulp",
+        "energy",
+        "carbohydrate"
+      ],
+      "missingTokens": [],
+      "tokenRecall": 1
     }
   ]
 }

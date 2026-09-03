@@ -1,4 +1,4 @@
-export const RULE_MATRIX_VERSION = 'LMPC-MATRIX-2026.09-RC3'
+export const RULE_MATRIX_VERSION = 'LMPC-MATRIX-2026.09-RC4'
 
 export const RULE_MATRIX = [
   { id: 'R6-GENERIC', authority: 'Rule 6', title: 'Common / generic name', scope: 'General retail packages', automation: 'OCR region + officer correction', approval: 'source-encoded', source: 'DCA consolidated rules' },
@@ -16,6 +16,8 @@ export const RULE_MATRIX = [
   { id: 'R26-FASTFOOD', authority: 'Rule 26(b)', title: 'Restaurant / hotel fast-food packages', scope: 'Selected exemption profile', automation: 'Officer classification; never OCR-only', approval: 'source-encoded', source: 'DCA consolidated rules' },
   { id: 'R26-DRUG', authority: 'Rule 26(c)', title: 'Specified drug formulations', scope: 'Scheduled / non-scheduled formulations in referenced order', automation: 'Specialist classification required', approval: 'requires-specialist-review', source: 'DCA consolidated rules' },
   { id: 'R2-R7-MEDICAL', authority: 'G.S.R. 778(E), 2025', title: 'Medical-device declaration and typography profile', scope: 'Packages containing medical devices', automation: 'Defer declaration, height and width checks to Medical Devices Rules, 2017; mandatory specialist review', approval: 'requires-specialist-review', source: 'DCA 2025 amendment' },
+  { id: 'R6-10A-ECOM', authority: 'G.S.R. 312(E), 2026', title: 'Imported-product country-of-origin filter', scope: 'E-commerce product listings; effective 1 July 2027', automation: 'Tracked as an integration requirement; excluded from physical-package verdicts', approval: 'source-encoded', source: 'DCA Second Amendment Rules, 2026' },
+  { id: 'R4-AEO-IMPORT', authority: 'G.S.R. 418(E), 2026', title: 'AEO bonded-warehouse declarations', scope: 'AEO Tier-2 / Tier-3 imported packages', automation: 'Workflow context only; retail packages must carry required declarations before leaving the bonded warehouse', approval: 'source-encoded', source: 'e-Gazette Third Amendment Rules, 2026' },
 ]
 
 export const APPROVAL_GATES = [

@@ -6,7 +6,7 @@
 
 ## Context
 
-NiyamLens must work in an unreliable-network inspection setting while also surviving a judge's unseen-package test. The bundled Tesseract path preserves privacy and remains available offline, but the current 10-image Indian-market pilot recovered 75.9% of pre-labelled tokens. Precomputed Google Vision annotations supplied with the same Open Food Facts images recovered 96.6%. Those figures are pilot token-recall measurements, not field or legal-decision accuracy.
+NiyamLens must work in an unreliable-network inspection setting while also surviving a judge's unseen-package test. The bundled Tesseract path preserves privacy and remains available offline, but the current 17-image declaration-panel pilot across ten Indian-market products recovered 61.1% of pre-labelled tokens in standard mode and 67.5% in deep mode. Precomputed Google Vision annotations supplied with the same Open Food Facts images recovered 93.7%. Those figures are pilot token-recall measurements, not field or legal-decision accuracy.
 
 The system therefore needs a stronger recognition option without silently uploading evidence or allowing a probabilistic model to issue a legal verdict.
 

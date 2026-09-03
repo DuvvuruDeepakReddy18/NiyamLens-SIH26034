@@ -1,6 +1,6 @@
 {
   "name": "NiyamLens Open Food Facts India real-label pilot",
-  "version": "2026-09-03.2",
+  "version": "2026-09-03.3",
   "purpose": "Reproducible OCR stress test on contributor photographs of real Indian-market packages. This is not a compliance ground-truth dataset.",
   "source": {
     "name": "Open Food Facts Images on AWS Open Data",
@@ -79,6 +79,54 @@
       "productUrl": "https://world.openfoodfacts.org/product/8901764082405",
       "images": [
         { "imageId": 6, "role": "curved-label-stress-case", "benchmark": true, "expectedTokens": ["ingredients", "treated", "water", "coca", "fssai", "consumer"] }
+      ]
+    },
+    {
+      "code": "8901058891430",
+      "productName": "Maggi 2-Minute Noodles Family Delight",
+      "brand": "Maggi",
+      "form": "flexible pouch",
+      "productUrl": "https://world.openfoodfacts.org/product/8901058891430",
+      "images": [
+        { "imageId": 1, "role": "front-wrinkled", "benchmark": false, "expectedTokens": ["maggi", "minute", "noodles", "family", "delight", "iron"] },
+        { "imageId": 2, "role": "ingredients-glare", "benchmark": true, "expectedTokens": ["instant", "noodles", "seasoning", "refined", "wheat", "flour", "palm", "iodized", "salt", "gluten"] },
+        { "imageId": 9, "role": "nutrition-rotated", "benchmark": true, "rotation": 270, "expectedTokens": ["nutritional", "information", "energy", "protein", "carbohydrate", "sugars", "fibre", "fat", "sodium"] }
+      ]
+    },
+    {
+      "code": "8901063017252",
+      "productName": "Britannia 50-50 Maska Chaska",
+      "brand": "Britannia",
+      "form": "flexible pouch",
+      "productUrl": "https://world.openfoodfacts.org/product/8901063017252",
+      "images": [
+        { "imageId": 2, "role": "nutrition-soft-focus", "benchmark": true, "expectedTokens": ["nutrition", "information", "energy", "protein", "carbohydrate", "sugars", "fat", "cholesterol"] },
+        { "imageId": 6, "role": "front", "benchmark": false, "expectedTokens": ["britannia", "maska", "chaska", "biscuits"] },
+        { "imageId": 20, "role": "ingredients-consumer-care", "benchmark": true, "expectedTokens": ["ingredients", "refined", "wheat", "flour", "sugar", "milk", "iodised", "consumer", "care", "britannia"] }
+      ]
+    },
+    {
+      "code": "8901262260121",
+      "productName": "Amul Taaza Milky Milk",
+      "brand": "Amul",
+      "form": "flexible pouch",
+      "productUrl": "https://world.openfoodfacts.org/product/8901262260121",
+      "images": [
+        { "imageId": 6, "role": "mrp-net-quantity-fssai", "benchmark": true, "expectedTokens": ["net", "content", "500", "ml", "mrp", "inclusive", "taxes", "fssai", "refrigeration", "use"] },
+        { "imageId": 10, "role": "nutrition-consumer-care", "benchmark": true, "expectedTokens": ["nutritional", "information", "energy", "fat", "carbohydrate", "protein", "sodium", "net", "content", "refrigerated"] },
+        { "imageId": 15, "role": "front-multilingual", "benchmark": false, "expectedTokens": ["amul", "taaza", "milky", "milk", "pasteurised", "homogenised", "toned", "international", "cooperatives"] }
+      ]
+    },
+    {
+      "code": "8902579001360",
+      "productName": "Frooti Mango Drink",
+      "brand": "Parle Agro",
+      "form": "carton",
+      "productUrl": "https://world.openfoodfacts.org/product/8902579001360",
+      "images": [
+        { "imageId": 1, "role": "front-rotated", "benchmark": false, "rotation": 90, "expectedTokens": ["frooti", "mango", "drink", "since", "parle", "agro"] },
+        { "imageId": 2, "role": "ingredients-nutrition", "benchmark": true, "expectedTokens": ["thermally", "processed", "fruit", "drink", "ingredients", "water", "sugar", "mango", "pulp", "energy", "carbohydrate"] },
+        { "imageId": 14, "role": "retail-sticker-occlusion", "benchmark": false, "rotation": 90, "expectedTokens": ["frooti", "mango", "drink", "parle", "agro", "since"] }
       ]
     }
   ]

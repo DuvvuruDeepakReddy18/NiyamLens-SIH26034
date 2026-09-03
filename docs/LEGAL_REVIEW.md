@@ -8,7 +8,9 @@ This document is an engineering compliance aid, not legal advice. It records wha
 - [Department of Consumer Affairs, current Legal Metrology Acts and Rules index](https://consumeraffairs.gov.in/pages/legal-metrology-act), including the separately published 2025 and 2026 amendments.
 - [Department of Consumer Affairs, Legal Metrology overview](https://consumeraffairs.gov.in/pages/legal-metrology-overview).
 - [Department of Consumer Affairs, Packaged Commodities FAQ](https://consumeraffairs.gov.in/public/upload/admin/cmsfiles/whatsnews/FAQs_on_Packaged_Commodities%2C_Rules_2011_whatsnews.pdf).
-- Press Information Bureau summary of the Legal Metrology (Packaged Commodities) Second (Amendment) Rules, 2025 for pan masala.
+- [Department of Consumer Affairs, G.S.R. 881(E), 2025](https://consumeraffairs.gov.in/public/upload/files/2nd%20PCR%20Pan%20Masala_1764736734.pdf), adding the pan masala carve-out to Rule 26(a) with effect from 1 February 2026.
+- [Department of Consumer Affairs, Legal Metrology (Packaged Commodities) Second Amendment Rules, 2026](https://consumeraffairs.gov.in/public/upload/files/2026.4.27%20PCR%202nd%20COO%20from%201.7.2027_1777348487.pdf), which substitutes Rule 6(10A) with effect from 1 July 2027.
+- [e-Gazette, Legal Metrology (Packaged Commodities) Third Amendment Rules, 2026](https://egazette.gov.in/WriteReadData/2026/273053.pdf), covering AEO Tier-2/Tier-3 bonded warehouses and Rule 27 registration details.
 
 The in-app Rules Library links the source URLs and exposes the active rule-pack ID.
 
@@ -28,10 +30,14 @@ The in-app Rules Library links the source URLs and exposes the active rule-pack 
 | Restaurant/hotel fast food | Officer-selected exemption profile | Classification policy pending |
 | Scheduled/non-scheduled formulations | Officer-selected exemption; specialist review marker | Specialist sign-off pending |
 | Medical devices declared as drugs | No automatic formulation/small-package exemption; manual specialist review | Specialist sign-off pending |
+| E-commerce imported-product filter | Recorded as a future integration requirement effective 1 July 2027; not evaluated from a physical label photograph | Source encoded; outside current product scope |
+| AEO Tier-2/Tier-3 bonded warehouses | Records that declarations may be made in the bonded warehouse but must be complete before retail packages leave it | Source encoded; importer workflow is outside current product scope |
 
 ## Deliberate correction to earlier working assumptions
 
 The historic proviso requiring MRP and net quantity on packages from 10–20 g/ml was omitted by G.S.R. 784(E) in 2011. It is therefore not encoded as a current rule. The later Rule 26(a) proviso states that clause (a) is not applicable to tobacco and tobacco products, so the prototype does not grant those products the ≤10 g/10 ml exemption. The separate 2025 change targets pan masala. These interpretations must still be confirmed against the amendment-complete text before enforcement deployment.
+
+The first 2026 amendment created a Rule 6(10A) e-commerce country-of-origin filter with a proposed 1 July 2026 commencement. G.S.R. 312(E), dated 27 April 2026, substituted that provision and moved commencement to 1 July 2027. It is therefore shown as a future e-commerce integration requirement and does not affect the present physical-label verdict. G.S.R. 418(E), dated 29 May 2026, permits mandatory declarations to be made at AEO Tier-2/Tier-3 bonded warehouses but requires complete declarations before retail packages leave the warehouse; it is recorded as importer-workflow context rather than a retail-label exemption.
 
 ## Approval gates
 

@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-09-03T05:12:45.925Z",
+  "generatedAt": "2026-09-03T06:42:55.393Z",
   "appUrl": "http://127.0.0.1:5173/",
   "dataset": "NiyamLens Open Food Facts India real-label pilot",
-  "datasetVersion": "2026-09-03.2",
+  "datasetVersion": "2026-09-03.3",
   "scanMode": "deep",
-  "cases": 10,
-  "products": 6,
-  "aggregateTokenRecall": 0.793,
-  "averageReliability": 64.9,
-  "averageEngineConfidence": 65.4,
-  "totalParsedSignals": 18,
+  "cases": 17,
+  "products": 10,
+  "aggregateTokenRecall": 0.675,
+  "averageReliability": 60.7,
+  "averageEngineConfidence": 61.4,
+  "totalParsedSignals": 28,
   "manualCorrectionsApplied": false,
   "note": "Expected tokens were human-annotated before the run. Recognized text is the unedited browser OCR output. This pilot measures OCR token recovery only; it does not establish field accuracy or legal compliance accuracy.",
-  "ocrDiagnosticCount": 35,
+  "ocrDiagnosticCount": 43,
   "errors": [],
   "results": [
     {
@@ -314,6 +314,275 @@
       "engineConfidence": 65,
       "parsedSignals": 1,
       "recognizedText": "[PANEL 1: 6.jpg]\nFAR\nATER\n(ALC\n00 Iv\npill | Hal\n1172\n119\n11d\nOGREDIENTS: TREATED WATER, MINERALS fuser ONT:\nSEIN 05 no CALC {1.2* mg) AND SODIUM (01mg) S166\n<I BY SOUTH TLR CoPLTD, 165171 5:\n2 FUT INOL GROWTH CENTRE, NH7, GANGAIKONDAN VILLAGE 5\nEE or TALTADU-67362. Lic Ho. 10110420001 ceri\nTi A Ru COG EOLA BEVERAGE Hd - p—\neddy GOLF CRS RD, SEC-56. =i\nify OTS ont = 1\nCONSUMER RESP Comma gr [STORE INA COLA — ©\nLge SPRY, BUEE I ey\nAy w 3 . » o NER Ew : ww rr\nNGREDIENTS: TREATED WATER. MINERALS\nSALTS OF\n00NzE\nND SODIUM (0.1\" mg)\n1S 1464]\nMAGNESIUM (0.8* mg), CALCIUM (1.2* ma) AN\n‘NUDED QUANTITY PER 100 ml\nWGBY SOUTH INDIA BOTTLING Co.PVT.LTD., B162-170,\n2 | DIST. TAMILNADU-627352. Lic No. 1001104200001\nINDUSTAN COCA-COLA BEVERAGES PVT. LTD., C\n00s, BAANI ADDRES\n$1, GOLF CRS RD, SEC-56,\nBEST Be\n12201\nRYANA\nE MONTHS\nMANUFACTURE\n100124\nra OSUNER RESPONSE COORDINATOR AT:\nSTORE INA\nDRY\ncomCC\n2 SKATINOL. GROWTH CENTRE, NH7. GANGAIKONDA!\nz AULVEL| DIST, TAMILNADU-627352. Lic No. 100\nTri BY HINDUSTAN COCA-COLA BEVERAGES\n< 1 SAANI ADDRESS 1, GOLF CRS RD, SE\npk 2201, HARYANA\nTi pee URE\" —\nNERALS (SALTS OF\n2\" mg) it SODIUM (01mg) [S164\n11D, B163:170 ! If\nANGAIKONDAN VILLAGE J\n. Lic No. 0011042000007 510008477\nBEVERAGES IL EME\nF CRS RD, SEC- =\nb 3 SURUGRAI Til WIIeVY hy VL! VIlV ny, ve\n| M-1220\nIES Cindishole\nlj ndiahelplne@coca-col. com\nSEAS BY Ase\nTTT\ny J (RE - x\nLe, 3 : et 3\nFEY J VOWEL 5 4\nESET sal <\nDida 3 ¢ | WEL\nd a a . HS F yn Thil gan\n11 : ) [] ] 4 we. / od &) 3 er \"8 FE\npy A \\ A 5 ) : 4 { 3 1 . I J é Fr\nNTE EN > J 3% 3 ih f LA Bde fen ~ pe i\nIm - Ng) La ( j ® 9 R g 9 i i | ? i Baa ty g ~ 8\n1 gt 4 8 a 25 - FA mE < po\nLd “ Sagpiiboadgpispn MPS er\np . BS \\ rT Sia a =\nFh SA qed Sa BRIT Fs be OR\nss HINELE | - - Ji\nes Bhd : Pr.\nf Hani Ts | : Tad i oR ail Ee\nDid ae 5 ENE RENE H 8. & jl - i i Tae\nre rR AT Er 73 a 2 © 4 f 1 2 3 v . ‘ g\n¢ : Ee Wy pe i: g\n25 Ane . f % 4\non iain i\nrab DIS | i oF\n5 fi\ni Sa = adi pr\n=. irs sas a & ?\na —— ERTL To\n! oe et Sa",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8901058891430-2",
+      "productName": "Maggi 2-Minute Noodles Family Delight",
+      "form": "flexible pouch",
+      "role": "ingredients-glare",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8901058891430/2.jpg",
+      "expectedTokens": [
+        "instant",
+        "noodles",
+        "seasoning",
+        "refined",
+        "wheat",
+        "flour",
+        "palm",
+        "iodized",
+        "salt",
+        "gluten"
+      ],
+      "matchedTokens": [
+        "noodles",
+        "seasoning",
+        "refined",
+        "wheat",
+        "flour",
+        "palm",
+        "salt",
+        "gluten"
+      ],
+      "missingTokens": [
+        "instant",
+        "iodized"
+      ],
+      "tokenRecall": 0.8,
+      "reliability": 64,
+      "engineConfidence": 65,
+      "parsedSignals": 1,
+      "recognizedText": "[PANEL 1: 2.jpg]\nodles with Seaso\nbe or § Re\n), Palm Oil, lodized Salt, Wheat\nators Bld & 500 (7) and\nMasalz *7;\nUt TO\n, Refined Wheat\nics (13. 1%) — Orion\nPowder, Starch, Pain\nSalt, Thickener (508), Aci\nRegulators (330 &\n1, Flavour\nWheat And\nEnhancer (635), Colour (150d)\nContain le\n1stant Noodles with Seasoning\nNGREDIENT 5: |\nTy Refined Wheat Flour (Maida), Palm Oil, lodized Salt, Wheat V\nate, Tc ers (508 & 412), Acidity Regulators (S01) & 500 (}) and N\nsumectant 451). :\nMasala “Tastemaker®: Hydrolysed Groundnut Protei®, Refined Wheat\nPo Lagi Spices (13.1%), Sugar, Onion Powe Starch Pal\nTe Salt, Thickener (508), Acidity Regulators (330 & |\nan pr FBO Ebancer (63) Color (1500) yz?\nWheat Ang Ny ¢ 5 4\nCota, Wk so An Soy A\nhOKEDIEN]\nMoodie. © Refined Wheat |\nFlour (Maida), Palm Oil, lodized Salt Wheat N\nten, Tic: ners (508 & I) Acidity Regulators (501(i\n)& 500 1) and\nMasal “Tstemakere: ydrolysed Groundnut pr\notei®, Refined Wheat F\nSpices (13.1%), Sugar, Onion Powder,\nOnin Wheat And\nay Contain\nMilk, Mustard, Date And Soy,\nhOKEDIEN] LN\nNoodle. © Refined Wheat Flour Maida)\nSten, Thc. ners (508 & 412), Aciity f\nMasalz “Tastemaker®: Hydrolysed Gro\n- C EETRIET\njith Seasoning™\n#12) Acidity Regulators (5011) & 500) and.\ndrolysed Groundnut Protei, Refined Wheat F\nARIRCLIRR RI 1 11).\nPe al Mixed Spices (13.1%), Suc\n4 r- > Salt, Thickener\nOats ry Ho hi (635), C\nLOM oar se ang Soy\n(13.1%), Sugar, Onion Powder, Starch, Palm \\\nancer (635), Colour (150d) and Wheat Gluten.\nOtc Ang Go A",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8901058891430-9",
+      "productName": "Maggi 2-Minute Noodles Family Delight",
+      "form": "flexible pouch",
+      "role": "nutrition-rotated",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8901058891430/9.jpg",
+      "expectedTokens": [
+        "nutritional",
+        "information",
+        "energy",
+        "protein",
+        "carbohydrate",
+        "sugars",
+        "fibre",
+        "fat",
+        "sodium"
+      ],
+      "matchedTokens": [
+        "information",
+        "sugars",
+        "fat"
+      ],
+      "missingTokens": [
+        "nutritional",
+        "energy",
+        "protein",
+        "carbohydrate",
+        "fibre",
+        "sodium"
+      ],
+      "tokenRecall": 0.333,
+      "reliability": 53,
+      "engineConfidence": 51,
+      "parsedSignals": 1,
+      "recognizedText": "[PANEL 1: 9.jpg]\n2 serve is Tg\nNUTRI INFORM\nPer serve|% G04’ Pr\nrated Fat not mors | 8.2\nmorethany | 0.13\nEr 5\nWere” 1\nBe. cdalinge Na Anjounts of an a. —\n1690 48 | 2\n~ [Tesenveis Tog\n\"+ NUTRIT:2 INFORMATION Per 100g] Per serve 604 Por eng\nAdded Sars 11 08] -\nFiber 200 14] 6%\nToa HEEL\nmtbr) 82) 57) 2% [f\niy tmoretiy | 013] 009 - |g\n[CIT —VITT EY <2\nServe 6K’ Pr\n182\nald tre | 82\n17a 3) ok more thy\n0.13 0.\nA perse” F1)\nCroingl __\n690] 48\nTe serveisTg vo\n[NUTR INFORMATION Per 10\nWON 5.\nial or. s\nA Sugars A\nkif 20\nFiber 1 20\nTotal atl 4)\nrate at ot mor a} 8.2\nfran Fa) oot more thay | 0.13\nBe. cdaling Nai: Anlounts\nif 82) 571 2% |f\nL650 7% Ww\nmounts of an ae. —",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8901063017252-2",
+      "productName": "Britannia 50-50 Maska Chaska",
+      "form": "flexible pouch",
+      "role": "nutrition-soft-focus",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8901063017252/2.jpg",
+      "expectedTokens": [
+        "nutrition",
+        "information",
+        "energy",
+        "protein",
+        "carbohydrate",
+        "sugars",
+        "fat",
+        "cholesterol"
+      ],
+      "matchedTokens": [
+        "nutrition",
+        "information"
+      ],
+      "missingTokens": [
+        "energy",
+        "protein",
+        "carbohydrate",
+        "sugars",
+        "fat",
+        "cholesterol"
+      ],
+      "tokenRecall": 0.25,
+      "reliability": 37,
+      "engineConfidence": 39,
+      "parsedSignals": 1,
+      "recognizedText": "[PANEL 1: 2.jpg]\nN32\nNutrition Information\npe’ 1 00g - 3 zp —~ 2\nama -_ aes - :\nod z pe Dd =\ntriton Information\n(PPIs\nPer 100g\naos 1x\nGaba Sg BemTE\none rsa To 5 1X\n» TE 0 oS i\n- 3 nd . i» i\nesc SE ET EE\n» i Ste PS\nIPS\nISR\nah ERE ad —",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8901063017252-20",
+      "productName": "Britannia 50-50 Maska Chaska",
+      "form": "flexible pouch",
+      "role": "ingredients-consumer-care",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8901063017252/20.jpg",
+      "expectedTokens": [
+        "ingredients",
+        "refined",
+        "wheat",
+        "flour",
+        "sugar",
+        "milk",
+        "iodised",
+        "consumer",
+        "care",
+        "britannia"
+      ],
+      "matchedTokens": [
+        "consumer",
+        "care",
+        "britannia"
+      ],
+      "missingTokens": [
+        "ingredients",
+        "refined",
+        "wheat",
+        "flour",
+        "sugar",
+        "milk",
+        "iodised"
+      ],
+      "tokenRecall": 0.3,
+      "reliability": 57,
+      "engineConfidence": 64,
+      "parsedSignals": 3,
+      "recognizedText": "[PANEL 1: 20.jpg]\nMIITIN\n~ MEGULATOR 341i). DOUGH CONDITIONER (223) AND ROVER 1101(1) G\npm. FLAVOUR [ARTIFICIAL FLAVOURING SUBSTANCE (BUTTER)]. ¢\n| TO A CLEAN AIRTIGHT CONTAINER ONCE OPENED. |\nSED SAI\nVEGLIABLE Oil (PALA) |\n0S, EDIE\nSED SALT, ACIDIVY\nLID)\nFLAVOURING SUBSTANCE\nIntemational Numbering System)\nRojEmtas por\nFER CONTENTS 10 A CLEAN aiaTGif CONTAINER ONCE OPENED.\n- (Toll Free) 1-800-4254449/1-800- 30004530 @ Britannia\nConta: Consumer Care Coll, P0.\n560048, Kamataka. E-mail: fes4tack@britindia.com\npsn or : oy FT ~4 JU! y ! :\n\" S9GAR, LIQUID GLUCOSE, RAISING AGENTS |>0.5.\n\"BACK SALI, LK SOUIDS, EDIBLE VEGETABLE PRO!\n\"RECULATOR | 341(ii) DOUGH CONDITIONER (223)\nCONTAINS DED FLAVOUR [ARTIFICIAL FLAVC\nNumbers ir tracke 5 as per International Number\n3 BEES VY EAT NN CLH PMIT\nBILAN. J. hh), PAVIA LTE Js hy\nGETABLE PRODUC 1%) 10DIED Sa ACIDITY Wd\nONER (223) AND (11010) G\n[IFICIAL FLAVOURING SUBSTANCE )k K\n1 PMITE Pr\ni B TET DT NV. SERRE ETN WRN, WEAR § ww== EE\nEB RETINA COOL HYGIENICAND DRY PLACE.\nSFR TO A CLEAN AIRTIGHT CONTAI\nfeedback - Contact: Executive, Con sumer Care Cell, Ph. Jol Free) 1\nPY WF THY WY Sp —— er — GEpTSmeeSIwy WES TEESE TEE ee -.-— J\nDRY PLACE. >\nIRTIGHT CONTAINER ONCE OPENED. -\newer Re ee LS 2 CR : : | te {tad€britindia.com\na PERE ete Ran (3 at 2\nTORE A\nGE eh seein ORE a\noN Fatt IE Ley",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8901262260121-6",
+      "productName": "Amul Taaza Milky Milk",
+      "form": "flexible pouch",
+      "role": "mrp-net-quantity-fssai",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8901262260121/6.jpg",
+      "expectedTokens": [
+        "net",
+        "content",
+        "500",
+        "ml",
+        "mrp",
+        "inclusive",
+        "taxes",
+        "fssai",
+        "refrigeration",
+        "use"
+      ],
+      "matchedTokens": [
+        "net",
+        "content",
+        "500",
+        "mrp",
+        "inclusive",
+        "taxes",
+        "refrigeration",
+        "use"
+      ],
+      "missingTokens": [
+        "ml",
+        "fssai"
+      ],
+      "tokenRecall": 0.8,
+      "reliability": 58,
+      "engineConfidence": 57,
+      "parsedSignals": 1,
+      "recognizedText": "[PANEL 1: 6.jpg]\nMLY\nI Jur . N ot Cor b or R A\n196 136 A\n, CHANDITALA 500 1 Bx\n- 712 702 3 1\nMEP:* 2200\n1 (inclusive —_ BY\naa otal fat, 9 ar g -\nIr Saturated’Fat, g n TE ®\n: NO S 3\nA Keep Under Hefrigeration\ni i A NACAT *\n1 No. 1001202 ANON\ni 4d - SH\nFOR BEST RESULTS, STOR\n| CONTINUOUSLY UNDER REFRIGERATION\n| BELOW 8°C UNTIL “USE-8Y DA\nro For Batch No. & “Use-Dy date” 38\n386.001 RW (\nveil B. fH | \\\n- rs aL Ih\ne. - 90126212601 -+1\n) 3 Ea ~ Gamannage >\nPal CT Re Lat\n1 SARDAR we tell\nrn PA ARAM\np. CVD TALA\n712 702\ni JBTYA\nMRP\n(inclusive\nSaturated +\nTrans Fal, g\nwo. 100120271 00K\nfatty UNDER REFR\n“BELOW 8°C. UNE. a BY DA\nFor Batch No. & “Us\n2 Jl\n621260\nToby S001\nPour ms :\nN — a Er A FITRAD £\npe sa: ARAM\nFANT TALA\nVv 47 70\nCam JBTYA\n1 oil\na LIL. ne\nHl 7\nSaewetg Ea\n34 K\n5 ay nn 8\nE Net Content\n500 mr\nMEP ; 2 22.00\n(inclusive “¢ all taxes\nLO CT EDEN Gn\n& [roafag rg wedSon- Lo 1\n£ | Trans Fat, 9 | 0|Canmg Ti\nfo, EET —— 3 a Ea\n- Keep Under Refrigeration g\ni OTA 18\nLic. No. 1001202100 aN\n—\"znb RECT REQULTS STORE Bhd\nAND - 386 00° a\nfA - PM l\nro 10012021000 8\n. For Batch No. & “Use-Dy date” 100 388 0 st\n5 co NTE\noR UNH DIET\noa #01262 26012: %\noak . ip pane: A |",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8901262260121-10",
+      "productName": "Amul Taaza Milky Milk",
+      "form": "flexible pouch",
+      "role": "nutrition-consumer-care",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8901262260121/10.jpg",
+      "expectedTokens": [
+        "nutritional",
+        "information",
+        "energy",
+        "fat",
+        "carbohydrate",
+        "protein",
+        "sodium",
+        "net",
+        "content",
+        "refrigerated"
+      ],
+      "matchedTokens": [
+        "fat",
+        "carbohydrate",
+        "protein",
+        "sodium",
+        "net",
+        "content",
+        "refrigerated"
+      ],
+      "missingTokens": [
+        "nutritional",
+        "information",
+        "energy"
+      ],
+      "tokenRecall": 0.7,
+      "reliability": 54,
+      "engineConfidence": 53,
+      "parsedSignals": 1,
+      "recognizedText": "[PANEL 1: 10.jpg]\nDm re crm ER TTR\nEMRARZT\n31.05.23\nane 1\n1236\nKTR\n2th\nR1000207\nSOA - RANG\nVIL\n477)\nWIS\nLai 2\nUM TED D2} a)\n21 111\nRODuCT\n1S, SYNO. 1 118-14\nme (UGE,\nAYATH NAGAR R MA}\noo TEANGANA\n~ 501 508\nJo 3ets\nTIL 7s 2400\nYour feedback |\nLL My\nCare Executive gt |\n5 LN\ner grr STE\nMOTE ( tt\nA RA, VISAKHA 3 7 SRIVINGS Der cori\nJes 81 2 Serving Sos ——=\nce Le Boe Be\nJOT OPERATIVE MILK | Amount ud 100 mi» .\nEen, rout rey\nPE oes Total Fat (g Th\nBF 1IVE MILK PRODUCERS { Saturated Fat (g a.\ngoo UMTED, 0S tas Trans Fat {g) 3\nrr Ia; gi Cholesterol (mg] gh\n¥- D Carbohydrate go.\nah 05.23 5 [Total Sugang\nAp 2 ded Suga Till\nbtithiml 1236 8 |[Proteinfyl 48\nSeu = 3 [Sodum(mg 1&8\nES sD\nph RDA stands for\nWHRERA HMATVAGAR - 353 006 _\na Net Content.\nSRY KUNTLOOR ROAD, HAYATH NAGAR,\n[EAGA- 155 ® (EP RERGEEA AER Es |\n— S C0, SRE NOR SPHcge\nty. Epa > {arr 8\nODUCTS, SY 18-149, - Marketed : Guaral 5! 1\nCr Gon & Lid. Anand - 388001 ne\nMarcas (IAmey\nPage Fog,\n207 1000\npastures O° 1. DUPPLTUR\nVISAKHAPATNAM\n2 servings\nper cond Aer\nOeming 76\nRATIVE MILK\nALT\nUNON LTD\nNAND - 388 001\nTotal Fat\nSaturated F\nQO-OPERA\nof LIMITED,\n\"SYNOS 42/18.\nVILLAGE 8 POST.\nTrans Fat (g)\nCholesterol (ma\nkes By! 05.23\nAdded Sugars\nANE\nUES\nProtein (g)\n3 CM.\n| Sodium (mg\nCalcium (mg)\nONLTD., SABAR DAIRY,\n- 383 006\n# RDA stands for Recommente: ep\nARE\n** Average values\nDDY MILK PRODUCERS\nNet Content:\n(EEP REFRIGERATED TfL REE\nONO. 23872 3;\nCOOL, STORE N\n21M\nOF YOUR\na SY :\nMarketed by:\n18-119,\nLic. No. ee\nTe i EE ©\nTres cu ND WET tl\nVere: oT Marsan Amey” “=\no. 100% oy\nhotrod DUR TURY (V)\nA DAR) VISAKHAA TRAM\nIRS 31 0\nEe LX\n? : TIVE Mi\npy COOPER NAND - 366 001\ngi: oF MILK PRODUCERS\n: HOOPER ren SYNOS 42/18,\nVILLAGE & POST, T——\n: mn. 8 At } -\nRNTHADSTRICT CO-OPERATIVE\nA, HIMATNAGAR - 383 008\nA-RANGA REDDY MILK PRODUCERS\nSaturated Fat (gf\n7 |lransFatig) “ES\nD | Carbohydrate gj TiN\n5 | Jotal Sugars (gl\n= | Added Sugars (J Ti\nR |Proteinly) 18\n5 ** Average values 4\nB= Nat Content © 30S\nEa 00 El\nPRIICERS UNION LTD., SABAR DAIRY,\nWADED COOP. UNION LTD.\ny ied - ¢ Az 501505\nWAIE LIMITED DINO. 2382.3;\n. ¢ NUZVID,\n¥ 211 KRISHNA,\nBG ooCTS, SY NO, 118-110\n| A ~501 508 MANDAL,\n3 Wage WA ITE AL boi ! \\ 2 ka\n- 3 Calcium (mg) | #1\nGO *RDAstands for Recommentsd ey Ne\n3 (EP REREMEA AREAS\nC00, STORE CHER STINE cg\n> OF YOURREFIGERATR NDUSIC\n= Market by: Gad oe\nies Lid Anand - 388 001, G8\n8 Lic No 10020\n- A a o Hill",
+      "manualCorrectionsApplied": false
+    },
+    {
+      "id": "8902579001360-2",
+      "productName": "Frooti Mango Drink",
+      "form": "carton",
+      "role": "ingredients-nutrition",
+      "imagePath": "datasets/openfoodfacts-india/real-labels/8902579001360/2.jpg",
+      "expectedTokens": [
+        "thermally",
+        "processed",
+        "fruit",
+        "drink",
+        "ingredients",
+        "water",
+        "sugar",
+        "mango",
+        "pulp",
+        "energy",
+        "carbohydrate"
+      ],
+      "matchedTokens": [
+        "thermally",
+        "processed",
+        "fruit",
+        "drink",
+        "ingredients",
+        "water",
+        "sugar",
+        "mango"
+      ],
+      "missingTokens": [
+        "pulp",
+        "energy",
+        "carbohydrate"
+      ],
+      "tokenRecall": 0.727,
+      "reliability": 60,
+      "engineConfidence": 61,
+      "parsedSignals": 2,
+      "recognizedText": "[PANEL 1: 2.jpg]\nfn 4\nSv 4,\nCITY CLEAK\n‘THERMALLY PROCESSED\nREADY TO SERVE FRUIT DRINK\nCONTAINS FRUIT\n[INGREDIENTS E\n(11.25%) ACIDITY REGULATORS (WS S801 i),\nNATURE - IDENTICAL FLAYOURING $3857\n(MANGO), STABILIZERS (MS 456. IS 415)\nANTIOXIDANT (HES 308). F099 COLOUR (NS | 10)\nAND ANTIF GAMING AGENT (NS 3003)\n(INS- INTERNATIONAL NUMBERING SYSTEN)\n| NO ADEED PRESERVATIVE\nSUE 1 25 J\nPS PER PACK | VO -\nfe 7\n|camsesmouae |\nTOTAL SUGARS (g)\n| 40062 SusARS (as Sucaese) (p\n| vm Fru susaes A\nNe | (mg) IL\ncE HA VALS ME SED Oh 0c\nTASTES BEST WHEN CHILLED\nD0 WOT BUY IF THE PACK S PUFFED OR LEAKS\nTatra Prk\nCONTAI\n[INorEDIENTS)\nINGREDIENTS: WATER, SUGAR,\n(11.2%), ACIRITY REGULATORS [INS 3\nNATURE - IDENTICAL\npr 3\nANTIGXIGANT (RNS 208). F000 COLOUR (XS 110)\nAND ANTIF DAMNING AGENT (0S\nloa Hsiung\nPER SERVE\nSRE 125d\nPER PACK 1\n145\nADDED SUGARS (AS SUCROSE) (g) 142\nNATURAL FRUIT SUGARS (g)\nRTE MRSA DS |\nBEST WHEN CHILLED\nAWAY FROM\nIA COOL, DRY AND HYGIENIC PLACE\nIF THE PACK IS PUFFED OR\n™Tr LIYE\n\"THERMALLY PI\nREADY TO SERV]\nCONT\n(11.2%), ACIDITY REGULATOR:\nNATURE - IDENTICAL FLAVOUR\n(WANGO), STABILIZERS (1S 44\n~ ANTIOXIDANT (1S 208) F000\n(INS. INTERNATIONAL WUMBER\nSUE. 12%\nME dire 1\ny” CITY CLEAN\nLLY PROCESSED\nSERVE FRUIT DRINK\nCONTAI IT\nITS)\nR, SUGAR,\nSULATORS (INS li),\nFLAVDURING\n2S ONS 486, IS 415),\n0). F000 COLOUR (INS 110)\nGENT (ONS 90a)\nMUMBERING SYSTEN)\nERYATIVE\nWES)\nSUE. 28a\nENERSY (cal)\nPROTEN g)\nCARSORYORATE (g)\n| Ton Susans\n\"PERCENT ROA VALUES ARE M\n© ENERSY DET\nTASTES BEST WHI\nSTORE AWAY FROM SUNLIGHT\nSTORE IW A COOL, DRY AND NYS\n00 NOT BUY IF THE PACK IS PUI\nSHAKE WELL BEFORE CONSUMY\n~ FOR NFS. DATE, LOT m0. NET @\nUSE BY DATE UNIT SLE PRICE\nnes PER SERVE\n; 180i) 25m) ROA’\n157\n155\nCR0SE) (g)| 142\nmsg (14 1\nES ARE BASED ON A 2000kca\nFP WHEN CHILLED\nAND HYGIENIC PLACE\nCX IS PUFFED OR LEAKING\nQNSUMING i\nEPRICE PSA ML 7",
       "manualCorrectionsApplied": false
     }
   ]

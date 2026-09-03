@@ -1,7 +1,7 @@
 import { findConsumerAddress, findConsumerPhone } from './consumerContact.mjs'
 
 export const RULE_PACK = {
-  id: 'LMPC-RC-2026.09',
+  id: 'LMPC-RC-2026.09-RC4',
   title: 'Legal Metrology (Packaged Commodities) Rules, 2011',
   status: 'Prototype rule pack — officer verification required',
   sources: [
@@ -30,7 +30,11 @@ export const RULE_PACK = {
       url: 'https://consumeraffairs.gov.in/pages/legal-metrology-act',
     },
     {
-      label: 'e-Gazette — Third Amendment Rules, 2026',
+      label: 'Department of Consumer Affairs — Second Amendment Rules, 2026 (country-of-origin filter effective 1 July 2027)',
+      url: 'https://consumeraffairs.gov.in/public/upload/files/2026.4.27%20PCR%202nd%20COO%20from%201.7.2027_1777348487.pdf',
+    },
+    {
+      label: 'e-Gazette — Third Amendment Rules, 2026 (AEO bonded-warehouse declarations)',
       url: 'https://egazette.gov.in/WriteReadData/2026/273053.pdf',
     },
   ],

@@ -14,12 +14,12 @@ The current local source is buildable and deployable to Vercel. The public alias
 | Exact OCR regression | PASS | 12/12 expected lines, 91% reliability, 92% engine confidence, 10 signals, 10 grounded regions, zero external requests |
 | Offline production PWA | PASS | 16 shell/OCR cache entries, offline reload and offline OCR |
 | Connected OCR contract | PASS | Explicit transfer, normalized result, FSSAI extraction and preserved evidence during simulated 503 outage |
-| Real-photo standard OCR | MEASURED | 75.9% expected-token recall, 64.9% average reliability, 65.4% average engine confidence |
-| Real-photo deep OCR | MEASURED | 79.3% expected-token recall on the same cases; +3.4 percentage points |
+| Real-photo standard OCR | MEASURED | 61.1% expected-token recall, 60.7% average reliability, 61.4% average engine confidence |
+| Real-photo deep OCR | MEASURED | 67.5% expected-token recall on the same cases; +6.4 percentage points |
 | Connected live provider | NOT RUN | Requires the team's own billing-enabled Google Cloud project and secret |
 | Public deployment of this revision | PENDING | Current changes are local until explicitly pushed/deployed |
 
-The real-photo pilot has only ten scored photos from six products. It measures token recovery and does not establish field accuracy, legal completeness or enforcement-grade performance.
+The real-photo pilot has 17 scored declaration-panel photos from ten products. It measures token recovery under deliberately difficult capture conditions and does not establish field accuracy, legal completeness or enforcement-grade performance.
 
 ## Vercel configuration
 

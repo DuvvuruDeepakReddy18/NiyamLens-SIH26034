@@ -79,7 +79,7 @@ Current verified baseline:
 - Production service-worker reload and OCR passing with the browser fully offline.
 - Exact sample-label OCR regression passing: all 12 expected lines recovered with no manual correction, 91% calibrated reliability, 92% engine confidence, 10 structured signals and 10 mapped evidence regions.
 - Connected-OCR browser contract passing: explicit image transfer, normalized result display, FSSAI extraction and evidence preservation during a simulated provider outage.
-- Real-label pilot: standard local OCR recovered 75.9% of expected tokens; local deep scan recovered 79.3% on the same 10 untouched photos from six Indian-market products. No manual correction was used. The source dataset's precomputed Google Vision annotations score 96.6% on the same tokens and remain a reference baseline, not a result from the deployed app.
+- Real-label pilot: standard local OCR recovered 61.1% of expected tokens; local deep scan recovered 67.5% on the same 17 untouched declaration-panel photos from ten Indian-market products. No manual correction was used. The source dataset's precomputed Google Vision annotations score 93.7% on the same tokens and remain a reference baseline, not a result from the deployed app.
 
 The OCR QA loads the bundled engine assets. The UI separates calibrated **reliability** from provider **engine confidence**; neither is accuracy. Neither the exact-text fixture nor the small real-label pilot establishes field or compliance accuracy. The real pilot intentionally preserves failed tokens and a curved-label stress case; see the [Open Food Facts pilot protocol](datasets/openfoodfacts-india/README.md), the [Legal Metrology field-dataset schema](datasets/legal-metrology-field/README.md) and the committed reports in `reports/`.
 
@@ -129,8 +129,12 @@ This is a fully functional competition prototype, not an enforcement-grade statu
 
 Further detail:
 
+- [Narrated continuous prototype walkthrough](docs/NiyamLens_Live_Prototype_Walkthrough.mp4)
+- [Editable six-slide official SIH-template deck](docs/NiyamLens_SIH26034_Official_SIH_Template.pptx)
+- [Ready-to-submit six-page SIH PDF](docs/NiyamLens_SIH26034_Ready_to_Submit.pdf)
 - [Downloadable team feature and verification PDF](docs/NiyamLens_Team_Feature_Verification_Guide.pdf)
 - [Team feature and verification guide](docs/TEAM_FEATURE_VERIFICATION_GUIDE.md)
+- [Release verification record](docs/RELEASE_VERIFICATION_2026-09-03.md)
 - [Architecture and trust model](docs/ARCHITECTURE.md)
 - [Hybrid OCR architecture decision](docs/ADR-001-HYBRID-OCR.md)
 - [Legal review register](docs/LEGAL_REVIEW.md)

@@ -198,7 +198,7 @@ If those ten checks pass, the core presentation path is ready. The controlled pa
 3. Run **Deep scan small text** and compare recovered declarations.
 4. Confirm poor captures remain visibly low-reliability rather than inheriting a single optimistic engine score.
 
-**Measured pilot:** Standard local OCR recovered 75.9% of pre-labelled tokens and deep scan recovered 79.3% on the same ten untouched photos. The gain came from a hard small-text panel; curved and poor captures remain known failure modes. This pilot is too small for a field-accuracy claim.
+**Measured pilot:** Standard local OCR recovered 61.1% of pre-labelled tokens and deep scan recovered 67.5% on the same 17 untouched declaration-panel photos from ten products. The larger stress set includes glare, soft focus, rotation and curved packaging; these remain known failure modes. This pilot is too small for a field-accuracy claim.
 
 **Status:** Automated by `npm run qa:ocr:real` and `npm run qa:ocr:real:deep`; reports are committed under `reports/`.
 
@@ -357,7 +357,7 @@ It also checks that measured character width is at least one-third of height, su
 **Manual verification:**
 
 1. Open **Rule library**.
-2. Confirm rule pack `LMPC-RC-2026.09` and matrix `LMPC-MATRIX-2026.09-RC3` are visible.
+2. Confirm rule pack `LMPC-RC-2026.09-RC4` and matrix `LMPC-MATRIX-2026.09-RC4` are visible.
 3. Inspect the Rule 6, Rule 7 and Rule 26 cards, applicability matrix, edge cases, source links and external approval register.
 4. Return to an inspection and expand a finding to see its authority, reason and evidence.
 
@@ -640,7 +640,7 @@ npm run qa:ocr:real
 npm run qa:ocr:real:deep
 ```
 
-Current pilot baseline: 75.9% standard versus 79.3% deep token recall across ten photos; zero manual corrections. These are pilot OCR-recall measurements, not compliance accuracy.
+Current pilot baseline: 61.1% standard versus 67.5% deep token recall across 17 declaration-panel photos from ten products; zero manual corrections. These are pilot OCR-recall measurements, not compliance accuracy.
 
 ### Verify fully offline operation
 
@@ -679,7 +679,7 @@ If the test runner reports `spawn EPERM` on Windows, rerun the terminal with per
 | Safe statement | Unsafe statement |
 |---|---|
 | “The bundled sample produced 91% reliability and 92% engine confidence.” | “Our field OCR accuracy is 91%.” |
-| “Deep scan improved pilot token recall from 75.9% to 79.3%.” | “Deep scan is 79.3% accurate on Indian labels.” |
+| “Deep scan improved pilot token recall from 61.1% to 67.5% on our 17-photo stress set.” | “Deep scan is 67.5% accurate on Indian labels.” |
 | “The prototype evaluates a versioned rules-as-code interpretation.” | “The government has approved every encoded legal interpretation.” |
 | “Calibration and uncertainty support a reviewable measurement.” | “Any phone photograph gives enforcement-grade millimetres.” |
 | “The local hash chain detects record mutation.” | “This is blockchain/WORM evidence.” |
