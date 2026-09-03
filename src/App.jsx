@@ -55,7 +55,7 @@ import { APPROVAL_GATES, RULE_EDGE_CASES, RULE_MATRIX, RULE_MATRIX_VERSION } fro
 import { decryptBundle, encryptBundle } from './lib/secureBundle.mjs'
 import { evaluateCompliance, FONT_TIERS, RULE_PACK } from './lib/rules.mjs'
 import { listInspections, saveInspection } from './lib/storage.mjs'
-import { analyzeImageQuality, createOcrInputVariants, createOcrRegionVariant, detectReferenceCard, flattenOcrWords, matchDeclarationRegions, measureRegion, mergeOcrPassTexts, webXrDepthSupport } from './lib/vision.mjs'
+import { analyzeImageQuality, calibrateOcrReliability, createOcrInputVariants, createOcrRegionVariant, createOcrTileVariants, detectReferenceCard, flattenOcrWords, matchDeclarationRegions, measureRegion, mergeOcrPassTexts, webXrDepthSupport } from './lib/vision.mjs'
 
 const NAV_ITEMS = [
   { id: 'inspect', label: 'New inspection', icon: ScanLine },
@@ -80,6 +80,24 @@ const STATUS = {
 
 const statusLabel = (status) => STATUS[status]?.label || String(status || 'unknown').replaceAll('_', ' ').toUpperCase()
 const panelMeasurement = (meta, panelId) => meta.panelMeasurements?.[panelId] || {}
+
+const PANEL_ROLES = [
+  { id: 'front', label: 'Front / identity', short: 'Front' },
+  { id: 'price_date', label: 'MRP and pack date', short: 'MRP + date' },
+  { id: 'responsible_care', label: 'Manufacturer and consumer care', short: 'Maker + care' },
+  { id: 'quantity_barcode', label: 'Net quantity and barcode', short: 'Qty + barcode' },
+  { id: 'full_declaration', label: 'Complete declaration panel', short: 'Full panel' },
+  { id: 'other', label: 'Other evidence', short: 'Other' },
+]
+
+const CAPTURE_REQUIREMENTS = PANEL_ROLES.slice(0, 4)
+const CORE_DECLARATIONS = [
+  { id: 'mrp', label: 'MRP' },
+  { id: 'netQuantity', label: 'Net quantity' },
+  { id: 'packDate', label: 'Pack date' },
+  { id: 'responsibleEntity', label: 'Responsible entity' },
+  { id: 'consumerCare', label: 'Consumer care' },
+]
 
 const INITIAL_META = {
   productName: '',
@@ -107,6 +125,9 @@ const INITIAL_META = {
   panelMeasurements: {},
   measurementUncertainty: 8,
   ocrConfidence: 100,
+  ocrEngineConfidence: 100,
+  ocrReliabilityReason: '',
+  ocrSource: 'local',
 }
 
 const formatDate = (value) =>
@@ -232,7 +253,42 @@ function StepHeader({ number, icon: Icon, title, copy, complete }) {
   )
 }
 
-function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onActive, onRemove, onTransform, onRectify, processing, regions = [], activeRegionId, onRegionSelect, onDetectReference, onCheckDepth, depthState }) {
+function CaptureChecklist({ evidenceItems }) {
+  const roles = new Set(evidenceItems.map((item) => item.panelRole))
+  const completePanel = roles.has('full_declaration')
+  return (
+    <div className="capture-checklist" aria-label="Recommended package views">
+      {CAPTURE_REQUIREMENTS.map((requirement) => {
+        const covered = roles.has(requirement.id) || (completePanel && requirement.id !== 'front')
+        return <span key={requirement.id} className={covered ? 'covered' : ''}>{covered ? <Check size={12} /> : <CircleHelp size={12} />}{requirement.short}</span>
+      })}
+      <small>{evidenceItems.length ? 'Assign each image its purpose. Missing views mean missing evidence, not an automatic violation.' : 'Capture all four views when declarations are split across the package.'}</small>
+    </div>
+  )
+}
+
+function DeclarationCoverage({ extraction, reliability, engineConfidence, reliabilityReason }) {
+  if (!extraction.raw) return null
+  const missing = CORE_DECLARATIONS.filter((item) => !extraction.byId[item.id]?.detected)
+  const needsRetake = Number(reliability) < 55
+  return (
+    <div className={`declaration-coverage ${needsRetake ? 'retake' : missing.length ? 'incomplete' : 'complete'}`}>
+      <header>
+        <div><b>{needsRetake ? 'Retake or deep scan recommended' : missing.length ? 'Declaration coverage incomplete' : 'Core declarations located'}</b><small>{reliabilityReason || 'Verify every extracted value against its highlighted source.'}</small></div>
+        <span>Reliability {Number(reliability || 0).toFixed(0)}% · engine {Number(engineConfidence || 0).toFixed(0)}%</span>
+      </header>
+      <div>
+        {CORE_DECLARATIONS.map((item) => {
+          const detected = extraction.byId[item.id]?.detected
+          return <span key={item.id} className={detected ? 'covered' : ''}>{detected ? <Check size={12} /> : <CircleHelp size={12} />}{item.label}</span>
+        })}
+      </div>
+      {missing.length > 0 && <p>Add or retake a panel containing: {missing.map((item) => item.label).join(', ')}. The system will abstain when evidence quality is insufficient.</p>}
+    </div>
+  )
+}
+
+function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onActive, onRemove, onTransform, onRectify, onRoleChange, processing, regions = [], activeRegionId, onRegionSelect, onDetectReference, onCheckDepth, depthState }) {
   const [mode, setMode] = useState('')
   const [points, setPoints] = useState({ reference: [], height: [], width: [], perspective: [] })
   const boardRef = useRef(null)
@@ -341,7 +397,7 @@ function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onAc
               onClick={() => onActive(item.id)}
             >
               <img src={item.analysisUrl} alt="" />
-              <span><b>Panel {index + 1}</b><small>{item.name}</small></span>
+              <span><b>Panel {index + 1} · {PANEL_ROLES.find((role) => role.id === item.panelRole)?.short || 'Unassigned'}</b><small>{item.name}</small></span>
               <i title={item.sha256 ? `SHA-256 ${item.sha256}` : 'Controlled test asset'}>{item.sha256 ? item.sha256.slice(0, 8) : 'TEST'}</i>
             </button>
           ))}
@@ -374,6 +430,12 @@ function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onAc
               disabled={processing}
             />
             <b>{activeEvidence.contrast}%</b>
+          </label>
+          <label className="panel-role-field">
+            <span>Panel purpose</span>
+            <select value={activeEvidence.panelRole || 'other'} onChange={(event) => onRoleChange?.(activeEvidence.id, event.target.value)} aria-label="Active panel purpose">
+              {PANEL_ROLES.map((role) => <option key={role.id} value={role.id}>{role.label}</option>)}
+            </select>
           </label>
           {depthState?.message && <small className={depthState.supported ? 'depth-ok' : 'depth-warn'}>{depthState.message}</small>}
         </div>
@@ -445,6 +507,7 @@ function ExtractionWorkbench({ extraction, onApply, barcodeState, regions = [], 
             <span>{item.detected ? <Check size={13} /> : <CircleHelp size={13} />}{item.label}</span>
             <strong>{item.value || 'Not detected'}</strong>
             <small>{item.detected ? `${item.confidence}% parser${regionMap[item.id] ? ` · region ${regionMap[item.id].confidence}%` : ''}` : 'Correct OCR text or supply manually'}</small>
+            {item.validation && <em className={item.validation.status.includes('invalid') ? 'field-invalid' : 'field-valid'}>{item.validation.message}</em>}
             {regionMap[item.id] && <i>{measureRegion(regionMap[item.id], panelMeasurement(meta, regionMap[item.id].panelId).referencePx, meta.referenceMm, meta.measurementUncertainty)?.valueMm.toFixed(2) || '—'} mm estimated line box</i>}
           </button>
         ))}
@@ -636,7 +699,12 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     try {
       setProcessing(true)
       setOcrState({ running: false, progress: 4, label: `Securing ${files.length} evidence panel${files.length > 1 ? 's' : ''}`, error: '' })
-      const nextItems = await Promise.all(files.map(evidenceFromFile))
+      const capturedItems = await Promise.all(files.map(evidenceFromFile))
+      const guidedRoles = CAPTURE_REQUIREMENTS.map((item) => item.id)
+      const nextItems = capturedItems.map((item, index) => ({
+        ...item,
+        panelRole: guidedRoles[evidenceItems.length + index] || 'other',
+      }))
       if (firstPanel) {
         beginEvidenceRecord()
         setText('')
@@ -648,7 +716,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       setEvidenceItems((current) => [...current, ...nextItems].slice(0, 4))
       setActiveEvidenceId(nextItems[0].id)
       for (const item of nextItems) {
-        await recordAudit('evidence_captured', { id: item.id, name: item.name, sha256: item.sha256, quality: item.quality?.score, capturedAt: item.capturedAt })
+        await recordAudit('evidence_captured', { id: item.id, name: item.name, panelRole: item.panelRole, sha256: item.sha256, quality: item.quality?.score, capturedAt: item.capturedAt })
       }
       setOcrState({ running: false, progress: 8, label: `${nextItems.length} panel${nextItems.length > 1 ? 's' : ''} ready for OCR`, error: '' })
     } catch (error) {
@@ -681,6 +749,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
         rotation: 0,
         grayscale: false,
         contrast: 112,
+        panelRole: 'full_declaration',
         capturedAt: new Date().toISOString(),
       }])
       setActiveEvidenceId(id)
@@ -751,6 +820,11 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     recordAudit('evidence_removed_before_seal', { evidenceId: id })
   }
 
+  const updateEvidenceRole = (id, panelRole) => {
+    setEvidenceItems((current) => current.map((item) => item.id === id ? { ...item, panelRole } : item))
+    recordAudit('evidence_role_changed', { evidenceId: id, panelRole })
+  }
+
   const scanBarcode = async () => {
     if (!activeEvidence) return
     try {
@@ -818,15 +892,16 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     await recordAudit('depth_capability_checked', state)
   }
 
-  const runOcr = async () => {
+  const runOcr = async (scanMode = 'standard') => {
     if (!evidenceItems.length || ocrState.running) return
+    const deepScan = scanMode === 'deep'
     let worker
     try {
-      setOcrState({ running: true, progress: 2, label: 'Loading OCR engine', error: '' })
+      setOcrState({ running: true, progress: 2, label: deepScan ? 'Loading deep-scan OCR engine' : 'Loading OCR engine', error: '' })
       let panelIndex = 0
       let completedPasses = 0
       const referenceCandidates = await Promise.all(evidenceItems.map((item) => detectReferenceCard(item.analysisUrl).catch(() => ({ detected: false }))))
-      const totalPasses = evidenceItems.length * 3 + referenceCandidates.filter((candidate) => candidate.detected).length
+      const totalPasses = evidenceItems.length * (deepScan ? 7 : 3) + referenceCandidates.filter((candidate) => candidate.detected).length
       worker = await createWorker(meta.ocrLanguage || 'eng', 1, {
         workerPath: '/ocr/worker.min.js',
         corePath: '/ocr/core',
@@ -838,12 +913,14 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
         },
       })
       const packets = []
-      const confidences = []
+      const reliabilities = []
+      const engineConfidences = []
       const collectedWords = []
       const recognizedItems = []
       for (panelIndex = 0; panelIndex < evidenceItems.length; panelIndex += 1) {
         const item = evidenceItems[panelIndex]
         const variants = await createOcrInputVariants(item.analysisUrl)
+        if (deepScan) variants.push(...await createOcrTileVariants(item.analysisUrl))
         const referenceCandidate = referenceCandidates[panelIndex]
         if (referenceCandidate?.detected) variants.push(await createOcrRegionVariant(item.analysisUrl, referenceCandidate.bbox))
         const passes = []
@@ -862,19 +939,26 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
         const mergedText = mergeOcrPassTexts(passes.map((pass) => pass.text))
         packets.push(`[PANEL ${panelIndex + 1}: ${item.name}]\n${mergedText}`)
         const fullPanelPasses = passes.filter((pass) => pass.spatial)
-        const panelConfidence = fullPanelPasses.length ? Math.max(...fullPanelPasses.map((pass) => pass.confidence)) : 0
-        confidences.push(panelConfidence)
-        recognizedItems.push({ ...item, ocrText: mergedText, ocrConfidence: Number(panelConfidence.toFixed(1)), ocrWords: passes.flatMap((pass) => pass.words), ocrPasses: passes.map(({ id, confidence }) => ({ id, confidence: Number(confidence.toFixed(1)) })) })
+        const reliability = calibrateOcrReliability(fullPanelPasses, item.quality?.score)
+        reliabilities.push(reliability.score)
+        engineConfidences.push(reliability.engineConfidence)
+        recognizedItems.push({ ...item, ocrText: mergedText, ocrConfidence: reliability.engineConfidence, ocrReliability: reliability.score, ocrAgreement: reliability.agreement, ocrWords: passes.flatMap((pass) => pass.words), ocrPasses: passes.map(({ id, confidence }) => ({ id, confidence: Number(confidence.toFixed(1)) })) })
       }
       const combinedText = packets.join('\n\n')
-      const averageConfidence = confidences.length ? confidences.reduce((sum, value) => sum + value, 0) / confidences.length : 0
+      const averageReliability = reliabilities.length ? reliabilities.reduce((sum, value) => sum + value, 0) / reliabilities.length : 0
+      const averageEngineConfidence = engineConfidences.length ? engineConfidences.reduce((sum, value) => sum + value, 0) / engineConfidences.length : 0
+      const reliabilityReason = averageReliability >= 75
+        ? 'OCR passes agree and the capture is suitable for field verification.'
+        : averageReliability >= 55
+          ? 'Usable OCR evidence; verify highlighted values against the package.'
+          : 'Low-confidence evidence; retake the panel or use deep scan before deciding.'
       setText(combinedText)
       setOcrWords(collectedWords)
       setEvidenceItems(recognizedItems)
-      setMeta((current) => ({ ...current, ocrConfidence: Number(averageConfidence.toFixed(1)) }))
+      setMeta((current) => ({ ...current, ocrConfidence: Number(averageReliability.toFixed(1)), ocrEngineConfidence: Number(averageEngineConfidence.toFixed(1)), ocrReliabilityReason: reliabilityReason, ocrSource: deepScan ? 'local-deep' : 'local' }))
       applyExtraction(extractDeclarations(combinedText))
-      await recordAudit('ocr_completed', { panels: evidenceItems.length, confidence: Number(averageConfidence.toFixed(1)), wordBoxes: collectedWords.length, language: meta.ocrLanguage, strategy: 'three-pass-adaptive-layout-best-confidence' })
-      setOcrState({ running: false, progress: 100, label: `OCR complete across ${evidenceItems.length} panel${evidenceItems.length > 1 ? 's' : ''} — verify evidence`, error: '' })
+      await recordAudit('ocr_completed', { panels: evidenceItems.length, reliability: Number(averageReliability.toFixed(1)), engineConfidence: Number(averageEngineConfidence.toFixed(1)), wordBoxes: collectedWords.length, language: meta.ocrLanguage, strategy: deepScan ? 'three-pass-plus-four-detail-tiles' : 'three-pass-adaptive-layout' })
+      setOcrState({ running: false, progress: 100, label: `${deepScan ? 'Deep scan' : 'OCR'} complete across ${evidenceItems.length} panel${evidenceItems.length > 1 ? 's' : ''} — verify evidence`, error: '' })
     } catch (error) {
       setOcrState({
         running: false,
@@ -884,6 +968,66 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       })
     } finally {
       if (worker) await worker.terminate()
+    }
+  }
+
+  const runConnectedOcr = async () => {
+    if (!evidenceItems.length || ocrState.running) return
+    try {
+      setOcrState({ running: true, progress: 3, label: 'Requesting opt-in connected OCR', error: '' })
+      await recordAudit('connected_ocr_requested', { panels: evidenceItems.length, provider: 'google-vision', explicitOptIn: true })
+      const packets = []
+      const confidences = []
+      const reliabilities = []
+      const connectedWords = []
+      const recognizedItems = []
+      for (let index = 0; index < evidenceItems.length; index += 1) {
+        const item = evidenceItems[index]
+        setOcrState({ running: true, progress: Math.round((index / evidenceItems.length) * 85) + 5, label: `Connected OCR · panel ${index + 1}/${evidenceItems.length}`, error: '' })
+        const response = await fetch('/api/ocr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: item.analysisUrl, language: meta.ocrLanguage || 'eng' }),
+        })
+        const payload = await response.json().catch(() => ({}))
+        if (!response.ok) throw new Error(payload.error || `Connected OCR returned HTTP ${response.status}.`)
+        const connectedText = String(payload.text || '').trim()
+        const mergedText = mergeOcrPassTexts([item.ocrText || '', connectedText])
+        const engineConfidence = Math.max(0, Math.min(100, Number(payload.confidence || 0)))
+        const qualityScore = Math.max(0, Math.min(100, Number(item.quality?.score || 0)))
+        const reliability = Number(Math.min(98, engineConfidence * .8 + qualityScore * .2).toFixed(1))
+        const words = (payload.words || []).map((word) => ({ ...word, panelId: item.id }))
+        packets.push(`[PANEL ${index + 1}: ${item.name}]\n${mergedText}`)
+        confidences.push(engineConfidence)
+        reliabilities.push(reliability)
+        connectedWords.push(...words)
+        recognizedItems.push({
+          ...item,
+          ocrText: mergedText,
+          connectedOcrText: connectedText,
+          ocrProvider: payload.provider || 'google-vision',
+          ocrConfidence: engineConfidence,
+          ocrReliability: reliability,
+          ocrWords: words,
+        })
+      }
+      const combinedText = packets.join('\n\n')
+      const average = (values) => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0
+      const engineConfidence = Number(average(confidences).toFixed(1))
+      const reliability = Number(average(reliabilities).toFixed(1))
+      const reliabilityReason = reliability >= 75
+        ? 'Connected OCR and capture quality support field verification; compare every decisive value with the highlighted source.'
+        : 'Connected OCR is uncertain on this capture; retake the declaration panel before deciding.'
+      setText(combinedText)
+      setOcrWords(connectedWords)
+      setEvidenceItems(recognizedItems)
+      setMeta((current) => ({ ...current, ocrConfidence: reliability, ocrEngineConfidence: engineConfidence, ocrReliabilityReason: reliabilityReason, ocrSource: 'google-vision' }))
+      applyExtraction(extractDeclarations(combinedText))
+      await recordAudit('connected_ocr_completed', { panels: evidenceItems.length, provider: 'google-vision', reliability, engineConfidence, wordBoxes: connectedWords.length })
+      setOcrState({ running: false, progress: 100, label: `Connected OCR complete across ${evidenceItems.length} panel${evidenceItems.length > 1 ? 's' : ''} — verify evidence`, error: '' })
+    } catch (error) {
+      await recordAudit('connected_ocr_failed', { provider: 'google-vision', reason: error.message || 'unknown error' })
+      setOcrState({ running: false, progress: 0, label: 'Connected OCR unavailable; local evidence preserved', error: `${error.message || 'Connected OCR failed.'} Run browser OCR or deep scan to remain fully offline.` })
     }
   }
 
@@ -962,6 +1106,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               <button type="button" className="barcode-button" onClick={scanBarcode} disabled={!activeEvidence}><Barcode size={16} /> Read barcode</button>
               {barcodeState.candidate?.evidenceId === activeEvidence?.id && barcodeState.candidate?.cornerPoints?.length === 4 && <button type="button" className="barcode-button" onClick={rectifyFromBarcode} disabled={processing}><Layers3 size={16} /> Flatten from barcode</button>}
             </div>
+            <CaptureChecklist evidenceItems={evidenceItems} />
             <CalibrationBoard
               evidenceItems={evidenceItems}
               activeEvidence={activeEvidence}
@@ -971,6 +1116,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               onRemove={removeEvidence}
               onTransform={transformActiveEvidence}
               onRectify={rectifyActiveEvidence}
+              onRoleChange={updateEvidenceRole}
               processing={processing}
               regions={regions}
               activeRegionId={activeRegionId}
@@ -998,9 +1144,15 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               complete={Boolean(text.trim())}
             />
             <div className="ocr-toolbar">
-              <button type="button" className="ocr-button" onClick={runOcr} disabled={!evidenceItems.length || ocrState.running}>
+              <button type="button" className="ocr-button" onClick={() => runOcr('standard')} disabled={!evidenceItems.length || ocrState.running}>
                 {ocrState.running ? <LoaderCircle className="spin" size={17} /> : <ScanLine size={17} />}
                 {ocrState.running ? 'Reading label…' : 'Run browser OCR'}
+              </button>
+              <button type="button" className="deep-ocr-button" onClick={() => runOcr('deep')} disabled={!evidenceItems.length || ocrState.running}>
+                <SearchCheck size={17} /> Deep scan small text
+              </button>
+              <button type="button" className="connected-ocr-button" onClick={runConnectedOcr} disabled={!evidenceItems.length || ocrState.running} title="Explicitly sends processed panels to the configured Google Vision backend">
+                <WandSparkles size={17} /> Connected OCR
               </button>
               <label className="ocr-language">
                 <Languages size={15} />
@@ -1015,9 +1167,11 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
                 <div><span style={{ width: `${ocrState.progress}%` }} /></div>
                 <small>{ocrState.label}</small>
               </div>
-              <span className="confidence-chip">OCR engine {Number(meta.ocrConfidence || 0).toFixed(0)}%</span>
+              <span className="confidence-chip">Reliability {Number(meta.ocrConfidence || 0).toFixed(0)}% · engine {Number(meta.ocrEngineConfidence || 0).toFixed(0)}%</span>
             </div>
+            <p className="connected-ocr-disclosure"><LockKeyhole size={13} /> Browser OCR is the private default. Connected OCR sends processed panels to the configured Google Vision service only when you click it; NiyamLens does not store them on its server.</p>
             {ocrState.error && <div className="inline-warning"><AlertTriangle size={17} />{ocrState.error}</div>}
+            <DeclarationCoverage extraction={extraction} reliability={meta.ocrConfidence} engineConfidence={meta.ocrEngineConfidence} reliabilityReason={meta.ocrReliabilityReason} />
             <textarea
               className="evidence-editor"
               value={text}

@@ -33,6 +33,69 @@ export async function createOcrInputVariants(sourceUrl) {
   ]
 }
 
+const renderOcrTile = (image, crop, index) => {
+  const scale = Math.max(1, Math.min(3, 1800 / Math.max(crop.width, crop.height)))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(crop.width * scale))
+  canvas.height = Math.max(1, Math.round(crop.height * scale))
+  const context = canvas.getContext('2d')
+  context.imageSmoothingEnabled = true
+  context.imageSmoothingQuality = 'high'
+  context.fillStyle = '#fff'
+  context.fillRect(0, 0, canvas.width, canvas.height)
+  context.filter = 'grayscale(1) contrast(138%)'
+  context.drawImage(image, crop.x, crop.y, crop.width, crop.height, 0, 0, canvas.width, canvas.height)
+  return { id: `detail-tile-${index + 1}`, pageSegmentationMode: '6', dataUrl: canvas.toDataURL('image/png'), width: canvas.width, height: canvas.height, spatial: false }
+}
+
+export async function createOcrTileVariants(sourceUrl) {
+  const image = await loadImage(sourceUrl)
+  const width = image.naturalWidth || image.width
+  const height = image.naturalHeight || image.height
+  const overlapX = Math.round(width * .08)
+  const overlapY = Math.round(height * .08)
+  const midpointX = Math.round(width / 2)
+  const midpointY = Math.round(height / 2)
+  const crops = [
+    { x: 0, y: 0, width: midpointX + overlapX, height: midpointY + overlapY },
+    { x: Math.max(0, midpointX - overlapX), y: 0, width: width - Math.max(0, midpointX - overlapX), height: midpointY + overlapY },
+    { x: 0, y: Math.max(0, midpointY - overlapY), width: midpointX + overlapX, height: height - Math.max(0, midpointY - overlapY) },
+    { x: Math.max(0, midpointX - overlapX), y: Math.max(0, midpointY - overlapY), width: width - Math.max(0, midpointX - overlapX), height: height - Math.max(0, midpointY - overlapY) },
+  ]
+  return crops.map((crop, index) => renderOcrTile(image, crop, index))
+}
+
+const agreementTokens = (value) => new Set(normalizeToken(value).split(' ').filter((token) => token.length >= 3))
+
+const tokenAgreement = (left, right) => {
+  if (!left.size || !right.size) return 0
+  let intersection = 0
+  left.forEach((token) => { if (right.has(token)) intersection += 1 })
+  return intersection / new Set([...left, ...right]).size
+}
+
+export function calibrateOcrReliability(passes = [], qualityScore = 0) {
+  const usable = passes.filter((pass) => pass?.spatial !== false && String(pass?.text || '').trim())
+  if (!usable.length) return { score: 0, engineConfidence: 0, agreement: 0, reason: 'No readable OCR text.' }
+  const engineConfidence = Math.max(...usable.map((pass) => Number(pass.confidence || 0)))
+  const tokenSets = usable.map((pass) => agreementTokens(pass.text))
+  const agreements = []
+  for (let left = 0; left < tokenSets.length; left += 1) {
+    for (let right = left + 1; right < tokenSets.length; right += 1) agreements.push(tokenAgreement(tokenSets[left], tokenSets[right]))
+  }
+  const agreement = agreements.length ? Math.max(...agreements) : 0
+  const meaningfulTokens = new Set(tokenSets.flatMap((tokens) => [...tokens])).size
+  const evidenceVolume = Math.min(1, meaningfulTokens / 35)
+  const quality = Math.max(0, Math.min(100, Number(qualityScore || 0)))
+  const score = Math.round(Math.min(99, engineConfidence * .47 + agreement * 100 * .28 + quality * .15 + evidenceVolume * 100 * .1))
+  const reason = score >= 75
+    ? 'OCR passes agree and the capture is suitable for verification.'
+    : score >= 55
+      ? 'Usable evidence, but verify highlighted fields against the package.'
+      : 'Low-confidence evidence; retake or run a deep scan before deciding.'
+  return { score, engineConfidence: Math.round(engineConfidence), agreement: Number(agreement.toFixed(2)), reason }
+}
+
 export async function createOcrRegionVariant(sourceUrl, bbox) {
   const image = await loadImage(sourceUrl)
   const sourceWidth = image.naturalWidth || image.width

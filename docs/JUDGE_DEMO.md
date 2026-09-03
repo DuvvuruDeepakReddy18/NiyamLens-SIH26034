@@ -10,7 +10,7 @@ Capture front, back and side declaration panels. Show the quality score, any rec
 
 ## 2:00–3:10 — OCR with visible grounding
 
-Run OCR. Click MRP, net quantity and consumer care in the structured extraction grid; each click should highlight the matched image line. Correct an OCR error if one exists and state that recognition proposes evidence while deterministic rules decide.
+Run browser OCR. Show the separate reliability and engine-confidence values. If the capture is difficult, run **Deep scan small text** and explain that four overlapping detail tiles are added locally. Click MRP, net quantity and consumer care in the structured extraction grid; each click should highlight the matched image line. Correct an OCR error if one exists and state that recognition proposes evidence while deterministic rules decide. Use **Connected OCR** only if the server secret is configured and the judge agrees to the explicit image transfer.
 
 ## 3:10–4:30 — Geometry and exceptions
 
@@ -39,7 +39,8 @@ Open **Validation lab**. State clearly that the built-in records are synthetic r
 
 ## Failure recovery
 
-- If first-run OCR language download fails, use English or paste the captured transcript; explain the offline language-cache requirement.
+- If local OCR fails, retry English, improve the panel crop or paste a verified transcript; the language assets are bundled and cached for offline use.
+- If connected OCR is unavailable, show that local/deep OCR and the existing transcript remain intact. Do not frame provider availability as required for inspection.
 - If the browser has no BarcodeDetector, enter GTIN manually.
 - If reference detection fails, use two-click calibration.
 - If WebXR depth is unavailable, continue with the reference card and do not claim depth measurement.

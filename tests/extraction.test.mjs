@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { extractDeclarations, normalizeUnit } from '../src/lib/extraction.mjs'
+import { extractDeclarations, isValidGtin, normalizeUnit } from '../src/lib/extraction.mjs'
 
 test('normalizes common package units', () => {
   assert.equal(normalizeUnit('GMS'), 'g')
@@ -55,4 +55,18 @@ test('extracts a consumer-care address from either side of the care heading', ()
 test('does not attribute a manufacturer telephone above the consumer-care block', () => {
   const result = extractDeclarations(`MANUFACTURED BY: EXAMPLE FOODS\nTelephone: 044 23456789\nCONSUMER CARE: care@example.in`)
   assert.equal(result.byId.phone.detected, false)
+})
+
+test('tolerates punctuated MRP text and extracts a formatted FSSAI licence', () => {
+  const result = extractDeclarations('M.R.P. Rs 48.00\nFSSAI Lic. No. 1001 2002 3000 45')
+  assert.equal(result.byId.mrp.value, '48.00')
+  assert.equal(result.byId.fssaiLicense.value, '10012002300045')
+  assert.equal(result.byId.fssaiLicense.validation.status, 'format_valid')
+})
+
+test('validates GTIN check digits without treating OCR digits as authoritative', () => {
+  assert.equal(isValidGtin('8901030895487'), true)
+  assert.equal(isValidGtin('8901030895486'), false)
+  const result = extractDeclarations('GTIN: 8901030895486')
+  assert.equal(result.byId.barcode.validation.status, 'check_digit_invalid')
 })

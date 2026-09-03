@@ -5,6 +5,7 @@ import { launchTestBrowser } from './browser-runtime.mjs'
 
 const root = process.cwd()
 const baseUrl = process.env.NIYAMLENS_BASE_URL || 'http://127.0.0.1:5173/'
+const scanMode = String(process.env.NIYAMLENS_OCR_MODE || 'standard').toLowerCase() === 'deep' ? 'deep' : 'standard'
 const manifest = JSON.parse(await readFile(path.join(root, 'datasets', 'openfoodfacts-india', 'real-labels.manifest.json'), 'utf8'))
 const caseFilter = String(process.env.NIYAMLENS_CASE || '').trim()
 const allCases = manifest.products.flatMap((product) => product.images
@@ -38,14 +39,16 @@ for (const testCase of cases) {
     const turns = ((testCase.rotation % 360) + 360) % 360 / 90
     for (let turn = 0; turn < turns; turn += 1) await clockwiseButton.click()
   }
-  await page.getByRole('button', { name: /Run browser OCR/i }).click()
-  await page.getByText(/OCR complete across/i).waitFor({ timeout: 180_000 })
+  await page.getByRole('button', { name: scanMode === 'deep' ? /Deep scan small text/i : /Run browser OCR/i }).click()
+  await page.getByText(scanMode === 'deep' ? /Deep scan complete across/i : /OCR complete across/i).waitFor({ timeout: 240_000 })
   const recognizedText = await page.locator('.evidence-editor').inputValue()
   const normalizedText = normalize(recognizedText)
   const matchedTokens = testCase.expectedTokens.filter((token) => containsExpected(normalizedText, token))
   const missingTokens = testCase.expectedTokens.filter((token) => !matchedTokens.includes(token))
   const confidenceText = await page.locator('.confidence-chip').innerText()
-  const confidence = Number(confidenceText.match(/[\d.]+/)?.[0] || 0)
+  const confidenceValues = [...confidenceText.matchAll(/[\d.]+/g)].map((match) => Number(match[0]))
+  const reliability = confidenceValues[0] || 0
+  const engineConfidence = confidenceValues[1] || 0
   const parsedSignals = await page.locator('.extraction-grid .detected').count()
   results.push({
     id: `${testCase.code}-${testCase.imageId}`,
@@ -57,12 +60,13 @@ for (const testCase of cases) {
     matchedTokens,
     missingTokens,
     tokenRecall: Number((matchedTokens.length / testCase.expectedTokens.length).toFixed(3)),
-    confidence,
+    reliability,
+    engineConfidence,
     parsedSignals,
     recognizedText,
     manualCorrectionsApplied: false
   })
-  console.log(`${results.at(-1).id}: ${(results.at(-1).tokenRecall * 100).toFixed(0)}% token recall, OCR ${confidence}%`)
+  console.log(`${results.at(-1).id}: ${(results.at(-1).tokenRecall * 100).toFixed(0)}% token recall, reliability ${reliability}%, engine ${engineConfidence}%`)
 }
 
 await browser.close()
@@ -73,10 +77,12 @@ const summary = {
   appUrl: baseUrl,
   dataset: manifest.name,
   datasetVersion: manifest.version,
+  scanMode,
   cases: results.length,
   products: new Set(results.map((result) => result.productName)).size,
   aggregateTokenRecall: Number((totalMatched / totalExpected).toFixed(3)),
-  averageEngineConfidence: Number((results.reduce((sum, result) => sum + result.confidence, 0) / results.length).toFixed(1)),
+  averageReliability: Number((results.reduce((sum, result) => sum + result.reliability, 0) / results.length).toFixed(1)),
+  averageEngineConfidence: Number((results.reduce((sum, result) => sum + result.engineConfidence, 0) / results.length).toFixed(1)),
   totalParsedSignals: results.reduce((sum, result) => sum + result.parsedSignals, 0),
   manualCorrectionsApplied: false,
   note: 'Expected tokens were human-annotated before the run. Recognized text is the unedited browser OCR output. This pilot measures OCR token recovery only; it does not establish field accuracy or legal compliance accuracy.',
@@ -85,11 +91,13 @@ const summary = {
   results
 }
 await mkdir(path.join(root, 'reports'), { recursive: true })
-await writeFile(path.join(root, 'reports', 'ocr-real-label-benchmark.json'), `${JSON.stringify(summary, null, 2)}\n`)
+const reportName = scanMode === 'deep' ? 'ocr-real-label-benchmark-deep.json' : 'ocr-real-label-benchmark.json'
+await writeFile(path.join(root, 'reports', reportName), `${JSON.stringify(summary, null, 2)}\n`)
 console.log(JSON.stringify({
   cases: summary.cases,
   products: summary.products,
   aggregateTokenRecall: summary.aggregateTokenRecall,
+  averageReliability: summary.averageReliability,
   averageEngineConfidence: summary.averageEngineConfidence,
   totalParsedSignals: summary.totalParsedSignals,
   manualCorrectionsApplied: false,

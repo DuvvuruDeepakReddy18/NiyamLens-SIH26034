@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { flattenOcrWords, matchDeclarationRegions, measureRegion, mergeOcrPassTexts, selectReferenceCandidate } from '../src/lib/vision.mjs'
+import { calibrateOcrReliability, flattenOcrWords, matchDeclarationRegions, measureRegion, mergeOcrPassTexts, selectReferenceCandidate } from '../src/lib/vision.mjs'
 
 const blocks = [{
   paragraphs: [{
@@ -52,4 +52,24 @@ test('multi-pass OCR merging repairs a common trailing-S substitution and reject
   assert.match(merged, /20 mm REF/)
   assert.doesNotMatch(merged, /^Il$/m)
   assert.doesNotMatch(merged, /^zm rer$/m)
+})
+
+test('OCR reliability rewards agreement instead of trusting one high engine score', () => {
+  const reliable = calibrateOcrReliability([
+    { text: 'MRP Rs 48 net quantity 100 g packed August 2026 consumer care', confidence: 88 },
+    { text: 'MRP Rs 48 net quantity 100 g packed August 2026 consumer care', confidence: 81 },
+  ], 84)
+  const conflicting = calibrateOcrReliability([
+    { text: 'MRP Rs 48 net quantity 100 g', confidence: 92 },
+    { text: 'decorative package artwork unrelated noise', confidence: 70 },
+  ], 84)
+  assert.ok(reliable.score > conflicting.score)
+  assert.equal(conflicting.engineConfidence, 92)
+  assert.equal(conflicting.agreement, 0)
+})
+
+test('OCR reliability rejects empty recognition even when capture quality is high', () => {
+  const result = calibrateOcrReliability([{ text: '', confidence: 99 }], 95)
+  assert.equal(result.score, 0)
+  assert.match(result.reason, /no readable/i)
 })

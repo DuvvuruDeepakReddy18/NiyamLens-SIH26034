@@ -1,10 +1,10 @@
 # NiyamLens team feature and verification guide
 
-**Problem statement:** SIH26034 — packaged-commodity declaration compliance  
-**Release:** NiyamLens 0.2.1, repository `main`
-**Live application:** <https://niyamlens-sih26034.vercel.app>  
-**Source backup:** <https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034> (private)  
-**Last verified:** 1 September 2026
+- **Problem statement:** SIH26034 — packaged-commodity declaration compliance
+- **Release:** NiyamLens 0.3.0, local release candidate
+- **Public application:** <https://niyamlens-sih26034.vercel.app> (redeploy 0.3.0 before using the new OCR controls)
+- **Source repository:** <https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034>
+- **Last verified locally:** 3 September 2026
 
 ## What the product does
 
@@ -14,7 +14,8 @@ The product is decision support for an authorised officer. It does not claim to 
 
 ## Verification labels used in this guide
 
-- **Live automated:** exercised against the public Vercel deployment by browser automation.
+- **Automated:** exercised against the current local production build by browser automation.
+- **Live automated:** repeated against the public Vercel deployment after that release is deployed.
 - **Unit tested:** its underlying logic has a passing regression test.
 - **Manual:** implemented and available, but requires a person, suitable physical packet, device capability or visual judgment.
 - **Approval required:** implemented as prototype logic but cannot be presented as department-approved or enforcement-grade.
@@ -23,7 +24,7 @@ The product is decision support for an authorised officer. It does not claim to 
 
 Use this before every presentation.
 
-1. Open <https://niyamlens-sih26034.vercel.app> in current Chrome or Edge.
+1. Open `http://127.0.0.1:5173` in current Chrome/Edge, or use the public URL after release 0.3.0 is deployed.
 2. Go to **New inspection**.
 3. Expand **Controlled test packets** and select **Compliant packet**.
 4. Confirm the right-side assessment says **PASS**.
@@ -40,14 +41,15 @@ If those ten checks pass, the core presentation path is ready. The controlled pa
 
 | Area | Implemented capability | Best proof |
 |---|---|---|
-| Intake | Camera/file capture for up to four package panels | Upload front, back and side images and switch among the panel thumbnails |
+| Intake | Camera/file capture for up to four guided package-panel roles | Upload and assign front, MRP/date, entity/care and quantity/barcode views |
 | Integrity | SHA-256 digest of every original image | Compare the hash before and after rotate/flatten; it remains unchanged |
 | Image quality | Sharpness, contrast, brightness and glare checks | Upload a clear image, then an intentionally blurred/glared image |
 | Image correction | Rotation, grayscale, contrast and four-corner perspective flattening | Flatten a skewed panel in TL → TR → BR → BL order |
 | Barcode | Native GTIN reading and barcode-plane flattening | Scan a real EAN/UPC package in supported Chrome/Edge |
-| OCR | Local Tesseract OCR in English, Hindi, Telugu and Tamil combinations | Disconnect after caching and run OCR successfully |
+| OCR | Three-pass local OCR plus seven-pass tiled deep scan in supported language combinations | Disconnect after caching and compare standard with **Deep scan small text** |
+| Connected OCR | Explicit opt-in Google Vision serverless route with preserved local fallback | Click only after consent; simulate an outage and confirm the transcript remains |
 | Grounding | Clickable OCR declaration regions | Click an extracted MRP or quantity card and see its image box highlight |
-| Extraction | MRP, quantity, date, entity, consumer care, origin, unit price and barcode parsing | Run the bundled real-label sample; ten signals and ten regions are expected |
+| Extraction | MRP, quantity, date, entity, care, origin, unit price, FSSAI text and barcode parsing | Try punctuated M.R.P., a 14-digit FSSAI licence and an invalid GTIN check digit |
 | Geometry | Flat and cylindrical principal-display-panel calculators | Enter dimensions and observe the calculated square-centimetre area |
 | Typography | Calibrated font height and width-to-height checks | Measure a reference, glyph height and glyph width on the same panel |
 | Uncertainty | Table-I boundary and physical-measurement abstention | Set area near 100 cm² with ±5% uncertainty and observe REVIEW |
@@ -65,7 +67,7 @@ If those ten checks pass, the core presentation path is ready. The controlled pa
 
 ### 1. Multi-panel evidence capture
 
-**What it does:** Accepts camera capture or files for as many as four declaration panels. Front, back and side panels remain separate evidence planes.
+**What it does:** Accepts camera capture or files for as many as four declaration panels. Front, back and side panels remain separate evidence planes and receive editable evidence roles.
 
 **Why it matters:** Mandatory declarations are often split across a package. A single front photograph is not enough to support a missing-declaration finding.
 
@@ -74,7 +76,7 @@ If those ten checks pass, the core presentation path is ready. The controlled pa
 1. Open **New inspection**.
 2. Select **Capture / upload package**.
 3. Add one image, then use **Add package panel (1/4)** to add more.
-4. Confirm a thumbnail appears for every panel and that selecting a thumbnail changes the active image.
+4. Confirm a thumbnail appears for every panel, selecting it changes the active image, and **Active panel purpose** can be corrected.
 5. Add four panels and confirm the upload control is disabled at the limit.
 
 **Expected proof:** The page states the number of captured panels, and the evidence report displays every retained panel separately.
@@ -176,18 +178,47 @@ If those ten checks pass, the core presentation path is ready. The controlled pa
 1. Upload an appropriate label.
 2. Select the OCR language combination.
 3. Select **Run browser OCR**.
-4. Observe progress, the editable transcript and the OCR-confidence chip.
+4. Observe progress, the editable transcript and the separate reliability/engine-confidence values.
 5. Click extracted declaration cards to inspect their image grounding.
 
-**Verified sample result:** The live bundled sample completes at 91% OCR confidence with ten parsed signals and ten mapped evidence regions. It makes zero requests to external OCR services.
+**Verified sample result:** The bundled sample completes at 91% calibrated reliability and 92% engine confidence with ten parsed signals and ten mapped evidence regions. It makes zero requests to external OCR services.
 
-**Do not claim:** 91% is one regression image, not field accuracy.
+**Do not claim:** Neither 91% reliability nor 92% engine confidence is field accuracy.
 
 **Status:** Live automated by `npm run qa:ocr` and `npm run qa:pwa`.
 
+### 7A. Deep scan and calibrated retake guidance
+
+**What it does:** Adds four overlapping 2×2 detail tiles to the three whole-panel OCR passes, then scores reliability from pass agreement, engine confidence, capture quality and evidence volume. Low reliability produces a retake/deep-scan recommendation instead of a confident-looking verdict.
+
+**Manual verification:**
+
+1. Upload a difficult small-text panel.
+2. Run normal browser OCR and preserve the transcript.
+3. Run **Deep scan small text** and compare recovered declarations.
+4. Confirm poor captures remain visibly low-reliability rather than inheriting a single optimistic engine score.
+
+**Measured pilot:** Standard local OCR recovered 75.9% of pre-labelled tokens and deep scan recovered 79.3% on the same ten untouched photos. The gain came from a hard small-text panel; curved and poor captures remain known failure modes. This pilot is too small for a field-accuracy claim.
+
+**Status:** Automated by `npm run qa:ocr:real` and `npm run qa:ocr:real:deep`; reports are committed under `reports/`.
+
+### 7B. Explicit connected OCR
+
+**What it does:** Sends processed panels to Google Vision only after the inspector clicks **Connected OCR**. The API key stays server-side, the response is normalized into NiyamLens evidence, the action is audited, and provider failure leaves the previous transcript unchanged.
+
+**Manual verification:**
+
+1. Configure `GOOGLE_CLOUD_VISION_API_KEY` on a Vercel preview or production deployment.
+2. Load a package and confirm browser OCR works without using the provider.
+3. Explain the transfer and select **Connected OCR** only with consent.
+4. Verify the returned transcript against the package; do not treat provider confidence as accuracy.
+5. Remove/disable the key and confirm the UI reports unavailability while local OCR remains usable.
+
+**Status:** Server API and browser contract tested by `npm test` and `npm run qa:ocr:connected`. A real provider call requires the team's own secret and billing-enabled project.
+
 ### 8. Structured declaration extraction and visual grounding
 
-**What it does:** Converts the OCR transcript into candidate fields for product name, MRP, net quantity, pack/manufacture date, responsible entity, consumer-care details, country of origin, unit sale price and barcode. OCR word boxes are mapped back to image regions.
+**What it does:** Converts the OCR transcript into candidate fields for product name, MRP, net quantity, pack/manufacture date, responsible entity, consumer-care details, country of origin, unit price, FSSAI licence text and barcode. It tolerates punctuated M.R.P. and validates GTIN check digits. OCR word boxes are mapped back to image regions.
 
 **Manual verification:**
 
@@ -510,9 +541,9 @@ It also checks that measured character width is at least one-third of height, su
 4. Upload the sample or a local label and run browser OCR.
 5. Confirm the application and OCR both work without network access.
 
-**Automated proof:** The live check found service worker `niyamlens-shell-v6`, 16 cached shell/OCR resources, successful offline reload and successful offline OCR at 91% sample confidence.
+**Automated proof:** The production-preview check found service worker `niyamlens-shell-v7`, 16 cached shell/OCR resources, successful offline reload and successful offline OCR at 91% reliability / 92% engine confidence.
 
-**Status:** Live automated.
+**Status:** Automated on the current production build; repeat on the public URL after deployment.
 
 ### 28. Responsive/mobile interface
 
@@ -591,7 +622,25 @@ $env:NIYAMLENS_BASE_URL='https://niyamlens-sih26034.vercel.app/'
 npm run qa:ocr
 ```
 
-Expected release baseline: OCR 91%, product `FIELD HARVEST`, ten parsed signals, ten mapped regions, no external requests and no browser errors.
+Expected release baseline: 91% reliability / 92% engine confidence, product `FIELD HARVEST`, ten parsed signals, ten mapped regions, no external requests and no browser errors.
+
+### Verify explicit connected OCR and safe failure
+
+```powershell
+npm run qa:ocr:connected
+```
+
+Expected results: explicit opt-in request, connected result visible, FSSAI text detected, simulated provider outage preserves evidence, and no unexpected browser errors.
+
+### Compare standard and deep OCR on real photos
+
+```powershell
+npm run dataset:real:fetch
+npm run qa:ocr:real
+npm run qa:ocr:real:deep
+```
+
+Current pilot baseline: 75.9% standard versus 79.3% deep token recall across ten photos; zero manual corrections. These are pilot OCR-recall measurements, not compliance accuracy.
 
 ### Verify fully offline operation
 
@@ -629,7 +678,8 @@ If the test runner reports `spawn EPERM` on Windows, rerun the terminal with per
 
 | Safe statement | Unsafe statement |
 |---|---|
-| “The bundled sample produced 91% OCR confidence.” | “Our field OCR accuracy is 91%.” |
+| “The bundled sample produced 91% reliability and 92% engine confidence.” | “Our field OCR accuracy is 91%.” |
+| “Deep scan improved pilot token recall from 75.9% to 79.3%.” | “Deep scan is 79.3% accurate on Indian labels.” |
 | “The prototype evaluates a versioned rules-as-code interpretation.” | “The government has approved every encoded legal interpretation.” |
 | “Calibration and uncertainty support a reviewable measurement.” | “Any phone photograph gives enforcement-grade millimetres.” |
 | “The local hash chain detects record mutation.” | “This is blockchain/WORM evidence.” |
@@ -672,6 +722,8 @@ All six members should rehearse the ten-minute smoke test. The operator and pres
 
 - [Seven-minute judge demonstration](JUDGE_DEMO.md)
 - [Architecture and trust model](ARCHITECTURE.md)
+- [Hybrid OCR architecture decision](ADR-001-HYBRID-OCR.md)
+- [Legal Metrology field-dataset schema](../datasets/legal-metrology-field/README.md)
 - [Field validation protocol](FIELD_VALIDATION_PROTOCOL.md)
 - [Legal review register](LEGAL_REVIEW.md)
-- [Deployment readiness](DEPLOYMENT_READINESS_2026-09-01.md)
+- [Deployment readiness](DEPLOYMENT_READINESS_2026-09-03.md)

@@ -137,7 +137,7 @@ def draw_cover(canvas, doc):
     canvas.drawString(45 * mm, height - 33 * mm, "EVIDENCE BEFORE VERDICT")
     canvas.setFillColor(INK)
     canvas.setFont("Niyam", 8)
-    canvas.drawString(20 * mm, 12 * mm, "SIH26034  /  TEAM EDITION  /  1 SEPTEMBER 2026")
+    canvas.drawString(20 * mm, 12 * mm, "SIH26034  /  TEAM EDITION  /  3 SEPTEMBER 2026")
     canvas.setFillColor(TEAL)
     canvas.rect(176 * mm, 11.5 * mm, 14 * mm, 1.2 * mm, fill=1, stroke=0)
     canvas.restoreState()
@@ -500,7 +500,7 @@ def cover_story():
         textColor=SLATE,
     )
     stat_cells = []
-    for number, label in [("29", "FEATURES"), ("44/44", "TESTS PASS"), ("4", "OCR MODES"), ("YES", "OFFLINE OCR")]:
+    for number, label in [("31", "FEATURES"), ("54/54", "TESTS PASS"), ("3", "OCR PATHS"), ("YES", "OFFLINE OCR")]:
         stat_cells.append([Paragraph(number, stat_style), Paragraph(label, stat_label)])
     stats = Table([stat_cells], colWidths=[(A4[0] - 40 * mm) / 4] * 4)
     stats.setStyle(TableStyle([
@@ -511,7 +511,7 @@ def cover_story():
         ("TOPPADDING", (0, 0), (-1, -1), 8),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
     ]))
-    live = inline_markup("**Live prototype:** <https://niyamlens-sih26034.vercel.app>")
+    live = inline_markup("**Public prototype (0.3.0 redeploy pending):** <https://niyamlens-sih26034.vercel.app>")
     source = inline_markup("**Source:** <https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034>")
     return [
         Spacer(1, 48 * mm),
@@ -526,7 +526,7 @@ def cover_story():
         Paragraph(live, STYLES["cover-meta"]),
         Paragraph(source, STYLES["cover-meta"]),
         Spacer(1, 6 * mm),
-        Paragraph("Release 0.2.1 · Verified 1 September 2026 · Private source repository", STYLES["cover-meta"]),
+        Paragraph("Release 0.3.0 · Verified 3 September 2026 · Source repository", STYLES["cover-meta"]),
         NextPageTemplate("body"),
         PageBreak(),
     ]

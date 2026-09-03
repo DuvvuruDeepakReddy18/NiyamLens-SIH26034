@@ -17,13 +17,15 @@ English, Hindi, Telugu and Tamil OCR assets are bundled under `public/ocr`, so t
 
 ## What is implemented
 
-- Real camera/file intake for up to four label panels.
+- Real camera/file intake for up to four label panels, with guided roles for identity, price/date, responsible entity/consumer care and quantity/barcode evidence.
 - SHA-256 digest of every original image before preprocessing.
 - Image-quality gates for sharpness, brightness, contrast and glare.
 - Rotation, grayscale and contrast preprocessing without replacing the original.
-- Tesseract OCR in English, Hindi, Telugu or Tamil combinations.
+- Three-pass local Tesseract OCR in English, Hindi, Telugu or Tamil combinations, plus an optional seven-pass deep scan using four overlapping detail tiles.
+- Calibrated OCR reliability based on engine confidence, pass agreement, capture quality and evidence volume, with explicit retake guidance.
+- Explicit opt-in connected OCR through a serverless Google Vision boundary; browser OCR remains the offline/private default and failed connected requests preserve local evidence.
 - OCR word boxes mapped to clickable declaration evidence regions.
-- Deterministic extraction of MRP, quantity, dates, responsible entity, consumer care, origin, unit price and barcode text.
+- Deterministic extraction of MRP, quantity, dates, responsible entity, consumer care, origin, unit price, FSSAI licence text and barcode text, including GTIN check-digit validation.
 - Native `BarcodeDetector` support with corner geometry, card-free panel flattening and manual GTIN fallback. Barcode geometry corrects perspective but does not establish absolute millimetres.
 - Four-corner projective homography to flatten skewed label panels.
 - Reference-card detection, two-point manual calibration and WebXR depth-capability check.
@@ -61,22 +63,25 @@ npm test
 npm run build
 npm run qa:ui
 npm run qa:ocr
+npm run qa:ocr:connected
 npm run dataset:real:fetch
 npm run qa:ocr:real
+npm run qa:ocr:real:deep
 npm run qa:ocr:google-baseline
 npm run qa:pwa
 ```
 
 Current verified baseline:
 
-- 45 automated tests passing.
+- 54 automated tests passing.
 - Production Vite build passing.
 - Full browser workflow passing with zero recorded console/page errors.
 - Production service-worker reload and OCR passing with the browser fully offline.
-- Exact sample-label OCR regression passing: all 12 expected lines recovered with no manual correction, plus 10 structured signals and 10 mapped evidence regions.
-- Real-label pilot: 75.9% token recall across 10 scored declaration photos from six Indian-market products, with no manual correction. The source dataset's precomputed Google Vision annotations score 96.6% on the same tokens and are retained only as a reference baseline.
+- Exact sample-label OCR regression passing: all 12 expected lines recovered with no manual correction, 91% calibrated reliability, 92% engine confidence, 10 structured signals and 10 mapped evidence regions.
+- Connected-OCR browser contract passing: explicit image transfer, normalized result display, FSSAI extraction and evidence preservation during a simulated provider outage.
+- Real-label pilot: standard local OCR recovered 75.9% of expected tokens; local deep scan recovered 79.3% on the same 10 untouched photos from six Indian-market products. No manual correction was used. The source dataset's precomputed Google Vision annotations score 96.6% on the same tokens and remain a reference baseline, not a result from the deployed app.
 
-The OCR QA loads the bundled engine assets. The UI labels Tesseract's score as **engine confidence**, not accuracy. Neither the exact-text fixture nor the small real-label pilot establishes field or compliance accuracy. The real pilot intentionally preserves failed tokens and a curved-label stress case; see [dataset protocol](datasets/openfoodfacts-india/README.md) and the committed reports in `reports/`.
+The OCR QA loads the bundled engine assets. The UI separates calibrated **reliability** from provider **engine confidence**; neither is accuracy. Neither the exact-text fixture nor the small real-label pilot establishes field or compliance accuracy. The real pilot intentionally preserves failed tokens and a curved-label stress case; see the [Open Food Facts pilot protocol](datasets/openfoodfacts-india/README.md), the [Legal Metrology field-dataset schema](datasets/legal-metrology-field/README.md) and the committed reports in `reports/`.
 
 ## Deployment
 
@@ -88,13 +93,15 @@ npx vercel@latest --prod
 
 Deployment does not create a central database: inspection history, assignments and evidence remain local to each browser through IndexedDB/local storage. Production departmental identity, shared case synchronization and externally anchored audit storage remain future server-side work.
 
+Connected OCR is intentionally disabled unless `GOOGLE_CLOUD_VISION_API_KEY` is configured as a server-side Vercel environment variable. Never use a `VITE_` prefix for this secret. The static application and local/deep OCR work without it. Use `vercel dev` rather than the Vite dev server when manually exercising the serverless route locally.
+
 ## Core architecture
 
 ```text
 Camera / files
   -> original digest + quality gate
   -> reversible OCR preprocessing
-  -> multilingual OCR + word geometry
+  -> local/deep OCR + optional explicit connected OCR + word geometry
   -> structured declaration extraction
   -> inspector context + per-panel geometry + scale
   -> versioned deterministic rules + uncertainty
@@ -125,7 +132,8 @@ Further detail:
 - [Downloadable team feature and verification PDF](docs/NiyamLens_Team_Feature_Verification_Guide.pdf)
 - [Team feature and verification guide](docs/TEAM_FEATURE_VERIFICATION_GUIDE.md)
 - [Architecture and trust model](docs/ARCHITECTURE.md)
+- [Hybrid OCR architecture decision](docs/ADR-001-HYBRID-OCR.md)
 - [Legal review register](docs/LEGAL_REVIEW.md)
 - [Field validation protocol](docs/FIELD_VALIDATION_PROTOCOL.md)
 - [Judge demonstration runbook](docs/JUDGE_DEMO.md)
-- [Deployment readiness](docs/DEPLOYMENT_READINESS_2026-09-01.md)
+- [Deployment readiness](docs/DEPLOYMENT_READINESS_2026-09-03.md)

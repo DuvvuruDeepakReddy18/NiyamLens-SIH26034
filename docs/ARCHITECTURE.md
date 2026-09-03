@@ -7,7 +7,7 @@ Provide an officer with a reproducible, reviewable assessment of declarations on
 ## Design constraints
 
 - A judge must be able to supply an unseen package.
-- First-run OCR may need network access for Tesseract language data; the inspection and saved record are otherwise local-first.
+- Tesseract worker, WebAssembly and supported language data are bundled and cached for offline use. Connected OCR is a separate explicit action and is never an automatic fallback.
 - Browser computer vision is advisory. It cannot turn an uncalibrated image into a defensible millimetre measurement.
 - Legal applicability changes over time and must be versioned and approved externally.
 - Missing or weak evidence must cause abstention, not a guessed violation.

@@ -13,13 +13,14 @@ const lineContaining = (lines, match) => {
   return lines.find((line) => line.toLowerCase().includes(needle)) || ''
 }
 
-const field = (id, label, value = '', evidence = '', confidence = 0) => ({
+const field = (id, label, value = '', evidence = '', confidence = 0, validation = null) => ({
   id,
   label,
   value: value ? String(value).trim() : '',
   evidence: evidence ? String(evidence).trim() : '',
   confidence: Math.max(0, Math.min(100, Math.round(confidence))),
   detected: Boolean(value || evidence),
+  validation,
 })
 
 export const normalizeUnit = (unit) => {
@@ -31,11 +32,20 @@ export const normalizeUnit = (unit) => {
   return normalized
 }
 
+export function isValidGtin(value) {
+  const digits = String(value || '').replace(/\D/g, '')
+  if (![8, 12, 13, 14].includes(digits.length)) return false
+  const checkDigit = Number(digits.at(-1))
+  const body = digits.slice(0, -1).split('').reverse().map(Number)
+  const sum = body.reduce((total, digit, index) => total + digit * (index % 2 === 0 ? 3 : 1), 0)
+  return (10 - (sum % 10)) % 10 === checkDigit
+}
+
 export function extractDeclarations(text) {
   const raw = String(text || '').replace(/\r/g, '').trim()
   const lines = cleanLines(raw)
 
-  const mrpMatch = raw.match(/\b(?:MRP|MAXIMUM\s+RETAIL\s+PRICE)\b[^\d\n]{0,28}(?:₹|RS\.?|INR)?\s*[:\-]?\s*(\d+(?:\.\d{1,2})?)/i)
+  const mrpMatch = raw.match(/(?:\bM\s*[.·]?\s*R\s*[.·]?\s*P\.?|\bMAXIMUM\s+RETAIL\s+PRICE)\b[^\d\n]{0,28}(?:₹|RS\.?|INR)?\s*[:\-]?\s*(\d+(?:\.\d{1,2})?)/i)
   const quantityMatch = raw.match(/\b(?:NET\s*(?:QTY|QUANTITY|WT\.?|WEIGHT)|CONTENTS?)\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*(KG|KGS|G|GM|GMS|GRAMS?|ML|L|LTR|LITRES?|LITERS?|PCS?|PIECES?|N|NOS)\b/i)
   const dateMatch = raw.match(/\b(?:MFG|MFD|MANUFACTURED|PACKED|PKD|IMPORTED)(?:\s+(?:ON|DATE))?\s*[:\-]?\s*((?:(?:0?[1-9]|[12]\d|3[01])\s*[\/\-.]\s*)?(?:0?[1-9]|1[0-2])\s*[\/\-.]\s*(?:20)?\d{2}|(?:(?:0?[1-9]|[12]\d|3[01])\s+)?(?:JAN(?:UARY)?|FEB(?:RUARY)?|MAR(?:CH)?|APR(?:IL)?|MAY|JUN(?:E)?|JUL(?:Y)?|AUG(?:UST)?|SEP(?:TEMBER)?|OCT(?:OBER)?|NOV(?:EMBER)?|DEC(?:EMBER)?)\s+(?:20)?\d{2})\b/i)
   const bestBeforeMatch = raw.match(/\b(?:BEST\s+BEFORE|USE\s+BY|EXPIRY|EXP)\s*[:\-]?\s*([^\n]{3,30})/i)
@@ -47,6 +57,8 @@ export function extractDeclarations(text) {
   const unitPriceMatch = raw.match(/\b(?:UNIT\s+SALE\s+PRICE|UNIT\s+PRICE|USP)\b[^\n]*|(?:₹|RS\.?)\s*\d+(?:\.\d+)?\s*\/\s*(?:KG|G|ML|L|UNIT)/i)
   const genericMatch = raw.match(/\b(?:COMMON|GENERIC)\s+NAME\s*[:\-]?\s*([^\n]{2,60})/i)
   const barcodeMatch = raw.match(/\b(?:EAN|GTIN|BARCODE)\s*[:\-]?\s*(\d{8,14})\b/i)
+  const fssaiMatch = raw.match(/\bFSSAI\b[^\d\n]{0,35}(?:LIC(?:ENCE)?\.?\s*(?:NO\.?)?)?[^\d\n]{0,12}(\d(?:[\s-]?\d){13})\b/i)
+  const fssaiLicense = fssaiMatch?.[1]?.replace(/\D/g, '') || ''
 
   const excludedFirstLine = /^(?:MRP|NET\s|PACKED|MFG|MFD|MANUFACTURED|CONSUMER|CUSTOMER|HELPLINE|UNIT\s|COUNTRY\s|MADE\s|INGREDIENTS?|NUTRITION|\[)/i
   const productFallback = lines.find((line) => line.length >= 3 && line.length <= 70 && !excludedFirstLine.test(line)) || ''
@@ -71,7 +83,8 @@ export function extractDeclarations(text) {
     field('phone', 'Consumer-care phone', phoneMatch.value, phoneMatch.line, phoneMatch.found ? 94 : 0),
     field('countryOrigin', 'Country of origin', originMatch?.[1], lineContaining(lines, originMatch), originMatch ? 92 : 0),
     field('unitSalePrice', 'Unit sale price', unitPriceMatch?.[0], lineContaining(lines, unitPriceMatch), unitPriceMatch ? 90 : 0),
-    field('barcode', 'Barcode / GTIN', barcodeMatch?.[1], lineContaining(lines, barcodeMatch), barcodeMatch ? 96 : 0),
+    field('fssaiLicense', 'FSSAI licence', fssaiLicense, lineContaining(lines, fssaiMatch), fssaiMatch ? 95 : 0, fssaiLicense ? { status: 'format_valid', message: '14-digit licence format detected; registry validity is not inferred.' } : null),
+    field('barcode', 'Barcode / GTIN', barcodeMatch?.[1], lineContaining(lines, barcodeMatch), barcodeMatch ? 96 : 0, barcodeMatch ? { status: isValidGtin(barcodeMatch[1]) ? 'check_digit_valid' : 'check_digit_invalid', message: isValidGtin(barcodeMatch[1]) ? 'GTIN check digit is valid.' : 'GTIN check digit failed; verify OCR or scan the barcode.' } : null),
   ]
 
   const byId = Object.fromEntries(fields.map((item) => [item.id, item]))

@@ -1,7 +1,7 @@
 {
   "name": "niyamlens",
   "private": true,
-  "version": "0.2.1",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,9 +10,11 @@
     "test": "node --test tests/*.test.mjs",
     "qa:ui": "node tools/qa-ui.mjs",
     "qa:ocr": "node tools/qa-ocr.mjs",
+    "qa:ocr:connected": "node tools/qa-connected-ocr.mjs",
     "qa:pwa": "node tools/qa-pwa.mjs",
     "dataset:real:fetch": "node tools/fetch-real-label-benchmark.mjs",
     "qa:ocr:real": "node tools/qa-ocr-real.mjs",
+    "qa:ocr:real:deep": "cross-env NIYAMLENS_OCR_MODE=deep node tools/qa-ocr-real.mjs",
     "qa:ocr:google-baseline": "node tools/qa-google-vision-baseline.mjs"
   },
   "dependencies": {
@@ -23,6 +25,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
+    "cross-env": "^7.0.3",
     "playwright": "^1.62.1",
     "vite": "^6.0.5"
   }
