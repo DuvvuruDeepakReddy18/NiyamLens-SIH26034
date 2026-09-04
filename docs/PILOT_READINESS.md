@@ -60,7 +60,7 @@ The verified 0.4.4 stage was promoted on 5 September 2026 after managed health, 
 - A real owner/teammate signs into the exact new origin and **Verify cloud copy** succeeds there.
 - The real multi-user/other-organization matrix and hands-on offline/review checks pass.
 - The new-photo pilot and backup/service-restore evidence are reviewed; remaining limitations have an explicit owner.
-- Auth Site URL/allowed recovery redirects are set for the final public domain and public-domain smoke checks pass. Observe the recipient completing the newly issued recovery flow on that domain.
+- Auth Site URL/allowed recovery redirects are set for the final public domain, public-domain smoke checks pass, and the first approved Officer has been observed in an authenticated server-verified workspace there.
 
 No skipped test is promoted to a pass. Local-only GitHub Preview configuration is not a cloud-ready build. If a release-critical regression appears, promote the exact rollback deployment recorded in the cutover report and repeat smoke checks. Roll back application hosting only; do not reset the shared database as application rollback.
 

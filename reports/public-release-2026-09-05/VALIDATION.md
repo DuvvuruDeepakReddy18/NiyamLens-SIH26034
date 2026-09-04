@@ -39,7 +39,9 @@ A parameterized, read-only query selected only non-secret status fields for the 
 
 A separate aggregate read-only check found exactly one active owner `admin` membership and exactly one active recipient `officer` membership in the primary organization; the redirect change did not alter either role.
 
-Exactly one password-recovery request was then accepted for that identity with `redirect_to=https://niyamlens-sih26034.vercel.app`. The recipient must still open the newest recovery email, choose a private password and demonstrate a fresh public-origin sign-in. The expected workspace banner is the recipient identity with role `officer` and **Authenticated workspace · server-verified permissions**. This final human/browser observation is not claimed yet.
+Exactly one password-recovery request was then accepted for that identity with `redirect_to=https://niyamlens-sih26034.vercel.app`.
+
+A subsequent recipient-supplied Chrome screenshot visibly showed the stable public origin, NiyamLens, the approved identity with role `officer`, and **Authenticated workspace · server-verified permissions**. In the current managed build, that screen requires an existing Supabase session and a completed active-membership query that did not take the offline-cache branch. This closes the public-origin authenticated Officer-workspace UI gate. The still image does not independently prove the preceding inbox/password sequence or any evidence upload, authenticated API mutation, server receipt, OCR result or multi-user isolation result.
 
 ## Automated verification repeated after cutover
 
@@ -59,8 +61,8 @@ The immediately previous independently inspected READY Production deployment is 
 
 ## Gates still open
 
-1. Observe the first Officer completing recovery and signing in on the stable public origin; verify the server-backed `officer` role and an unsigned/sign-out denial afterward.
+1. Verify sign-out denial, then complete an authenticated upload/seal/receipt/**Verify cloud copy** cycle with the first Officer on the public origin.
 2. Complete the approved two-Officer/one-Supervisor/other-organization permission matrix without reusing identities across roles.
-3. Run fresh-cloud evidence verification, offline retry and concurrent stale-review conflict handling with real separate accounts.
+3. Run offline retry and concurrent stale-review conflict handling with real separate accounts.
 4. Complete the pre-registered unseen-photo pilot with independent reference labels; do not score manually corrected OCR as raw OCR.
 5. Create a consistent live database/object export, protect it off-site and rehearse service restore only in a separately approved disposable project.

@@ -2,7 +2,7 @@
 
 5 September 2026 — SIH26034 / NiyamLens
 
-This is an implementation update, **not a claim that the system is production-certified or automatically accurate on every real package**. The hosted Supabase project and verified 0.4.4 build are now connected at <https://niyamlens-sih26034.vercel.app/>. Auth redirects use that stable public origin, while generated deployment URLs remain Vercel-protected. The first approved Officer account is confirmed and has been sent one public-origin recovery email; fresh password sign-in and the real multi-user/field/restore gates remain open. The managed release is backed up on GitHub on `codex/managed-cloud-release`. See [the public-cutover report](../reports/public-release-2026-09-05/VALIDATION.md) for exact hosted status and rollback details.
+This is an implementation update, **not a claim that the system is production-certified or automatically accurate on every real package**. The hosted Supabase project and verified 0.4.4 build are now connected at <https://niyamlens-sih26034.vercel.app/>. Auth redirects use that stable public origin, while generated deployment URLs remain Vercel-protected. The first approved Officer account is confirmed, received one public-origin recovery email and has now been observed in an authenticated, server-verified workspace on the public origin. The real evidence-cycle, multi-user, field and restore gates remain open. The managed release is backed up on GitHub on `codex/managed-cloud-release`. See [the public-cutover report](../reports/public-release-2026-09-05/VALIDATION.md) for exact hosted status and rollback details.
 
 ## Implemented
 
