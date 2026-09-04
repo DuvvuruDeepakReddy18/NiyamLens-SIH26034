@@ -5,9 +5,9 @@
 ## Outcome
 
 - The stable public application is <https://niyamlens-sih26034.vercel.app/>.
-- The alias resolves to READY Production deployment `dpl_87dvmg6us3ZqfYj4mohJMrheJDpw`; its corresponding source checkpoint is Git commit `8124280a1d24d072fb35108c7b34b436670c6f06`.
+- The alias resolves to READY Production deployment `dpl_DxGFPdvFW6sk2Rm3GemVE4BKjL3V`; its corresponding source checkpoint is Git commit `bb8cc1a3202ef7460376c8eeff72b8161d323271`.
 - The deployed release is NiyamLens `0.4.4`, rule pack `LMPC-RC-2026.09-RC5`, rule matrix `LMPC-MATRIX-2026.09-RC5` and service-worker cache `niyamlens-shell-v12`.
-- The observed public JavaScript asset is `assets/index-Bkf70dEu.js`.
+- The observed public assets are `assets/index-CeRX7oAN.js` and `assets/index-P71ROl-p.css`.
 
 The tested READY build was promoted without a database migration or a Supabase data reset. Generated Vercel deployment URLs remain behind Vercel Authentication; ordinary NiyamLens users must use the stable public application and must not be added to the Vercel infrastructure team.
 
@@ -20,7 +20,16 @@ Independent cookie-free checks passed after promotion:
 | `GET /` on the stable public application | `200 OK`; NiyamLens inspection-console HTML |
 | `GET /api/health` | `200 OK`; `{"service":"niyamlens","ready":true}` |
 | Unsigned `GET /api/cases` | `401 Unauthorized`; application-level sign-in requirement |
-| Same paths on the generated `bqda9qfmx` URL | `302` to Vercel SSO, as intended |
+| Stable HTML-linked JavaScript and CSS assets | Both `200 OK` with the expected content types |
+| Same path on the generated `frgvhly6o` URL | `302` to Vercel SSO with `X-Robots-Tag: noindex`, as intended |
+
+## Authenticated workspace layout repair
+
+This production release removes the authenticated-banner overlap seen when the fixed desktop navigation covered the banner's first 258 pixels. The sidebar, page frame and workspace chrome now share one rail-width token. The banner and error state clear the desktop rail, return to full width at the 820-pixel mobile breakpoint and sit below the open mobile drawer scrim.
+
+The mocked managed-workspace browser test signed in, rendered the actual application and checked geometry at 1280, 821, 820, 560 and 390 pixels. It found no clipped banner child or horizontal document overflow, verified that the closed mobile rail was off-canvas and hit-tested the scrim above banner controls outside the open drawer. The same run continued through local IndexedDB outbox retention, two signed PUT upload contracts, server recomputation, portable evidence export, account isolation and sign-out with zero page errors.
+
+This is browser-rendered regression evidence with mocked Auth/API services, not a new live Supabase acceptance. A fresh public Chrome tab was also visually checked at 1920 pixels and had no horizontal overflow, but it was signed out. The earlier approved Officer screenshot remains evidence for the real hosted Auth/membership integration; it does not by itself prove this new CSS bundle in an authenticated production session.
 
 ## Supabase redirect correction
 
@@ -45,7 +54,7 @@ A subsequent recipient-supplied Chrome screenshot visibly showed the stable publ
 
 ## Automated verification repeated after cutover
 
-- Application tests: **475/475 passed**, zero fail/cancel/skip/todo.
+- Application tests: **477/477 passed**, zero fail/cancel/skip/todo.
 - Audit-gate regressions: **5/5 passed**.
 - Production build: passed, **1,701 modules**.
 - Source OCR assets: **17/17**, 68,186,300 bytes, zero network fetches.
@@ -57,7 +66,7 @@ Non-blocking build warnings remain the documented OpenCV browser externalization
 
 ## Rollback
 
-The immediately previous independently inspected READY Production deployment is `dpl_9GnDpup4NMcnGLyRYvrVX6LWCxLi`. If a release-critical application regression appears, promote that exact deployment and re-run public smoke checks. Application rollback must not reset or replace the shared Supabase database.
+The immediately previous independently inspected READY Production deployment is `dpl_87dvmg6us3ZqfYj4mohJMrheJDpw`. If a release-critical application regression appears, promote that exact deployment and re-run public smoke checks. The older fallback remains `dpl_9GnDpup4NMcnGLyRYvrVX6LWCxLi`. Application rollback must not reset or replace the shared Supabase database.
 
 ## Gates still open
 
