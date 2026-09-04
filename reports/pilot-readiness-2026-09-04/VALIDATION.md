@@ -50,6 +50,27 @@ Raw output is preserved in the Desktop folder as `exploratory-ocr-raw-v1.json`, 
 - Source and built OCR asset gates each passed 17/17, 68,186,300 bytes, zero network requests. Asset integrity is not OCR accuracy.
 - Chrome at `http://127.0.0.1:5181/`: controlled fixture could be finalized locally, opened from history, rendered, and closed without the cloud-check badge. This checks local regression only; it is not a real-photo or cloud acceptance result.
 
+## GitHub and managed staging
+
+Application/test commit `7b4e00e30f837bbd59075e732cdb96bd00b6f306` was pushed to `codex/managed-cloud-release`. [GitHub verification run 33890421240](https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034/actions/runs/33890421240) completed successfully: application tests, audit-gate tests, build, source/build OCR asset verification and production dependency audit.
+
+Managed stage: <https://niyamlens-sih26034-bqda9qfmx-duvvurudeepakreddy18s-projects.vercel.app/>. Deployment `dpl_87dvmg6us3ZqfYj4mohJMrheJDpw` is READY, version 0.4.4 / RC5 / service-worker cache v12. The remote build explicitly passed the **production managed mode** configuration gate. It used the existing configured project; no environment secret values were inspected or copied.
+
+Read-only deployed checks on the new origin:
+
+| Route | Observed result without an application session |
+| --- | --- |
+| `/api/health` | 200, `ready: true` |
+| `/api/cases` | 401, sign-in required |
+| `/api/evidence` | 401, sign-in required |
+| `/api/assignments` | 401, sign-in required |
+
+All four responses included `Cache-Control: no-store` and `X-Content-Type-Options: nosniff`. Vercel's authorized deployment transport was used without a NiyamLens session; these checks do not establish cross-role authorization or private Storage retrieval. Chrome rendered the new secure-workspace sign-in screen. Owner sign-in/fresh-cloud acceptance is pending.
+
+The new exact HTTPS origin was added to the existing Supabase redirect allowlist and read back; there are now two exact stage URLs, no new wildcard. The existing default Site URL and older allowed origin were preserved. No reset email was sent. This narrowly permits explicit new-stage recovery redirects; final public-domain Auth configuration remains a separate gate.
+
+Deployment used `--prod --skip-domain` to obtain managed configuration without promoting the public site. The public URL <https://niyamlens-sih26034.vercel.app/> was independently inspected afterward and still points to `dpl_HuQQppi67JvjrsfQ7xjmtMqNvnFU`, not this release. Generated Vercel team aliases are not a public-domain acceptance result.
+
 ## Real gates not yet closed
 
 1. Sign-in and fresh-cloud retrieval on the exact new managed staging origin.
