@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { createWorkspaceClient } from './lib/workspaceClient.mjs'
+import { nextPageOffset } from './lib/inspectionWorkflow.mjs'
 import './workspace.css'
 const url = import.meta.env.VITE_SUPABASE_URL
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -82,8 +83,13 @@ export function SharedOperations({ workspace, history, onOpenReport, onOverride 
   const [busy, setBusy] = useState(false)
   const reviewer = ['admin', 'supervisor'].includes(workspace.actor.role)
   const refresh = async () => {
-    const rows = []; let offset = 0
-    do { const result = await workspace.api.request(`assignments?offset=${offset}`); rows.push(...result.assignments); offset = result.nextOffset } while (offset !== null)
+    const rows = []; let offset = 0; let pageNumber = 0
+    do {
+      const result = await workspace.api.request(`assignments?offset=${offset}`)
+      rows.push(...result.assignments)
+      if (result.paginationLimited) setError('Assignment results reached the server limit and are partial. Contact your administrator to narrow the query.')
+      offset = nextPageOffset(offset, result.nextOffset, pageNumber++)
+    } while (offset !== null)
     setAssignments(rows)
   }
   const run = async (action) => { setBusy(true); setError(''); try { await action(); await refresh() } catch (issue) { setError(issue.message) } finally { setBusy(false) } }

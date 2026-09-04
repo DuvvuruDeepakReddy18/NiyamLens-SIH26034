@@ -1,10 +1,17 @@
 import { findConsumerAddress, findConsumerPhone } from './consumerContact.mjs'
+import { extractDeclarations } from './extraction.mjs'
+import { findBoundedEmail, normalizeUnit, parseLabelNumbers, MAX_LABEL_TEXT } from './labelParser.mjs'
+import { finiteNumber, validateInspectionMetadata, INSPECTION_LIMITS } from './inspectionMetadata.mjs'
 
 export const RULE_PACK = {
-  id: 'LMPC-RC-2026.09-RC4',
+  id: 'LMPC-RC-2026.09-RC5',
   title: 'Legal Metrology (Packaged Commodities) Rules, 2011',
   status: 'Prototype rule pack — officer verification required',
   sources: [
+    {
+      label: 'Kerala Legal Metrology Department — Rule 6/7/8 declarations, unit-price provisos and placement (specialist scopes remain review)',
+      url: 'https://lmd.kerala.gov.in/service-registration/',
+    },
     {
       label: 'Department of Consumer Affairs — consolidated rules',
       url: 'https://consumeraffairs.gov.in/public/upload/admin/cmsfiles/whatsnews/Book_on_Legal_Metrology_Packaged_Commodities_Rules%2C2011_with_all_amendments_whatsnews.pdf',
@@ -87,7 +94,7 @@ const FIELD_RULES = {
   consumerEmail: {
     label: 'Consumer-care email',
     rule: 'Rule 6 / Department FAQ — electronic complaint channel',
-    pattern: /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+    pattern: /$^/,
   },
   consumerPhone: {
     label: 'Consumer-care telephone',
@@ -116,11 +123,7 @@ const FIELD_RULES = {
   },
 }
 
-const cleanNumber = (value) => {
-  if (value === '' || value === null || value === undefined) return null
-  const number = Number(value)
-  return Number.isFinite(number) ? number : null
-}
+const cleanNumber = finiteNumber
 
 const lineForMatch = (text, match) => {
   if (!match) return ''
@@ -137,24 +140,25 @@ const findEvidence = (text, pattern) => {
 
 export function getFontRequirement(area, formed = false) {
   const numericArea = cleanNumber(area)
-  if (numericArea === null || numericArea <= 0) return null
+  if (numericArea === null || numericArea <= 0 || numericArea > INSPECTION_LIMITS.dimension) return null
   const tier = FONT_TIERS.find((candidate) => numericArea <= candidate.max) ?? FONT_TIERS.at(-1)
   return { ...tier, minimum: formed ? tier.formed : tier.normal }
 }
 
 export function inferQuantity(text, explicitQuantity, explicitUnit) {
   const quantity = cleanNumber(explicitQuantity)
-  const unit = String(explicitUnit || '').toLowerCase()
-  if (quantity !== null && unit) return { quantity, unit }
-
-  const match = text.match(/\b(?:NET\s*(?:QTY|QUANTITY|WT\.?|WEIGHT)|CONTENTS?)\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*(KG|G|GM|GMS|ML|L|LTR|PCS?|N)\b/i)
-  if (!match) return { quantity: null, unit: '' }
-  return { quantity: Number(match[1]), unit: match[2].toLowerCase() }
+  const unit = normalizeUnit(explicitUnit)
+  const candidates = parseLabelNumbers(text).netQuantity
+  if (candidates.length > 1 || candidates.some(c => !c.valid)) return { quantity: null, unit: '', conflict: true }
+  const parsed = candidates[0]
+  if (parsed && quantity !== null && quantity > 0 && unit && (quantity !== parsed.quantity || unit !== parsed.unit)) return { quantity: null, unit: '', conflict: true }
+  if (quantity !== null && quantity > 0 && quantity <= INSPECTION_LIMITS.quantity && ['g', 'kg', 'ml', 'l', 'pcs'].includes(unit)) return { quantity, unit }
+  return parsed ? { quantity: parsed.quantity, unit: parsed.unit } : { quantity: null, unit: '' }
 }
 
 export function isSmallPack(quantity, unit) {
-  if (!Number.isFinite(quantity)) return false
-  const normalized = String(unit).toLowerCase()
+  if (!Number.isFinite(quantity) || quantity <= 0) return false
+  const normalized = normalizeUnit(unit)
   if (['g', 'gm', 'gms', 'ml'].includes(normalized)) return quantity <= 10
   if (['kg', 'l', 'ltr'].includes(normalized)) return quantity * 1000 <= 10
   return false
@@ -175,18 +179,72 @@ export function getExemptionProfile(quantity, unit, meta = {}) {
   if (commodityClass === 'drug_formulation') {
     return { exempt: true, code: 'rule26-drug-formulation', reason: 'Scheduled / non-scheduled drug formulation profile selected.' }
   }
-  if (isSmallPack(quantity, unit) && !['tobacco', 'pan_masala', 'medical_device'].includes(commodityClass)) {
+  if (isSmallPack(quantity, unit) && commodityClass === 'standard') {
     return { exempt: true, code: 'rule26-small-package', reason: 'Net quantity is 10 g / 10 ml or less and no encoded carve-out applies.' }
   }
   return { exempt: false, code: '', reason: '' }
 }
 
-function declarationCheck(id, text, lowConfidence, meta = {}) {
+const countryNames = new Set(['UK', 'USA', 'US', 'UAE', 'UNITED STATES OF AMERICA', 'SOUTH KOREA', 'NORTH KOREA', 'RUSSIA', 'VIETNAM', 'TAIWAN'])
+const regionNames = new Intl.DisplayNames(['en'], { type: 'region' })
+for (let a = 65; a <= 90; a++) for (let b = 65; b <= 90; b++) {
+  const code = String.fromCharCode(a, b), label = regionNames.of(code)
+  if (label && label !== code && !['ZZ', 'EU', 'UN', 'EZ'].includes(code)) { countryNames.add(label.toUpperCase()); countryNames.add(code) }
+}
+function responsibleEntityValidity(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+  const index = lines.findIndex(l => /\b(?:(?:MANUFACTURED|MFD|PACKED|IMPORTED)\s+BY|(?:MANUFACTURER|PACKER|IMPORTER)\s*[:\-])/i.test(l))
+  if (index < 0) return false
+  const tail = lines[index].replace(/^.*?\b(?:(?:MANUFACTURED|MFD|PACKED|IMPORTED)\s+BY|(?:MANUFACTURER|PACKER|IMPORTER)\s*[:\-])\s*:?/i, '').trim()
+  if (tail.length < 2 || /^(?:N\/?A|UNKNOWN|NOT\s+AVAILABLE|NONE|[-:.]+)$/i.test(tail)) return false
+  const block = [tail]
+  for (let i = index + 1; i < Math.min(lines.length, index + 4); i++) {
+    if (/^(?:CONSUMER|CUSTOMER|MRP|M[.]R[.]P|NET\s|PACKED\s|MFG\s|UNIT\s|COUNTRY\s|MADE\s|BEST\s)/i.test(lines[i])) break
+    block.push(lines[i])
+  }
+  const address = block.join(' ')
+  return /[A-Z]{2,}/i.test(tail) && (/\b[1-9]\d{5}\b/.test(address) || /\b(?:ROAD|STREET|LANE|PLOT|HOUSE|BUILDING|SECTOR|VILLAGE|NAGAR|COLONY)\b/i.test(address) && /\d/.test(address))
+}
+function declarationCheck(id, text, lowConfidence, meta = {}, extraction = extractDeclarations(text)) {
   const definition = FIELD_RULES[id]
   let evidence = findEvidence(text, definition.pattern)
+  const review = (reason, proof = evidence.line || evidence.value || 'Unresolved declaration') => ({ id, label: definition.label, rule: definition.rule, status: 'review', reason, evidence: proof })
+  const foodProfile = meta.category === 'food' || /\b(?:FSSAI|INGREDIENTS?|NUTRITION(?:AL)?)\b/i.test(text)
+  const cosmeticsProfile = /\b(?:SOAP|SHAMPOO|TOOTHPASTE|COSMETICS?|TOILETRIES)\b/i.test(text)
+  if (foodProfile && ['manufacturer', 'packDate', 'bestBefore'].includes(id)) return review('This food declaration is governed by the applicable food-law proviso. Presence may be recorded, but this rule pack does not certify FSSAI compliance.')
+  if (cosmeticsProfile && id === 'packDate') return review('Cosmetic/toiletry date declarations require the applicable specialist rules; the general date rule cannot decide this field.')
+  if (/\b(?:BIDI|BEEDI|INCENSE\s+STICKS)\b/i.test(text) && (id === 'packDate' || id === 'mrp' || id === 'mrpFormat')) return review('Potential bidi/incense-specific declaration exception: verify the exact commodity and current rule applicability before deciding this field.')
+  const fieldId = ({ mrp: 'mrp', netQuantity: 'netQuantity', packDate: 'packDate', unitSalePrice: 'unitSalePrice' })[id]
+  if (fieldId) {
+    const candidates = extraction.candidates[fieldId] || []
+    if (candidates.length > 1) return review('Conflicting declarations are present in this transcript. Resolve their package/panel scope before deciding compliance.', candidates.map(c => c.evidence).join(' | ').slice(0, 2000))
+    if (candidates.length && !candidates[0].valid) return review(candidates[0].validation.message, candidates[0].evidence)
+    evidence = candidates[0] ? { found: true, value: candidates[0].value, line: candidates[0].evidence } : { found: false, value: '', line: '' }
+  }
   if (id === 'consumerPhone') evidence = findConsumerPhone(text)
+  if (id === 'consumerEmail') evidence = findBoundedEmail(text)
   const addressEvidence = id === 'consumerAddress' ? findConsumerAddress(text) : null
   if (addressEvidence) evidence = addressEvidence
+  if (id === 'genericName' && evidence.found && !/[A-Z]{2,}/i.test(extraction.byId.productName.value.replace(/\b(?:COMMON|GENERIC)\s+NAME\s*:?/gi, ''))) return review('A common/generic name needs a substantive value, not an empty declaration heading.')
+  if (id === 'manufacturer' && evidence.found && !responsibleEntityValidity(text)) return review('A responsible entity name and distinguishable postal address have not both been established. Confirm the full declaration; a heading alone is insufficient.')
+  if (id === 'countryOrigin' && evidence.found) {
+    const origin = extraction.byId.countryOrigin.value.replace(/[.]+$/, '').trim().toUpperCase()
+    if (!countryNames.has(origin)) return review('Country of origin is missing, a placeholder, or not recognized unambiguously. Confirm the actual country; a heading alone is insufficient.')
+  }
+  if (id === 'unitSalePrice') {
+    if (/\b(?:COMBINATION|MULTI[ -]?PACK|MULTI[ -]?PIECE|COMBO|GROUP\s+PACKAGE|ALCOHOLIC\s+BEVERAGE|SPIRITUOUS\s+LIQUOR)\b/i.test(text)) return review('Combination/group/multi-piece or excise-specific unit-price applicability requires officer review; the single-package formula is withheld.')
+    const q = extraction.candidates.netQuantity, prices = extraction.candidates.mrp
+    if (q.length === 1 && q[0].valid && prices.length === 1 && prices[0].valid) {
+      const quantity = q[0], usp = extraction.candidates.unitSalePrice[0]
+      const baseUnit = ['g', 'kg'].includes(quantity.unit) ? 'g' : ['ml', 'l'].includes(quantity.unit) ? 'ml' : 'pcs'
+      const total = quantity.quantity * (['kg', 'l'].includes(quantity.unit) ? 1000 : 1)
+      const requiredUnit = baseUnit === 'g' ? total < 1000 ? 'g' : 'kg' : baseUnit === 'ml' ? total < 1000 ? 'ml' : 'l' : 'pcs'
+      const per = ['kg', 'l'].includes(requiredUnit) ? 1000 : 1
+      const expectedCents = Math.round(prices[0].minorUnits / total * per)
+      if (!evidence.found && total === per) return { id, label: definition.label, rule: definition.rule, status: 'info', reason: 'For this single-package quantity the unit sale price equals MRP; the encoded Rule 6(11) equal-price proviso does not require a separate USP declaration. Confirm package scope.', evidence: `${quantity.quantity} ${quantity.unit}; MRP ${prices[0].value}` }
+      if (evidence.found && (usp.unit !== requiredUnit || usp.denominator !== 1 || usp.minorUnits !== expectedCents)) return review(`Unit price does not match the supported single-package basis: expected ${(expectedCents / 100).toFixed(2)} rupees/${requiredUnit}. Verify scope, rounding and the printed values.`, evidence.line)
+    } else if (evidence.found) return review('Unit-price arithmetic requires one unambiguous positive MRP and net quantity.')
+  }
   if (evidence.found) {
     return {
       id,
@@ -249,24 +307,24 @@ function declarationCheck(id, text, lowConfidence, meta = {}) {
 function geometryChecks(meta) {
   const checks = []
   const area = cleanNumber(meta.pdpArea)
-  const areaUncertainty = Math.max(0, cleanNumber(meta.pdpUncertainty) ?? 0)
+  const areaUncertainty = cleanNumber(meta.pdpUncertainty)
   const requirement = getFontRequirement(area, Boolean(meta.formedText))
 
-  if (!requirement) {
+  if (!requirement || areaUncertainty === null) {
     checks.push({
       id: 'panelArea',
       label: 'Principal display panel area',
       rule: 'Rule 7 and Table I',
       status: 'review',
-      reason: 'Panel area is required to select the applicable font-height tier.',
-      evidence: 'Area not supplied',
+      reason: 'Panel area and an explicit uncertainty estimate are required to select the applicable font-height tier.',
+      evidence: 'Area or uncertainty not supplied',
     })
   } else {
     const lowerArea = Math.max(0.01, area * (1 - areaUncertainty / 100))
     const upperArea = area * (1 + areaUncertainty / 100)
     const lowTier = getFontRequirement(lowerArea, Boolean(meta.formedText))
     const highTier = getFontRequirement(upperArea, Boolean(meta.formedText))
-    const crossesTier = lowTier.minimum !== highTier.minimum
+    const crossesTier = !lowTier || !highTier || lowTier.minimum !== highTier.minimum
     checks.push({
       id: 'panelArea',
       label: 'Principal display panel tier',
@@ -280,7 +338,7 @@ function geometryChecks(meta) {
   }
 
   const referenceMm = cleanNumber(meta.referenceMm)
-  const measurementUncertainty = Math.max(0, cleanNumber(meta.measurementUncertainty) ?? 0)
+  const measurementUncertainty = cleanNumber(meta.measurementUncertainty)
   const panelIds = Array.from(new Set([
     ...(Array.isArray(meta.evidencePanelIds) ? meta.evidencePanelIds : []),
     ...Object.keys(meta.panelMeasurements || {}),
@@ -295,7 +353,7 @@ function geometryChecks(meta) {
     const referencePx = cleanNumber(measurement.referencePx)
     const glyphPx = cleanNumber(measurement.glyphPx)
     const glyphWidthPx = cleanNumber(measurement.glyphWidthPx)
-    if (!requirement || !referenceMm || !referencePx || !glyphPx) {
+    if (!requirement || measurementUncertainty === null || !(referenceMm > 0) || !(referencePx > 0) || !(glyphPx > 0)) {
       checks.push({
         id: `fontHeight${suffix}`,
         label: `Measured declaration height${panelLabel}`,
@@ -326,7 +384,7 @@ function geometryChecks(meta) {
       })
     }
 
-    if (!glyphPx || !glyphWidthPx) {
+    if (measurementUncertainty === null || !(glyphPx > 0) || !(glyphWidthPx > 0)) {
       checks.push({
         id: `fontWidth${suffix}`,
         label: `Letter / numeral width ratio${panelLabel}`,
@@ -337,14 +395,18 @@ function geometryChecks(meta) {
       })
     } else {
       const ratio = glyphWidthPx / glyphPx
+      const relativeUncertainty = measurementUncertainty / 100
+      const ratioLow = ratio * (1 - relativeUncertainty) / (1 + relativeUncertainty)
+      const ratioHigh = relativeUncertainty < 1 ? ratio * (1 + relativeUncertainty) / (1 - relativeUncertainty) : Infinity
+      const status = ratioLow >= 1 / 3 ? 'pass' : ratioHigh < 1 / 3 ? 'fail' : 'review'
       checks.push({
         id: `fontWidth${suffix}`,
         label: `Letter / numeral width ratio${panelLabel}`,
         rule: 'Rule 7 — width not less than one-third of height (with stated exceptions)',
-        status: ratio >= 1 / 3 ? 'pass' : 'fail',
-        reason: ratio >= 1 / 3
-          ? 'Measured ratio meets the one-third width rule.'
-          : 'Measured ratio is below one-third; confirm the sampled character is not an exempt “1”, “i”, “I” or “l”.',
+        status,
+        reason: status === 'pass'
+          ? 'The lower width/height bound meets the one-third rule.'
+          : status === 'fail' ? 'The upper width/height bound is below one-third; confirm the sampled character is not an exempt “1”, “i”, “I” or “l”.' : 'Width/height uncertainty overlaps the one-third requirement; improve the measurement or retain review.',
         evidence: `${ratio.toFixed(2)} width / height`,
         panelId: measurement.panelId || null,
       })
@@ -355,8 +417,16 @@ function geometryChecks(meta) {
 }
 
 export function evaluateCompliance({ text = '', meta = {} }) {
+  const metadataIssues = validateInspectionMetadata(meta)
+  if (typeof text !== 'string' || text.length > MAX_LABEL_TEXT) metadataIssues.push({ field: 'text', reason: 'Label text must be a string no longer than 100000 characters.' })
+  if (metadataIssues.length) {
+    const checks = metadataIssues.map(issue => ({ id: `invalidInput:${issue.field}`, label: 'Invalid inspection input', rule: 'Evidence safety policy', status: 'review', reason: issue.reason, evidence: issue.field }))
+    return { status: 'manual_review', score: 0, counts: { pass: 0, fail: 0, review: checks.length }, checks, context: { category: 'general', quantity: null, unit: '', smallPack: false, confidence: 0, rulePack: RULE_PACK.id, exemption: { exempt: false, code: '', reason: '' } } }
+  }
   const normalizedText = String(text).replace(/\r/g, '').trim()
-  const confidence = cleanNumber(meta.ocrConfidence) ?? 100
+  const extraction = extractDeclarations(normalizedText)
+  const confidence = meta.ocrSource === 'none' ? 0 : cleanNumber(meta.ocrConfidence) ?? 0
+  const confidenceAvailable = meta.ocrSource !== 'none' && typeof meta.ocrConfidence === 'number' && Number.isFinite(meta.ocrConfidence)
   const noEvidenceText = normalizedText.length < 3
   const latinLetters = (normalizedText.match(/[A-Z]/gi) || []).length
   const indicLetters = (normalizedText.match(/[\u0900-\u097f\u0b80-\u0bff\u0c00-\u0c7f]/g) || []).length
@@ -365,9 +435,12 @@ export function evaluateCompliance({ text = '', meta = {} }) {
   const quantityInfo = inferQuantity(normalizedText, meta.quantity, meta.unit)
   const smallPack = isSmallPack(quantityInfo.quantity, quantityInfo.unit)
   const category = meta.category || 'general'
-  const specialistMedical = category === 'medical' || meta.commodityClass === 'medical_device'
-  const exemption = getExemptionProfile(quantityInfo.quantity, quantityInfo.unit, meta)
+  const specialistMedical = category === 'medical' || meta.commodityClass === 'medical_device' || extraction.suggestions.category === 'medical'
+  const classificationConflict = (['tobacco', 'pan_masala'].includes(extraction.suggestions.commodityClass) && meta.commodityClass !== extraction.suggestions.commodityClass) || (['imported', 'medical'].includes(extraction.suggestions.category) && category !== extraction.suggestions.category)
+  const exemption = quantityInfo.conflict || classificationConflict || specialistMedical ? { exempt: false, code: '', reason: '' } : getExemptionProfile(quantityInfo.quantity, quantityInfo.unit, meta)
   const checks = []
+  if (quantityInfo.conflict) checks.push({ id: 'quantityConflict', label: 'Quantity evidence conflict', rule: 'Evidence safety policy', status: 'review', reason: 'The quantity is invalid, ambiguous or inconsistent with structured metadata. Resolve the source declaration before applying an exemption.', evidence: extraction.byId.netQuantity.evidence })
+  if (classificationConflict) checks.push({ id: 'classificationConflict', label: 'Commodity classification conflict', rule: 'Evidence safety policy', status: 'review', reason: 'The transcript contains an imported, medical, tobacco or pan-masala signal inconsistent with the selected profile. Resolve classification before a decisive verdict.', evidence: `${extraction.suggestions.category} / ${extraction.suggestions.commodityClass}` })
 
   if (exemption.exempt) {
     checks.push({
@@ -379,8 +452,9 @@ export function evaluateCompliance({ text = '', meta = {} }) {
       evidence: quantityInfo.quantity !== null ? `${quantityInfo.quantity} ${quantityInfo.unit}` : meta.commodityClass,
     })
   } else if (!specialistMedical) {
-    checks.push(...requiredFieldIds(category, Boolean(meta.perishable)).map((id) => declarationCheck(id, normalizedText, lowConfidence, meta)))
+    checks.push(...requiredFieldIds(extraction.suggestions.category === 'imported' ? 'imported' : category, Boolean(meta.perishable)).map((id) => declarationCheck(id, normalizedText, lowConfidence, meta, extraction)))
   }
+  if (meta.commodityClass === 'drug_formulation') checks.push({ id: 'drugSpecialistReview', label: 'Drug-formulation applicability', rule: 'Rule 26(c) specialist scope', status: 'review', reason: 'The referenced drug-formulation exemption requires specialist classification; this prototype cannot certify its applicability.', evidence: 'Specialist sign-off required' })
 
   if (smallPack && meta.commodityClass === 'tobacco') {
     checks.push({
@@ -438,8 +512,9 @@ export function evaluateCompliance({ text = '', meta = {} }) {
         ? 'No extracted evidence text is available; declaration checks must remain in manual review.'
         : parserLanguageRisk
           ? 'The extracted evidence is predominantly in an Indic script not yet covered by the deterministic declaration parser; missing fields cannot become automatic violations.'
-        : 'OCR confidence is below 75%; the system must not issue an automatic non-compliance verdict from missing text.',
-      evidence: noEvidenceText ? 'Evidence text not supplied' : parserLanguageRisk ? `${indicLetters} Indic-script characters · ${latinLetters} Latin characters` : `${confidence.toFixed(1)}% OCR confidence`,
+        : !confidenceAvailable ? 'No inspection-wide OCR score is available. Missing text cannot establish an automatic violation.'
+        : 'The OCR heuristic is below the evaluation threshold; missing text cannot establish an automatic violation.',
+      evidence: noEvidenceText ? 'Evidence text not supplied' : parserLanguageRisk ? `${indicLetters} Indic-script characters · ${latinLetters} Latin characters` : !confidenceAvailable ? 'OCR score unavailable; no accuracy probability asserted' : `${confidence.toFixed(1)}/100 OCR heuristic; not accuracy`,
     })
   } else {
     checks.push({
@@ -447,8 +522,8 @@ export function evaluateCompliance({ text = '', meta = {} }) {
       label: 'OCR confidence gate',
       rule: 'NiyamLens trust policy',
       status: 'pass',
-      reason: 'OCR confidence is above the automatic-evaluation threshold.',
-      evidence: `${confidence.toFixed(1)}% OCR confidence`,
+      reason: 'The OCR heuristic is above the evaluation threshold; individual field verification is still required.',
+      evidence: `${confidence.toFixed(1)}/100 OCR heuristic; not accuracy`,
     })
   }
 

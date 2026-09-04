@@ -1,0 +1,18 @@
+.paddle-review { margin: 18px 0; padding: 20px; border: 1px solid #b9cdc8; border-radius: 12px; background: #f4f9f7; min-width: 0; }
+.paddle-review header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.paddle-review h3, .paddle-review h4 { margin: 5px 0 10px; }
+.paddle-review p { font-size: 13px; line-height: 1.6; color: #41564f; }
+.paddle-review pre { max-height: 260px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 14px; border-radius: 8px; background: white; border: 1px solid #dbe5e0; font-size: 12px; }
+.paddle-review details { margin: 12px 0; }
+.paddle-review summary { cursor: pointer; font-size: 13px; font-weight: 600; }
+.paddle-review small { display: block; margin-top: 10px; font-size: 12px; line-height: 1.5; color: #52645e; }
+.paddle-review header button { padding: 8px 10px; background: white; border: 1px solid #b9cdc8; border-radius: 6px; cursor: pointer; }
+.paddle-proposals article { display: grid; grid-template-columns: minmax(130px, .8fr) 1.2fr; gap: 18px; padding: 14px 0; border-top: 1px solid #cdddce; }
+.proposal-photo { width: 100%; position: relative; max-width: 280px; }
+.proposal-photo img, .proposal-photo svg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.proposal-photo polygon { stroke-width: 3; vector-effect: non-scaling-stroke; }
+.proposal-photo .heading-box { stroke: #d86a08; fill: #ffad0022; }
+.proposal-photo .value-box { stroke: #007dc2; fill: #008cff22; }
+.paddle-proposals label { display: flex; align-items: flex-start; gap: 8px; margin-top: 16px; line-height: 1.6; font-size: 13px; }
+.paddle-proposals input { margin-top: 4px; flex-shrink: 0; }
+@media (max-width: 550px) { .paddle-proposals article { grid-template-columns: 1fr; } .paddle-review { padding: 14px; } }

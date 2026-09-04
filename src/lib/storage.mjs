@@ -1,3 +1,4 @@
+import { compactOperation } from './syncEngine.mjs'
 const STORES = ['inspections', 'drafts', 'outbox', 'settings']
 
 // Request success precedes transaction commit; only oncomplete may report saved.
@@ -47,7 +48,7 @@ export function createEvidenceStore(scope = 'local') {
       }
     }),
     saveAndQueue: (record, operation) => transact(['inspections', 'outbox'], 'readwrite', (tx, done) => {
-      tx.objectStore('inspections').put(record); tx.objectStore('outbox').put(operation); done(record)
+      tx.objectStore('inspections').put(record); tx.objectStore('outbox').put(compactOperation(operation, record)); done(record)
     }),
     clear: () => transact(STORES, 'readwrite', (tx) => STORES.forEach((store) => tx.objectStore(store).clear())),
   }

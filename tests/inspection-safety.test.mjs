@@ -16,7 +16,7 @@ test('confirmation is bound to the field value and is invalidated by a changed r
 })
 test('exemption cannot be obtained by supplying a smaller metadata quantity than the actual reading', () => {
   const result = evaluateInspection({ text: 'NET QTY 100 g', meta: { ...meta, quantity: 5, classificationConfirmed: true, fieldReviews: { netQuantity: { state: 'confirmed', value: '100 g', reason: 'Quantity seen on the back' } } } })
-  assert.equal(result.status, 'manual_review'); assert.ok(result.checks.find((item) => item.id === 'exemptionEvidence'))
+  assert.equal(result.status, 'manual_review'); assert.equal(result.context.exemption.exempt, false); assert.ok(result.checks.find((item) => item.id === 'quantityConflict'))
 })
 test('curved, unknown and unverified measurement planes abstain', () => {
   for (const measurementSurface of ['curved', 'unverified', undefined]) assert.equal(check('', { measurementSurface, pdpConfirmed: true, measurementConfirmed: true }, 'fontHeight').status, 'review')

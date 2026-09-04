@@ -1,0 +1,2852 @@
+{
+  "schemaVersion": 1,
+  "sourceHashes": {
+    "datasets/critical-fields.v1.json": "4f869df89f6246e774189a7522e2798f5ab680b83e887eb8ddeae6c08fd977ad",
+    "reports/recognition-2026-09-04/critical-baseline-raw-passes.jsonl": "21a90308253c7ce57a81c20a917844f108215ae441653d0e121cb623e887a382",
+    "reports/recognition-2026-09-04/rapidocr-default-raw.json": "d5febd520cb6debb1486548879a54e127ce184c7f3ab695d8bfc09340b677030",
+    "src/lib/labelParser.mjs": "b4e4d243023e18ed3fc88429a3ef1abe8c132c899c669113463e37d56f57ec99",
+    "src/lib/extraction.mjs": "a24f6295a1827e3e020eadac572f47ae4998667c41034ea4dc06803dd6fbb3ef",
+    "src/lib/criticalFieldBenchmark.mjs": "91d92084466bfd23226f29edd473a7ecc04ec794f426cc7b53f1940c4f4dd3a2",
+    "src/lib/vision.mjs": "ccd83ecf81e6bcfd59cdb493f47245e1ea7c61b6991b6579603217f6076ac583",
+    "src/lib/spatialOcr.mjs": "546e5df72029bddc42b38e42b547919a2d21c697709265e7519b2c6d58323a00",
+    "src/lib/ocrReadingOrder.mjs": "0d47d388874b07d595acf02089fdeba64d0c2d6d86d414002e91e2349d6c5e0e"
+  },
+  "imageHashesVerified": 8,
+  "isHoldout": false,
+  "humanReviewed": false,
+  "limitations": [
+    "Eight previously used development photos; ten provisional readable critical values, not a representative accuracy estimate.",
+    "Tesseract source images are Sharp approximations of browser preparation, not exact Chrome end-to-end measurements.",
+    "Tesseract uses the actual production pass-merge helper in recorded pass order; its transcript is explicitly system-derived, not raw OCR.",
+    "Other-field counts measure parser output presence only. Wrong strings, fallbacks and incomplete values can count; no accuracy labels exist for them.",
+    "Proposals are unaccepted officer-review suggestions, not new automatic correct fields, edited transcripts, or legal decisions."
+  ],
+  "summaries": [
+    {
+      "mode": "tesseract-production-merge-on-sharp-approximation",
+      "photos": 8,
+      "elapsedMs": 32784,
+      "critical": [
+        {
+          "field": "mrp",
+          "correct": 0,
+          "eligible": 3
+        },
+        {
+          "field": "netQuantity",
+          "correct": 0,
+          "eligible": 5
+        },
+        {
+          "field": "packDate",
+          "correct": 0,
+          "eligible": 2
+        }
+      ],
+      "otherCandidatePresenceNotAccuracy": [
+        {
+          "field": "productName",
+          "nonemptyValuePhotos": 8,
+          "detectedValueOrEvidencePhotos": 8,
+          "photos": 8
+        },
+        {
+          "field": "bestBefore",
+          "nonemptyValuePhotos": 2,
+          "detectedValueOrEvidencePhotos": 2,
+          "photos": 8
+        },
+        {
+          "field": "responsibleEntity",
+          "nonemptyValuePhotos": 1,
+          "detectedValueOrEvidencePhotos": 1,
+          "photos": 8
+        },
+        {
+          "field": "consumerCare",
+          "nonemptyValuePhotos": 1,
+          "detectedValueOrEvidencePhotos": 1,
+          "photos": 8
+        },
+        {
+          "field": "consumerAddress",
+          "nonemptyValuePhotos": 1,
+          "detectedValueOrEvidencePhotos": 1,
+          "photos": 8
+        },
+        {
+          "field": "email",
+          "nonemptyValuePhotos": 1,
+          "detectedValueOrEvidencePhotos": 1,
+          "photos": 8
+        },
+        {
+          "field": "phone",
+          "nonemptyValuePhotos": 0,
+          "detectedValueOrEvidencePhotos": 0,
+          "photos": 8
+        },
+        {
+          "field": "countryOrigin",
+          "nonemptyValuePhotos": 1,
+          "detectedValueOrEvidencePhotos": 1,
+          "photos": 8
+        },
+        {
+          "field": "unitSalePrice",
+          "nonemptyValuePhotos": 0,
+          "detectedValueOrEvidencePhotos": 1,
+          "photos": 8
+        },
+        {
+          "field": "fssaiLicense",
+          "nonemptyValuePhotos": 0,
+          "detectedValueOrEvidencePhotos": 0,
+          "photos": 8
+        },
+        {
+          "field": "barcode",
+          "nonemptyValuePhotos": 0,
+          "detectedValueOrEvidencePhotos": 0,
+          "photos": 8
+        }
+      ]
+    },
+    {
+      "mode": "rapidocr-default-whole-image",
+      "photos": 8,
+      "elapsedMs": 30811,
+      "critical": [
+        {
+          "field": "mrp",
+          "correct": 1,
+          "eligible": 3
+        },
+        {
+          "field": "netQuantity",
+          "correct": 0,
+          "eligible": 5
+        },
+        {
+          "field": "packDate",
+          "correct": 0,
+          "eligible": 2
+        }
+      ],
+      "otherCandidatePresenceNotAccuracy": [
+        {
+          "field": "productName",
+          "nonemptyValuePhotos": 8,
+          "detectedValueOrEvidencePhotos": 8,
+          "photos": 8
+        },
+        {
+          "field": "bestBefore",
+          "nonemptyValuePhotos": 3,
+          "detectedValueOrEvidencePhotos": 3,
+          "photos": 8
+        },
+        {
+          "field": "responsibleEntity",
+          "nonemptyValuePhotos": 1,
+          "detectedValueOrEvidencePhotos": 1,
+          "photos": 8
+        },
+        {
+          "field": "consumerCare",
+          "nonemptyValuePhotos": 3,
+          "detectedValueOrEvidencePhotos": 3,
+          "photos": 8
+        },
+        {
+          "field": "consumerAddress",
+          "nonemptyValuePhotos": 1,
+          "detectedValueOrEvidencePhotos": 1,
+          "photos": 8
+        },
+        {
+          "field": "email",
+          "nonemptyValuePhotos": 4,
+          "detectedValueOrEvidencePhotos": 4,
+          "photos": 8
+        },
+        {
+          "field": "phone",
+          "nonemptyValuePhotos": 2,
+          "detectedValueOrEvidencePhotos": 2,
+          "photos": 8
+        },
+        {
+          "field": "countryOrigin",
+          "nonemptyValuePhotos": 1,
+          "detectedValueOrEvidencePhotos": 1,
+          "photos": 8
+        },
+        {
+          "field": "unitSalePrice",
+          "nonemptyValuePhotos": 0,
+          "detectedValueOrEvidencePhotos": 1,
+          "photos": 8
+        },
+        {
+          "field": "fssaiLicense",
+          "nonemptyValuePhotos": 1,
+          "detectedValueOrEvidencePhotos": 1,
+          "photos": 8
+        },
+        {
+          "field": "barcode",
+          "nonemptyValuePhotos": 0,
+          "detectedValueOrEvidencePhotos": 0,
+          "photos": 8
+        }
+      ]
+    }
+  ],
+  "proposalSummary": {
+    "proposed": 1,
+    "provisionalReferenceMatches": 1,
+    "applied": 0,
+    "officerReviewed": 0
+  },
+  "rows": [
+    {
+      "sampleId": "CF-001",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/6.jpg",
+      "sourceSha256": "9d2187d0603d8781814e24320b452d596dc826a50ba29f0a7643f6d43b0c619b",
+      "mode": "tesseract-production-merge-on-sharp-approximation",
+      "transcriptKind": "system-derived-production-pass-merge",
+      "text": "601:\n’ fo Own N el Cor | er a 1\n1 Fa\np owen 500 1 ec\nge = MRP :® 22. -\nL (inclusive - Py.\na otal fat, g Fa 5\nil Saturated Fal. g' en b>\nE 2 Keep Undef Refrigera 2.\nLb) A 5s al 3\ny iad A Anas A\ni No. 1001202 LN\nE = Z - gp AAD\n| | FOR BEST RESULTS, STURE\n7 CONTINUOUSLY UNDER REFR GEA\n4 | BELOW 8°C UNTIL “USE -BY UA\nf hi. For Batch No. & “Use-Dy date 3%\n- 386.001 ud {\nEct ws (AN\nwy No #90126212001:\n) § Eo Ge ¢ 4% Prgnt - Gandia ga AD\naR sta WE\nBi 1T SARDAR we Leg\n[ Te BAL ARAM\n500\nm CHANDITALA\n~T12 702\ni JBTYA\nMRP:\nUTR\nnergy, xCa\ntal fat, g\nSaturated +a\nTrans Fat, 9\nwo. 1001202100\nfitted UNDER REFRIG\n“BELOW 8°C UNTIL SE-B)\nFor Batch No. & “Use\nSHE\nNAY\n2621260\nEE LE it",
+      "elapsedMs": 3356,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": true,
+          "expected": "22.00",
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": [
+            {
+              "value": "",
+              "evidence": "MRP:",
+              "amount": null,
+              "minorUnits": null,
+              "valid": false,
+              "key": "invalid:",
+              "validation": {
+                "status": "invalid",
+                "message": "Missing or invalid price: grouping, sign and precision require correction."
+              }
+            }
+          ]
+        },
+        {
+          "field": "netQuantity",
+          "eligible": true,
+          "expected": "500 ml",
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "packDate",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "601:",
+          "evidence": "601:",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": []
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    },
+    {
+      "sampleId": "CF-001",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/6.jpg",
+      "sourceSha256": "9d2187d0603d8781814e24320b452d596dc826a50ba29f0a7643f6d43b0c619b",
+      "mode": "rapidocr-default-whole-image",
+      "transcriptKind": "raw-ocr-unedited",
+      "text": "MILKY MILK\nPASTEURISED HOMOGENISER\nTONED MILK\n-308001\nNet Content:\nPILTD SARDARPARA\n PO BALARAM\n500m\n-785135\nTD CHANDITALA\nENGAL-712702\nMRP:22.00\nITO.VILL JIBTYA\n(inclusiver all taxes)\nBANKURA\nUTRITIONAL INFORMATION per iog (apprax. values)\nCTS(P)LTD..\nUse-by date\nEnergy, kcal\n57.8\nTotal Carbohydral \n3.0\nAdded Sugr.\nOPO MAKALPUR,\nTotal fat, g\nESTBENGAL-712 305\nSaturated Fat, g\n2.0\nProlten, g\nTrans Fat, g\n0\nCalcium mg\nXMARPOLE.\nKeep Undef Refrigeration\nHRBOUR-A\n13\nFsat\nKNO4JE\n1:04/07/19\n10012021000071\nLic. No.\nFOR BEST RESULTS, STORE\nCONTINUOUSLY UNDER REFRIGERATION\nBELOW 8°C UNTIL “USE-BY DATE\"\na\nFor Batch No. & \"Use-by date\" see seai areastamo\nPERATIVE MILK\nANAND-388-001\nreedback\nCae Executive at\n(al free ( -9 PM)\n890126226012\nCO,\nNand-388001",
+      "elapsedMs": 3687,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": true,
+          "expected": "22.00",
+          "value": "22.00",
+          "valid": true,
+          "correct": true,
+          "conflict": false,
+          "candidates": [
+            {
+              "value": "22.00",
+              "evidence": "MRP:22.00",
+              "amount": 22,
+              "minorUnits": 2200,
+              "valid": true,
+              "key": "{\"amount\":22,\"minorUnits\":2200}",
+              "validation": {
+                "status": "format_valid",
+                "message": "Price amount parsed; legal applicability is evaluated separately."
+              }
+            }
+          ]
+        },
+        {
+          "field": "netQuantity",
+          "eligible": true,
+          "expected": "500 ml",
+          "value": ":",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": [
+            {
+              "value": ":",
+              "evidence": "Net Content:",
+              "quantity": null,
+              "unit": "",
+              "valid": false,
+              "key": "invalid::",
+              "validation": {
+                "status": "invalid",
+                "message": "Quantity must be a finite positive value with a supported unit."
+              }
+            }
+          ]
+        },
+        {
+          "field": "packDate",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "MILKY MILK",
+          "evidence": "MILKY MILK",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": []
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    },
+    {
+      "sampleId": "CF-002",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/10.jpg",
+      "sourceSha256": "61d17743670bb425275e861ccdfec072e33af556ab96d6f1043bf872fed73537",
+      "mode": "tesseract-production-merge-on-sharp-approximation",
+      "transcriptKind": "system-derived-production-pass-merge",
+      "text": "Tg eee\" C\nEMRARZ\n3105.23\nmi2.36\nHTT\nWRAN\nDIX\nAUN\nSIA- RA)\n{Y KDED CO\nDARY K\nViti WW\nAT AN\nTELA\n84s\nAINA\nRVATE LIMITE\nGE A\n, NUZVID\nCTS, SYNO. 4\nE, HA\nAYATH NAG GAR MAND\n400\nYour feedback\nFh 14\na —— TERT oN\nQUCERS Cos NI ST RRR ~~ STH\nBo oe ev rman oT\nWADA) Las anpiA TRAM 3 2 SRIVINGS Der credo\nIPRS 31 0 8S Frere Cine\noo + [SeningSes —~=\nb : Sal Le Amount a 4; ) ;\ng for: TIVE MILK beth DRT 100 mi §\nTF C0 Aw - 388 001 | Energy Thea — \\\nES one: | Total rat) 3 $\nBW. oATIVE MILK PRODUCERS { Saturated Fat OM\nRO TED, SYNOS: 4218. | Trans Fat (g S\nVILLAGE & POST, aA RL Li\neR ES ii | Cholesterol (mg hs\n. madlee @\ny- D Carbohydrate Wy\nos Ret 05.23 2 Total Sugars (g] Tog\n2 (AND 54 36 s | Added Sugars (g] \"THE\nem 3 [Sodium ng Tel\n| S— 3 Calcium (mg) ul\nERS NON LTD. SABAR DAIRY, g ¢\nTr ~ Net Content. #2\n[ENGA- 015 2 (EP REREAD LENS\n0.2 5 COOL STORE NL\nYE o (FYE Tog\nI a0 tee 5 Marketed by. Gust Wy\n~~ GAR MANDAL, i= Lid Anand - 88.001 |\na x n 1505 2 ol fad\nGea : 4 : a8\na i. coli gr ke. = Pas\n388 x\nSTE a,\n(07 1000\nMRTG\nmn NX Ey y ~\nNutritional ing a\nAM VISAKH\nAPATNAA\n561)\n55 DET Cong\n7004\nAPERATIVE MILK\n100\nUNON\n1D. ANAND - 388 X\n| Ener y (\n000243\n| Total Fat {g\n{ Saturated Fatlo\nQO-OPERA\nMILK PRODUCERS\nAr UMITED, a ns,\n[Trans Fat 9)\n| | Cholesterol (n\nCarbohydr 0\nRyd 05.23\nTotal Sugars (g\nAdded Sugars (g\nProtein (\nSodium (mg)\nCalcium (mg)\nDNLTD., SABAR DAIRY,\n* RDA stands for Recommended Delsy\nHIMATNAGAR - 383 008\nPRY\n** Average values\nDDY MILK PRODUCERS\nNet Content\nRI KUNTLOOR ROAD, HAYATH NAGAR,\nKEEP REFRIGERATED AT UR\nEAT\nD, ONO. 2382.3;\nCOOL, STORE IN\n- 211M\nD, KRISHNA,\nOF YOUR\nMarketed by:\nLid., Anand -\nair bnnrbn\nLic. No. 100",
+      "elapsedMs": 5337,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": true,
+          "expected": "27",
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "netQuantity",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": true,
+          "candidates": [
+            {
+              "value": "#2",
+              "evidence": "Tr ~ Net Content. #2",
+              "quantity": null,
+              "unit": "",
+              "valid": false,
+              "key": "invalid:#2",
+              "validation": {
+                "status": "invalid",
+                "message": "Quantity must be a finite positive value with a supported unit."
+              }
+            },
+            {
+              "value": "",
+              "evidence": "Net Content",
+              "quantity": null,
+              "unit": "",
+              "valid": false,
+              "key": "invalid:",
+              "validation": {
+                "status": "invalid",
+                "message": "Quantity must be a finite positive value with a supported unit."
+              }
+            }
+          ]
+        },
+        {
+          "field": "packDate",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "Tg eee\" C",
+          "evidence": "Tg eee\" C",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": []
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    },
+    {
+      "sampleId": "CF-002",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/10.jpg",
+      "sourceSha256": "61d17743670bb425275e861ccdfec072e33af556ab96d6f1043bf872fed73537",
+      "mode": "rapidocr-default-whole-image",
+      "transcriptKind": "raw-ocr-unedited",
+      "text": "PASTEURISED\nANPUR-385001\npstorgen Inform\nNe1001202100025\nNutritional Informatice\nnalure.\n2 servings per container\nUTHAPURAM VISAKHAPATNATU\nServing Size\nRAPRADESH-531 031\n10113003000251\nAmount per 100 mL\"\ndactured for:\nEnergy\nNDISTRICT C-OPERATIVE MILK\n(kcal)\nTotal Fat\n(g)\n1012021000243\nSaturated Fat\nctured by:\n9\nSTRICT CO-OPERATIVE MILK PRODUCERS\"\nTrans Fat\nMETPB VLLAGE & POST,\nCholesterol (mg)\nSV03AE/MRP290R\nCarbohydrate\nTotal Sugars\nUseBy:31.05.23\nAdded Sugars\nAUAIENVILLAGE.TR KANDRIGA\nUSP0:05/mLT1236\nProtein\nCHTOUR (ANDHRAPRADESH)-517 571\nSodium\n(mg)\n10114010000916\ntutatured for.\nCalcium\n(mg)\nANTHA DISTRICT CO-OPERATIVE\nPRODUCERS UNION LTD., SABAR DAIRY,\nRDA stands for Recommended Day\nOST BORIA HIMATNAGAR-383 006\n**Average values\n012021000207\nlendactured by.\nILGONDA-RANGA REDDY MILK PRODUCERS\nNet Content: 500m\nYADED CO-OP. UNION LTD.,\nDARY KUNTLOOR ROAD, HAYATH NAGAR,\nABA (TELANGANA)-501 505\nKEEP REFRIGERATED ATCO BELON\n10014047000133\nOAPRIVATE LIMITED, D.NO. 238/2,3;\nCOL,LSTOREINCHLE SECTONOE\nILLAGE, NUZVID, KRISHNA\n35H-1\nOFYOUREFRIGERATOR ANDCONSU\n止10113800238\nD PRODUCTS OSY O.118-119.\nMarketed by: Guara C-op\nAVLAGE HAYATH NAGAR MANDAL\nEREDI TELANGANA - 501 505\nLtd.,Anand -388001 Inda\n10016470577\nfssat\nNeapaprciataicictyeedbac.\nLic. No.10012021000\n CUutomer are Executive at\n253e AM –PM)\nunlly\ncustomercare@amul.coop\nGOMMFLd, Anand - 388 001\n8901262",
+      "elapsedMs": 4199,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": true,
+          "expected": "27",
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "netQuantity",
+          "eligible": false,
+          "expected": null,
+          "value": ": 500m",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": [
+            {
+              "value": ": 500m",
+              "evidence": "Net Content: 500m",
+              "quantity": null,
+              "unit": "",
+              "valid": false,
+              "key": "invalid:: 500m",
+              "validation": {
+                "status": "invalid",
+                "message": "Quantity must be a finite positive value with a supported unit."
+              }
+            }
+          ]
+        },
+        {
+          "field": "packDate",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "PASTEURISED",
+          "evidence": "PASTEURISED",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": true,
+          "detected": true,
+          "value": "customercare@amul.coop",
+          "evidence": "customercare@amul.coop",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": true,
+          "detected": true,
+          "value": "customercare@amul.coop",
+          "evidence": "customercare@amul.coop",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": []
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    },
+    {
+      "sampleId": "CF-003",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8906014888868/5.jpg",
+      "sourceSha256": "603169c4bae57c270a514d744a0f03ac4a8d4da25d1da095ba2037f8c78d2c88",
+      "mode": "tesseract-production-merge-on-sharp-approximation",
+      "transcriptKind": "system-derived-production-pass-merge",
+      "text": "dan (1745\nng unit see ni\nA H MED! AB AD\nhy Opp. Century ! Marke\n992512525\nclele 02, Gujarat. Phone: 079 2\nLIC. ND. 107224999 00 nl\nred Users)\n17, 252309\n. 382\n3 Es aleale rsiep \\ 4\nBATCH NGI BF JP 030726650745\nPACKED ON: 02/08/2020\nUSE BY: 01: 082025 A hb se\n| aj 0d USP RS 0.1873\nMRP - USPX: i\nGnctusive of all taxes)\n: For packing unit see first 2 letters of batch no.\nwid by: GULAB OIL AND FOOD (AHMEDABAD) PVT. LTD. (Registared Users\nreliva Milk Compound, Nr. Dargah, Opp. Century Market, O/s. Premdarwaja,\nKalupur, Ahmedabad-380002, Gujarat. Phone: 079 22131151, 9925125251\nfsa’ LC.N0. 107228090012! |\nsd. by: GF: GULAB OIL & FOODS PVT. LTD (Registered Users\nPlot No.161/1, SIDC, Veraval (Shapar) 360024, id\nTa Kotda (Sangani), Dist. Rajkot, Gujarat. Phone: 02827 254247, 252309\nfsa LIC. N0. 1007021002708\nRS No. 268\"Kadi Detroj Road, at Balasar, Ta. Kadi, Kadi,Mehsana, Gujarat - 386\n: fsa IG. N0. 1072439900030! \\\nwe care about your feedback. Contact us - 92760 O51 (Customer Care Exceculivel\nhi@truestoryorganics.com | truestoryorganics.com\nA , a WADE IN :\nRd SL ih INDIA\nBATCH\nGF JP30726650745\n02/08/2026\nPACKED 8 ;\n01/08/2027\nUSE BY:\naf 00 Usp RS 0.183\nMRP ¥-US\nwid by: GULAB OIL AND FOO\nD (AHMEDABAD) PVT. LTD. (Registered Users\nCentury Market, Ofs. Premdarwaia,\nreliva Milk Compound, Nr. Dargah, Opp.\nt. Phone: 079 22131151, 9825125251\nKalupur, Ahmedabad-380002, Gujara\nfsa |IG.N0. 107228890002!\nAB OIL & FOODS PVT. LTD (Registered Users)\npkd. by \"GF: GUL\n) 360024,\nPlot No.1\n61/1, SIDC, Veraval (Shapar\narat. Phone:\n02827 254247,252309\nTa. Kotda (Sangani), Dist. Rajkot, Gu]\nfea’ LIC.ND.10017021002708\nD) PVT. LTD (Reg\nsid by: BL: GULAB OIL & FOO\nDS (AHMEDABA\ndi Mehsana, Guja\nRS No 298\"Kadi Detroj Road, at Balasa\nr, Ta. Kadi, Ka\nret RH\nfsa’ 116. N0.10724999000301\ns - 92760 ON51 (Custo\nmer Care Excecutive)\nwe care about you\nr feedback. Contact u\nanics.com\ntruestoryorganics.com\nhi@truestoryorg\nWADE IN\nINDIA",
+      "elapsedMs": 5132,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": true,
+          "expected": "90.00",
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": [
+            {
+              "value": "",
+              "evidence": "MRP ¥-US",
+              "amount": null,
+              "minorUnits": null,
+              "valid": false,
+              "key": "invalid:",
+              "validation": {
+                "status": "invalid",
+                "message": "Missing or invalid price: grouping, sign and precision require correction."
+              }
+            }
+          ]
+        },
+        {
+          "field": "netQuantity",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "packDate",
+          "eligible": true,
+          "expected": "02/08/2026",
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": true,
+          "candidates": [
+            {
+              "value": "02/08/2020",
+              "evidence": "PACKED ON: 02/08/2020",
+              "year": 2020,
+              "month": 8,
+              "day": 2,
+              "valid": true,
+              "key": "{\"year\":2020,\"month\":8,\"day\":2}",
+              "validation": {
+                "status": "format_valid",
+                "message": "Calendar-valid date; product-specific date rules may still require review."
+              }
+            },
+            {
+              "value": "8 ;",
+              "evidence": "PACKED 8 ;",
+              "year": 0,
+              "month": 0,
+              "day": null,
+              "valid": false,
+              "key": "invalid:8 ;",
+              "validation": {
+                "status": "invalid",
+                "message": "Date is not a valid calendar date."
+              }
+            }
+          ]
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "dan (1745",
+          "evidence": "dan (1745",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": true,
+          "detected": true,
+          "value": "01: 082025 A hb se",
+          "evidence": "USE BY: 01: 082025 A hb se",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": true,
+          "detected": true,
+          "value": "Customer Care Exceculivel",
+          "evidence": "we care about your feedback. Contact us - 92760 O51 (Customer Care Exceculivel",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": true,
+          "detected": true,
+          "value": "RS No. 268\"Kadi Detroj Road, at Balasar, Ta. Kadi, Kadi,Mehsana, Gujarat - 386",
+          "evidence": "RS No. 268\"Kadi Detroj Road, at Balasar, Ta. Kadi, Kadi,Mehsana, Gujarat - 386",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": true,
+          "detected": true,
+          "value": "hi@truestoryorganics.com",
+          "evidence": "hi@truestoryorganics.com | truestoryorganics.com",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": true,
+          "value": "",
+          "evidence": "| aj 0d USP RS 0.1873 | af 00 Usp RS 0.183",
+          "validation": {
+            "status": "conflict",
+            "message": "Distinct declarations occur in this transcript; resolve their package/panel scope before deciding compliance."
+          },
+          "candidates": [
+            {
+              "value": "UNIT SALE PRICE RS 0.1873",
+              "evidence": "| aj 0d USP RS 0.1873",
+              "amount": null,
+              "minorUnits": null,
+              "unit": "",
+              "denominator": 1,
+              "valid": false,
+              "key": "invalid:UNIT SALE PRICE RS 0.1873",
+              "validation": {
+                "status": "invalid",
+                "message": "A numeric unit sale price and explicit denominator are required."
+              }
+            },
+            {
+              "value": "UNIT SALE PRICE RS 0.183",
+              "evidence": "af 00 Usp RS 0.183",
+              "amount": null,
+              "minorUnits": null,
+              "unit": "",
+              "denominator": 1,
+              "valid": false,
+              "key": "invalid:UNIT SALE PRICE RS 0.183",
+              "validation": {
+                "status": "invalid",
+                "message": "A numeric unit sale price and explicit denominator are required."
+              }
+            }
+          ]
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    },
+    {
+      "sampleId": "CF-003",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8906014888868/5.jpg",
+      "sourceSha256": "603169c4bae57c270a514d744a0f03ac4a8d4da25d1da095ba2037f8c78d2c88",
+      "mode": "rapidocr-default-whole-image",
+      "transcriptKind": "raw-ocr-unedited",
+      "text": "doorstep\nCERT\n回乐\ndelivery\nGFJP030726650745\nBATCHNO:\n02/08/2026\nPACKED ON:\n01/08/2027\nUSE BY:\n90.00 USP\nRS 0.18/9\nMRP-USP:\n(Inclusive of all taxes)\nFor packing unit see first 2 letters of batch no.\nMktd by: GULAB OIL AND FOOD (AHMEDABAD) PVT. LTD. (Registered Users)\nTeliya Mill Compound, Nr. Dargah, Opp. Century Market,O/s. Premdarwaja,\nKalupur, Ahmedabad-380002, Gujarat. Phone: 079 22131151, 9925125251\nfssai LI. NO.107229990121\nPkd. by: GF: GULAB OIL & FOODS PVT. LTD (Registered Users)\nPlot No.161/1, SIDC, Veraval (Shapar) 360024,\nTa. Kotda (Sangani), Dist. Rajkot, Gujarat. Phone: 02827 254247, 252309\nfssai' LIC. NO.10017021002708\nPkd by: BL: GULAB OIL & FOODS (AHMEDABAD) PVT. LTD ('Registered Users)\nR.S No. 296, Kadi Detroj Road, at Balasar, Ta. Kadi, Kadi,Mehsana, Gujarat - 382715\nfssai LIC. NO.10724999000301\nWe care about your feedback. Contact us - 92760 01151 (Customer Care Excecutive)\nhi@truestoryorganics.com I truestoryorganics.com\nMADE IN\nINDIA",
+      "elapsedMs": 3791,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": true,
+          "expected": "90.00",
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": [
+            {
+              "value": "",
+              "evidence": "MRP-USP:",
+              "amount": null,
+              "minorUnits": null,
+              "valid": false,
+              "key": "invalid:",
+              "validation": {
+                "status": "invalid",
+                "message": "Missing or invalid price: grouping, sign and precision require correction."
+              }
+            }
+          ]
+        },
+        {
+          "field": "netQuantity",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "packDate",
+          "eligible": true,
+          "expected": "02/08/2026",
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": [
+            {
+              "value": "",
+              "evidence": "PACKED ON:",
+              "year": 0,
+              "month": 0,
+              "day": null,
+              "valid": false,
+              "key": "invalid:",
+              "validation": {
+                "status": "invalid",
+                "message": "Date is not a valid calendar date."
+              }
+            }
+          ]
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "doorstep",
+          "evidence": "doorstep",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": true,
+          "detected": true,
+          "value": "90.00 USP",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": true,
+          "detected": true,
+          "value": "Customer Care Excecutive)",
+          "evidence": "We care about your feedback. Contact us - 92760 01151 (Customer Care Excecutive)",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": true,
+          "detected": true,
+          "value": "R.S No. 296, Kadi Detroj Road, at Balasar, Ta. Kadi, Kadi,Mehsana, Gujarat - 382715",
+          "evidence": "R.S No. 296, Kadi Detroj Road, at Balasar, Ta. Kadi, Kadi,Mehsana, Gujarat - 382715",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": true,
+          "detected": true,
+          "value": "hi@truestoryorganics.com",
+          "evidence": "hi@truestoryorganics.com I truestoryorganics.com",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": true,
+          "detected": true,
+          "value": "92760 01151",
+          "evidence": "We care about your feedback. Contact us - 92760 01151 (Customer Care Excecutive)",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": true,
+          "value": "",
+          "evidence": "MRP-USP: | RS 0.18/9",
+          "validation": {
+            "status": "conflict",
+            "message": "Distinct declarations occur in this transcript; resolve their package/panel scope before deciding compliance."
+          },
+          "candidates": [
+            {
+              "value": "UNIT SALE PRICE",
+              "evidence": "MRP-USP:",
+              "amount": null,
+              "minorUnits": null,
+              "unit": "",
+              "denominator": 1,
+              "valid": false,
+              "key": "invalid:UNIT SALE PRICE",
+              "validation": {
+                "status": "invalid",
+                "message": "A numeric unit sale price and explicit denominator are required."
+              }
+            },
+            {
+              "value": "UNIT SALE PRICE RS 0.18/9",
+              "evidence": "RS 0.18/9",
+              "amount": null,
+              "minorUnits": null,
+              "unit": "",
+              "denominator": 1,
+              "valid": false,
+              "key": "invalid:UNIT SALE PRICE RS 0.18/9",
+              "validation": {
+                "status": "invalid",
+                "message": "A numeric unit sale price and explicit denominator are required."
+              }
+            }
+          ]
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": true,
+          "detected": true,
+          "value": "10017021002708",
+          "evidence": "fssai' LIC. NO.10017021002708",
+          "validation": {
+            "status": "format_valid",
+            "message": "14-digit licence format detected; registry validity is not inferred."
+          },
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    },
+    {
+      "sampleId": "CF-004",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8906055442586/4.jpg",
+      "sourceSha256": "35d575f4a33160549dca7d4c22ce188a8df2fc0b644128a5155d9416d72ffde3",
+      "mode": "tesseract-production-merge-on-sharp-approximation",
+      "transcriptKind": "system-derived-production-pass-merge",
+      "text": "U2LUV0%)\n2 WHO! gaia. com |\nPRODUCT OF INDIA\n8\"906055\"442586\nFROM\nEMONE OIL\nT5230 C: 910\nDO NOT\nT Bay. THE\nPURCHASE\nBOTTLE IF\nEER ELE SE\n0225\nTAMPERED WITH\nKEEP CITY\nIPI\nnl Se 1 ictatta com | A\np> of Lr ' Bu kK\nhove 8 - ~ For interesting knowledge bytes > |\ncORMAT Follow us : 5\n” valves) @organictattva ff! | 2\n5% cop (1009 |\nER he PRODUCT OF INDIA, |\noe o E 89 g < 1 Zd ’\nBL ...529 YS i\npate Ee ak 5\n5 C.....0mg fs. Es\n8906055442586\" BW\ndr op, FREE FROM Tr\nTENTS at 30 ¥. 91 0 g ARGEMONE OIL Zz F.\nATG aa | BEN fi\nTea 31 03-28 ———\nSE BY 30/03/37 pE——\nFORE QEAN _§\nggestio™ ‘+71 1 14U 2£0V0%2\ni WWW, organictattva.com\ncto ddres®\nFor interesting knowledge bytes.\nFollow us\n@organictattva\n(1009)\n89 keal\n5 Ed\n899\n6.20\n1.79\nCoconut Oil\nTeNTSat 30°C: 9109\nPALE fifi\nAXES\n£959. 00sL\nUTS7C000225\n4 1013. i\nUSE BY 30/03 37\nFORE",
+      "elapsedMs": 3330,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "netQuantity",
+          "eligible": true,
+          "expected": "910 g",
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "packDate",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "U2LUV0%)",
+          "evidence": "U2LUV0%)",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": true,
+          "detected": true,
+          "value": "30/03 37",
+          "evidence": "USE BY 30/03 37",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": true,
+          "detected": true,
+          "value": "INDIA",
+          "evidence": "PRODUCT OF INDIA",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": []
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    },
+    {
+      "sampleId": "CF-004",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8906055442586/4.jpg",
+      "sourceSha256": "35d575f4a33160549dca7d4c22ce188a8df2fc0b644128a5155d9416d72ffde3",
+      "mode": "rapidocr-default-whole-image",
+      "transcriptKind": "raw-ocr-unedited",
+      "text": "+911204260545\nk and suggestions,\nwww.organictattva.com\nct our customer\nve at address\nFor interesting knowledge bytes,\nabove or\nFollow us\nfO\nINFORMATION\n@organictattva\npprox. values)\ncontainer 9.1\n1½ cup (100 g)\n899 Kcal\nPRODUCT OF INDIA\n100g\n89g\nat.\n.6.2g\nrated Fat.\n.1.7g\nated Fat.\n0mg\n0mg\n8\"906055\"442586\nOrganic Coconut Oil\nFREE FROM\nNTENTS at 30°C: 910g\nARGEMONE OIL\n699.00\nUSPF 699:00/L\nDO NOT\naxes)\nPURCHASE\n0T97C000225\nBOTTLE IF\nNO.\nTAMPERED WITH\n31/03/25\nUSE BY 30/03/27\nKEEP CITY\nFORE\nCLEAN",
+      "elapsedMs": 3308,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "netQuantity",
+          "eligible": true,
+          "expected": "910 g",
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "packDate",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "+911204260545",
+          "evidence": "+911204260545",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": true,
+          "detected": true,
+          "value": "30/03/27",
+          "evidence": "USE BY 30/03/27",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": true,
+          "detected": true,
+          "value": "INDIA",
+          "evidence": "PRODUCT OF INDIA",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": []
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    },
+    {
+      "sampleId": "CF-005",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8904083301837/3.jpg",
+      "sourceSha256": "b9cd89914094ebe8f591b9c5b29e5451872720c63c9ee15461926d1dd72302d2",
+      "mode": "tesseract-production-merge-on-sharp-approximation",
+      "transcriptKind": "system-derived-production-pass-merge",
+      "text": "5 Fo\nITED\nFi 4\n200\nES CONTACT\nEXECUTIVE\n100-419-9000\nTATMED &\nWEED BY ADDRESS\nPi HEE\nand hy gien\nic place &\nKEEP YOUR\nProduct quality\nCITY CLEAN\noon MITED ;\nAa 007, ErOQERTICt, C&O\n* = SA To cu TER : : of\nrrr Z i i SCAN TO J 4 —\na ARESS TL Le\nt g : Vv BRIANA | Zon\n| Moai genic place. fi Whedon we :\norotic quay, ss ECL\nGWA\nTED\n2003\nCARE EXECU\n[OFC 60)\n1800-419-9000\nKNOW MORE\nSCAN TO\nBY ADDRESS\nand hygienic place &\n\"¥ain progyet quality",
+      "elapsedMs": 2418,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "netQuantity",
+          "eligible": true,
+          "expected": "1 l",
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "packDate",
+          "eligible": true,
+          "expected": "19/10/25",
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "5 Fo",
+          "evidence": "5 Fo",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": []
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    },
+    {
+      "sampleId": "CF-005",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8904083301837/3.jpg",
+      "sourceSha256": "b9cd89914094ebe8f591b9c5b29e5451872720c63c9ee15461926d1dd72302d2",
+      "mode": "rapidocr-default-whole-image",
+      "transcriptKind": "raw-ocr-unedited",
+      "text": "30℃(910\nured & Marketed by\nVillage,\n/23.Pattkranpalay\n-638 057, ErodDlstrict,\nIssai\nNo.10017042003191\nQUERIES CONTACT\nMilk.r\nTEDBADK/\nSTOMER CARE EXECUTIVE\nREE NO.1800-419-9000\nDORDONTACT AT MFD &\nMARKETED BY ADDRESS\nSCAN TO\nKNOW MORE\nstomercare@milkymist.com\nust:www.mikymist.com\ng Keep in an irtight\nndertretataao qualty\nKEEP YOUR\nNet Quantity\nCITYCLEAN",
+      "elapsedMs": 3916,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "netQuantity",
+          "eligible": true,
+          "expected": "1 l",
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": [
+            {
+              "value": "",
+              "evidence": "Net Quantity",
+              "quantity": null,
+              "unit": "",
+              "valid": false,
+              "key": "invalid:",
+              "validation": {
+                "status": "invalid",
+                "message": "Quantity must be a finite positive value with a supported unit."
+              }
+            }
+          ]
+        },
+        {
+          "field": "packDate",
+          "eligible": true,
+          "expected": "19/10/25",
+          "value": "&",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": [
+            {
+              "value": "&",
+              "evidence": "DORDONTACT AT MFD &",
+              "year": 0,
+              "month": 0,
+              "day": null,
+              "valid": false,
+              "key": "invalid:&",
+              "validation": {
+                "status": "invalid",
+                "message": "Date is not a valid calendar date."
+              }
+            }
+          ]
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "30℃(910",
+          "evidence": "30℃(910",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": true,
+          "detected": true,
+          "value": "stomercare@milkymist.com",
+          "evidence": "stomercare@milkymist.com",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": []
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    },
+    {
+      "sampleId": "CF-006",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/11.jpg",
+      "sourceSha256": "34b8b602484c492408dd2921d1a657e8f030a97706da41deac04c110f7354120",
+      "mode": "tesseract-production-merge-on-sharp-approximation",
+      "transcriptKind": "system-derived-production-pass-merge",
+      "text": "i Noi: tiaras\nASSN\nAN U1)\nURES\n) QF(.5\nv AL\nNDL\nSEmoresssoowmeweeerem\nRES\nGALTS OF C440\nHIME 11=\n’ Hing EEE [| Sed i\n5 23 ESAS # “4 » = = ET 7 u 2\n0. I AVIRVVVRUL nL ¥aValalse) ih oN fi\na IA NARA T NB SERRE 2 =T | 2\nERAT LTD CMI/L- ) { | ; 031 a 4\n| 1% I ! 11 UM AAA =i ot Ali'den Dole Dorrell A “— [m = |\nOFA EP = 4 oD rd i\nThe SR gr = £) i. ETT a ——— { : x= 3 ol 4 &\n§ el A4A0{4 AN AAs E——— nN ive gag?\nCo 1M2NANNNRINN —————— 00 Ehad TN\n+e INIDIDLE TA CANAL AMY Lo nl . Tn\nH' lami = 8 MN W2WWUL MINTY eee ee —\nURRY PLAT REEV IME ee — O J ae a —\nAm lamas 0M NLL i! a Sm gmme gm\nCb nn 2 SINE — TK) ee OO\n3 ’\\ | i i | : { On da Vel p= mn oh\n¥ i ° IATA: R REE Be el ;\nol. Sees 3\n\"Yi i BE ~ “Wo OF WH =\nLRH : EE 7 et\na, Co ayy lS\nALTS\n043\nDIU\nM(04* mg)\nADT\nDAN\nTAGE\nVEN\nN77",
+      "elapsedMs": 5345,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "netQuantity",
+          "eligible": true,
+          "expected": "1 l",
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "packDate",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "i Noi: tiaras",
+          "evidence": "i Noi: tiaras",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": []
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    },
+    {
+      "sampleId": "CF-006",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/11.jpg",
+      "sourceSha256": "34b8b602484c492408dd2921d1a657e8f030a97706da41deac04c110f7354120",
+      "mode": "rapidocr-default-whole-image",
+      "transcriptKind": "raw-ocr-unedited",
+      "text": "OZONIZED\nIS14543\nS/SALTS OF\nmgll\nAND SODIUM (0.1*n\n.RECYCLE\n8163-170,\nKONDAN VILLAGE,\nWO\nNo.100110420001\nB0-27-000-05-AAACH3005M-22\nCM/L-6100089707\nTHE COCA-COLAC\nRAGES PVT.LTD.,\nfssai\nRD,SEC-56,\nLic. No.\n0824\n10012011000620\nSTORE IN A COOL AND\nTOR AT:\nDRY PLACE. KEEPTHE\n4\nGHT 18.49\ncola.com\nCONTAINER AWAY\nROM DIRECT\nNLIGHT.DO NOT\nBUY IF CAP/SEAL IS\nBROKEN.\nNET QUANTITY:\nFOR BIS CERTIFICATION\nDETAILS SEE\nWEBSITE www.bis.gov.in\n1L",
+      "elapsedMs": 4628,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "netQuantity",
+          "eligible": true,
+          "expected": "1 l",
+          "value": ":",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": [
+            {
+              "value": ":",
+              "evidence": "NET QUANTITY:",
+              "quantity": null,
+              "unit": "",
+              "valid": false,
+              "key": "invalid::",
+              "validation": {
+                "status": "invalid",
+                "message": "Quantity must be a finite positive value with a supported unit."
+              }
+            }
+          ]
+        },
+        {
+          "field": "packDate",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "OZONIZED",
+          "evidence": "OZONIZED",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": []
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    },
+    {
+      "sampleId": "CF-007",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/13.jpg",
+      "sourceSha256": "1f0025ed0036b861d1ff901f4df776cea6d78c4aafb775555bfd02d7ea5fce5c",
+      "mode": "tesseract-production-merge-on-sharp-approximation",
+      "transcriptKind": "system-derived-production-pass-merge",
+      "text": "ED ORIN; WE\nR 020M\nMANUFACTURED BY\nFONTS: TAEATED WATER, SALTS OF SODIUM ann :7im=\n343, TARATALA ROAD, KOLKATA - 700 088, W.B.\nBEVERAGES PVT, LTD,\nE51 BEFORE TWELVE MONTHS\nLic. No. 1012021000047\nARNE OF MANUFA\n(TURE,\nBATCHNO. SMR\nINC\nLOF cmn-\n000514655\nALLTAXES): SEF CAP/NECK.\nTRADEMARK OWMER: THE COC. - “1 A IMD)\nSTORE i A COOL AND DRY PLACE, nctr THE CONTUNER AWAY\nSUNLIGHT. DO NOT BUY IF CAP/SEAL IS BROKEN\nFOR BIS CERTIFICATION DETAILS SEE WFRSITE www bis.org.in\nValues per 100m!) |\n\" Protein 09\n0.1mg\nFat 0g\nET QUANTITY\nBOTTLE\nER USE\nPACKAGED DRINKI:.G WATER Ade\nEGE WT. LTD., 2\nJRL, HAUT Tt, ad\n*IRATHNO. &M RD OF cm-0005146550 SE.\n| ALTHES) SE Co NECK. ==\nBR THE COCA. * rrssonyy —\nS SROTTLE -\nAGE DRINK] WA\nFONTS, TREATED WATER, SALTS OF SODIUM Aun 2:7\nACTURED BY\nIER 02022\n5.3. TARATALA ROAD, KOLKATA - 700 088, W 3.\nLic. No. 1001203100047\n(TUR\nBATCHNO. MRP.\nNCL OF cmn-000514655\nTRADEMARK OWNER: THE COCs. = * rao)\nFuls Values per 100m)\n\"n, Protein 0",
+      "elapsedMs": 4073,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": false,
+          "expected": null,
+          "value": ".",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": [
+            {
+              "value": ".",
+              "evidence": "BATCHNO. MRP.",
+              "amount": null,
+              "minorUnits": null,
+              "valid": false,
+              "key": "invalid:.",
+              "validation": {
+                "status": "invalid",
+                "message": "Missing or invalid price: grouping, sign and precision require correction."
+              }
+            }
+          ]
+        },
+        {
+          "field": "netQuantity",
+          "eligible": true,
+          "expected": "1 l",
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "packDate",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "ED ORIN; WE",
+          "evidence": "ED ORIN; WE",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": true,
+          "detected": true,
+          "value": "MANUFACTURED BY",
+          "evidence": "MANUFACTURED BY · FONTS: TAEATED WATER, SALTS OF SODIUM ann :7im=",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": []
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    },
+    {
+      "sampleId": "CF-007",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/13.jpg",
+      "sourceSha256": "1f0025ed0036b861d1ff901f4df776cea6d78c4aafb775555bfd02d7ea5fce5c",
+      "mode": "rapidocr-default-whole-image",
+      "transcriptKind": "raw-ocr-unedited",
+      "text": "PACKAGED DRINKIG WATER\nOZONIZED\nINGREDIENTS:TREATED WATER, SALTS OF SODIUM A\nIS14543\nMANUFACTURED BY\nDIAMOND BEVERAGES PVT. LTD.,\nP-43. TARATALA ROAD, KOLKATA - 700 088, W.B.\nEssai\nBEST BEFORE TWELVE MONTHS\nFROM MANUFACTURE\nLic.No.10012031000040\nFOR DATE OF MANUFACTURE,\nCM/-0005146558\nBATCH NO. & M.R.P. (INCL. OF\nALL TAXES): SEE CAP/NECK.\n100\nTRADEMARK OWNER: THE COCAA COMPANY\nMER HELPLINE:1800-208-2653\nE-MAIL:indiahelpline@coca-cola.com\nSTORE IN ACOOL AND DRY PLACE. REEP THE CONTAINER AWAY\nFROM DIRECT SUNLIGHT. DO NOT BUY IF CAP/SEAL IS BROKEN.\nFOR BIS CERTIFICATION DETAILS SEE WEBSITE WW.bis.org.in\nNutrition acts (Typical Values per 100ml)\nEnery O Kcal\nCarbohydrate Og\nC\nSugar 0g\nProtein 0g\nFat Og\n811901\nSodium 0.3 mg\nMagnesium 0.1 mg\nCRUSH THE\nplease\nrecycle\nBOTTLE\nNET QUANTITY:\nONSSUNM\nAFTER USE\n1l",
+      "elapsedMs": 4106,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": [
+            {
+              "value": "",
+              "evidence": "BATCH NO. & M.R.P. (INCL. OF",
+              "amount": null,
+              "minorUnits": null,
+              "valid": false,
+              "key": "invalid:",
+              "validation": {
+                "status": "invalid",
+                "message": "Missing or invalid price: grouping, sign and precision require correction."
+              }
+            }
+          ]
+        },
+        {
+          "field": "netQuantity",
+          "eligible": true,
+          "expected": "1 l",
+          "value": ":",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": [
+            {
+              "value": ":",
+              "evidence": "NET QUANTITY:",
+              "quantity": null,
+              "unit": "",
+              "valid": false,
+              "key": "invalid::",
+              "validation": {
+                "status": "invalid",
+                "message": "Quantity must be a finite positive value with a supported unit."
+              }
+            }
+          ]
+        },
+        {
+          "field": "packDate",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "PACKAGED DRINKIG WATER",
+          "evidence": "PACKAGED DRINKIG WATER",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": true,
+          "detected": true,
+          "value": "TWELVE MONTHS",
+          "evidence": "BEST BEFORE TWELVE MONTHS",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": true,
+          "detected": true,
+          "value": "MANUFACTURED BY",
+          "evidence": "MANUFACTURED BY · DIAMOND BEVERAGES PVT. LTD.,",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": true,
+          "detected": true,
+          "value": "HELPLINE:1800-208-2653",
+          "evidence": "MER HELPLINE:1800-208-2653",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": true,
+          "detected": true,
+          "value": "indiahelpline@coca-cola.com",
+          "evidence": "E-MAIL:indiahelpline@coca-cola.com",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": true,
+          "detected": true,
+          "value": "1800-208-2653",
+          "evidence": "MER HELPLINE:1800-208-2653",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": []
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    },
+    {
+      "sampleId": "CF-008",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8902579001360/14.jpg",
+      "sourceSha256": "a7bebcea106e822d878184f0a88a223d4360c0e578366ed3d1c197968bf1bbab",
+      "mode": "tesseract-production-merge-on-sharp-approximation",
+      "transcriptKind": "system-derived-production-pass-merge",
+      "text": "CameEeeE 2\nTEED hs\nere menus\nAWA EST\nForty. me\nBr sac nas\n= CRerzmEe.\nBABU) som\nES Pe)\nSa 5\nEL FN\nANN ~ of i\nQa NR 757 ;\nhh avd Oc fe i) \\\nNe SER p wn\nSS Sere cramer -\na. Em : on\n- fo me CO i Fo\n1 lS == smears — LZ (n\n. j= CEssmmEr [7 =\n[Hh aarp] fx\nEERSSana ©.\nBE omens — =\nSg C= ARSE CUBE: f=\ni: ~ raaecaenss |) 1 8\n3 f re] “= momen. - 4 -\n3 o ENED Poa. set\n{ 7. Pr > (TR, Lt\nv7 7 Saree. EER\nA i Perr Te, —~\n. CONES ee\nParle Agro. og ci HE 4\nfois io ;\nCamm 2\nED erg\nRTT maeaus\nSef C5\nBABA smn\nFIRE\nPRR\nEe FAN)",
+      "elapsedMs": 3793,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "netQuantity",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "packDate",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "CameEeeE 2",
+          "evidence": "CameEeeE 2",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": []
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    },
+    {
+      "sampleId": "CF-008",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8902579001360/14.jpg",
+      "sourceSha256": "a7bebcea106e822d878184f0a88a223d4360c0e578366ed3d1c197968bf1bbab",
+      "mode": "rapidocr-default-whole-image",
+      "transcriptKind": "raw-ocr-unedited",
+      "text": "5000\n5.00\nRELIANCE SHARTPOINT\nSINCE 1985\nFROOTI MAN 125ML TPK\nRs/Qly\nBulbe ed o nlan at sapn ou\nTotal Rs\nNon PCR Label\nParlē Agro",
+      "elapsedMs": 3176,
+      "critical": [
+        {
+          "field": "mrp",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "netQuantity",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        },
+        {
+          "field": "packDate",
+          "eligible": false,
+          "expected": null,
+          "value": "",
+          "valid": false,
+          "correct": false,
+          "conflict": false,
+          "candidates": []
+        }
+      ],
+      "otherFields": [
+        {
+          "field": "productName",
+          "nonempty": true,
+          "detected": true,
+          "value": "5000",
+          "evidence": "5000",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "bestBefore",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "responsibleEntity",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerCare",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "consumerAddress",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "email",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "phone",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "countryOrigin",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "unitSalePrice",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": []
+        },
+        {
+          "field": "fssaiLicense",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        },
+        {
+          "field": "barcode",
+          "nonempty": false,
+          "detected": false,
+          "value": "",
+          "evidence": "",
+          "validation": null,
+          "candidates": null
+        }
+      ]
+    }
+  ],
+  "proposalRows": [
+    {
+      "sampleId": "CF-003",
+      "id": "proposal:row:CF-003:line-8+CF-003:line-7",
+      "rowId": "row:CF-003:line-8+CF-003:line-7",
+      "field": "packDate",
+      "value": "02/08/2026",
+      "text": "PACKED ON: 02/08/2026",
+      "sourceIds": [
+        "CF-003:line-8",
+        "CF-003:line-7"
+      ],
+      "sourceIndexes": [
+        7,
+        6
+      ],
+      "parts": [
+        {
+          "sourceId": "CF-003:line-8",
+          "sourceIndex": 7,
+          "text": "PACKED ON:",
+          "box": [
+            [
+              45.12273025512695,
+              439.5604553222656
+            ],
+            [
+              417.38525390625,
+              439.5604553222656
+            ],
+            [
+              417.38525390625,
+              502.7156982421875
+            ],
+            [
+              45.12273025512695,
+              502.7156982421875
+            ]
+          ]
+        },
+        {
+          "sourceId": "CF-003:line-7",
+          "sourceIndex": 6,
+          "text": "02/08/2026",
+          "box": [
+            [
+              950.0841064453125,
+              370.0896911621094
+            ],
+            [
+              1420.112548828125,
+              359.98486328125
+            ],
+            [
+              1422.619384765625,
+              468.61187744140625
+            ],
+            [
+              952.5909423828125,
+              478.7167053222656
+            ]
+          ]
+        }
+      ],
+      "validation": {
+        "status": "format_valid",
+        "message": "Calendar-valid date; product-specific date rules may still require review."
+      },
+      "requiresOfficerReview": true,
+      "eligibleForAutomaticVerdict": false,
+      "eligibleReference": true,
+      "provisionalReferenceMatch": true,
+      "applied": false,
+      "officerReviewed": false
+    }
+  ]
+}

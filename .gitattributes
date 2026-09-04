@@ -1,1 +1,10 @@
 *.pdf binary
+/public/ocr/paddle-v1/** -text -diff -whitespace
+/datasets/critical-fields*.json -text
+/reports/**/*.json -text whitespace=trailing-space,space-before-tab,cr-at-eol
+/reports/**/*.jsonl -text whitespace=trailing-space,space-before-tab,cr-at-eol
+/src/lib/labelParser.mjs -text
+/src/lib/extraction.mjs -text
+/src/lib/reportDocument.mjs -text
+/src/lib/criticalFieldBenchmark.mjs -text
+/src/lib/vision.mjs -text

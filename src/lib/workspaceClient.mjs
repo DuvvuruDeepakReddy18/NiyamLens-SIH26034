@@ -1,4 +1,5 @@
 import { RULE_PACK } from './rules.mjs'
+import { validateOcrHistory } from './ocrHistory.mjs'
 const MAX_IMAGE_BYTES = 15 * 1024 * 1024
 const IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp']
 const cancelled = () => Object.assign(new Error('Workspace changed. Synchronization stopped; local evidence is retained.'), { status: 401 })
@@ -100,6 +101,7 @@ export function createWorkspaceClient(client, org, expectedUserId) {
       }
       if (operation.kind !== 'seal') throw Object.assign(new Error('Unknown queued operation.'), { status: 422 })
       const record = operation.payload
+      try { validateOcrHistory(record?.evidenceItems) } catch (error) { throw Object.assign(error, { status: 422 }) }
       const panels = []
       for (const panel of record.evidenceItems) {
         const originalPath = await upload(record, panel, 'original', signal)

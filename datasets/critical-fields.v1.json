@@ -1,0 +1,206 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "niyamlens-critical-fields-v1",
+  "createdOn": "2026-09-04",
+  "purpose": "Provisional photograph-grounded critical-field labels for development evaluation, not legal-compliance verdicts.",
+  "corpusRole": "previously-used-development-corpus",
+  "isHoldout": false,
+  "annotation": {
+    "labeler": "AI visual inspection",
+    "status": "provisional-human-review-required",
+    "humanReviewed": false,
+    "method": "Viewed each original local photograph with view_image. No OCR run, OCR transcript, catalogue quantity, or arithmetic-derived quantity was used to create these labels.",
+    "newOcrOutputsConsultedBeforeFreeze": false,
+    "priorExposureDisclosure": "Earlier task context already disclosed the Amul 8901262260121/6.jpg OCR failure and its 500 mL / INR 22 values. Those readings were checked on the photograph; this sample is not a blinded independent annotation. The other selected photographs were labelled visually without consulting their OCR outputs.",
+    "selection": "Purposefully selected eight photographs across six product codes, including readable declarations and cropped, blurred, rotated, or semantically ambiguous counterexamples. This is not a random or representative accuracy sample.",
+    "sameProductCodeIsNotSamePhysicalPackage": true,
+    "freezeRule": "Any later correction must record the human reviewer, reason, and new dataset version; do not silently relabel to fit OCR results."
+  },
+  "source": {
+    "name": "Existing local Open Food Facts India real-label development collection",
+    "directory": "datasets/openfoodfacts-india/real-labels",
+    "pathBase": "repository-root",
+    "imageIdentity": "sha256 of the exact local image bytes",
+    "attribution": "Retain the original collection's source/attribution records when redistributing photographs. This JSON neither changes their licence nor proves capture date or provenance."
+  },
+  "scoringPolicy": {
+    "unitOfEvaluation": "individual-photograph",
+    "criticalFields": ["mrp", "netQuantity", "packDate"],
+    "statuses": {
+      "readable": "Value and field identity are visually supported on this photograph; provisional positive exact-match label.",
+      "not_visible": "No readable declaration value for this field appears in this photograph; not a claim that the entire package lacks it.",
+      "illegible": "The relevant declaration is visible but its complete value cannot be read confidently.",
+      "ambiguous_field": "A number or date is readable but its identity as the requested declaration is not established on this photograph."
+    },
+    "denominator": "Only fields with status=readable and metricEligible=true belong in provisional value exact-match denominators. Report each field denominator separately; never convert excluded fields into correct negatives.",
+    "expectedValues": "A convenience map containing readable labels only. Missing keys are unlabelled, never evidence of compliant or non-compliant absence. This photo manifest is not a transcript benchmark import file.",
+    "normalization": "Preserve printed numeric digits and date separators. Trim outer whitespace. Quantity unit spelling/case is normalized to g, ml, or l only; do not replace OCR-confused digits, change units, infer density, derive quantity from unit price or servings, or infer a century for two-digit years.",
+    "surfaces": "surface is a readable declaration excerpt, not a full transcript or a claim of exact typography/spacing. For spatially separated headings and values, heading and surface are recorded separately.",
+    "dateMeaning": "packDate accepts only visibly identified packed/packing/manufactured dates. Use-by, expiry, marketing years, batch codes, and dates with cropped headings are excluded.",
+    "legalVerdictsLabelled": false,
+    "falseClearRate": null,
+    "falseClearRateReason": "No officer-adjudicated legal verdict labels are supplied.",
+    "claimsAllowed": "Provisional development diagnostics only. Neither accuracy on unseen real labels nor legal correctness nor human-validated ground truth is established.",
+    "expectedReadableDenominators": {"mrp": 3, "netQuantity": 5, "packDate": 2}
+  },
+  "samples": [
+    {
+      "id": "CF-001",
+      "productCode": "8901262260121",
+      "productLabel": "Amul milk pouch",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/6.jpg",
+      "sha256": "9d2187d0603d8781814e24320b452d596dc826a50ba29f0a7643f6d43b0c619b",
+      "humanReviewRequired": true,
+      "conditions": ["curved flexible pouch", "glare", "left-side occlusion", "black stamp over blue text"],
+      "expectedStatus": null,
+      "expectedValues": {"mrp": "22.00", "netQuantity": "500 ml"},
+      "fields": {
+        "mrp": {"status": "readable", "metricEligible": true, "value": "22.00", "currency": "INR", "surface": "MRP: ₹ 22.00", "location": "Upper-right declaration block, below net content", "notes": "Amount is readable despite glare; the currency/heading has lower visual clarity than the digits."},
+        "netQuantity": {"status": "readable", "metricEligible": true, "value": "500 ml", "quantity": "500", "unit": "ml", "surface": "Net Content: 500 mL", "location": "Upper-right declaration block", "notes": "Label mL is volume, not the OCR-like string mr and not a mass unit."},
+        "packDate": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Left black stamp and nearby instructions", "notes": "No date identified as packed or manufactured is readable. The package refers to a use-by stamp; do not promote that date to packing date."}
+      },
+      "otherVisibleReadings": [
+        {"kind": "date-with-partly-occluded-heading", "surface": "04/07/19", "value": "04/07/19", "notes": "Left black stamp; prefix is partly occluded. Nearby text refers to Use-by date. Not an eligible packDate label."}
+      ]
+    },
+    {
+      "id": "CF-002",
+      "productCode": "8901262260121",
+      "productLabel": "Amul milk pouch, different photographed package",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/10.jpg",
+      "sha256": "61d17743670bb425275e861ccdfec072e33af556ab96d6f1043bf872fed73537",
+      "humanReviewRequired": true,
+      "conditions": ["curved flexible pouch", "black stamp over blue print", "blurred right-edge quantity", "glare"],
+      "expectedStatus": null,
+      "expectedValues": {"mrp": "27"},
+      "fields": {
+        "mrp": {"status": "readable", "metricEligible": true, "value": "27", "currency": "INR", "surface": "MRP₹27", "location": "Left upper black stamp", "notes": "Do not substitute the INR 22 price from another photograph with the same product code."},
+        "netQuantity": {"status": "illegible", "metricEligible": false, "value": null, "surface": "Net Content: 500 [unit unclear]", "location": "Middle-right edge below nutrition table", "notes": "500 is readable but the small unit at the curved/blurred right edge is not accepted as a complete strict value in this provisional annotation. Do not fill its unit from the other Amul photograph."},
+        "packDate": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Left upper black stamp", "notes": "The clearly headed date is Use By, not a packing/manufacture date."}
+      },
+      "otherVisibleReadings": [
+        {"kind": "use-by", "surface": "Use By:31.05.23", "value": "31.05.23", "notes": "Not an eligible packDate label; preserve two-digit year."},
+        {"kind": "partial-net-quantity", "surface": "500", "value": "500", "notes": "Numeric part only, excluded from complete quantity exact-match denominator."}
+      ]
+    },
+    {
+      "id": "CF-003",
+      "productCode": "8906014888868",
+      "productLabel": "True Story Organics jaggery pouch",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8906014888868/5.jpg",
+      "sha256": "603169c4bae57c270a514d744a0f03ac4a8d4da25d1da095ba2037f8c78d2c88",
+      "humanReviewRequired": true,
+      "conditions": ["headings and stamped values in separate columns", "multiple date meanings", "MRP and unit price on same row", "mild glare"],
+      "expectedStatus": null,
+      "expectedValues": {"mrp": "90.00", "packDate": "02/08/2026"},
+      "fields": {
+        "mrp": {"status": "readable", "metricEligible": true, "value": "90.00", "currency": "INR", "heading": "MRP ₹ - USP ₹:", "surface": "90.00 USP RS 0.18/g", "location": "Upper white stamp block, fourth row; corresponding heading to its left", "notes": "90.00 is MRP; 0.18/g is the separately identified unit sale price."},
+        "netQuantity": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Photographed back panel", "notes": "Do not derive 500 g from 90.00 divided by 0.18/g. That is arithmetic, not a visible net quantity declaration."},
+        "packDate": {"status": "readable", "metricEligible": true, "value": "02/08/2026", "heading": "PACKED ON:", "surface": "02/08/2026", "location": "Second stamped row in upper white block, aligned to PACKED ON", "notes": "Keep separate from the next row labelled USE BY. No conversion to a different date format is supplied."}
+      },
+      "otherVisibleReadings": [
+        {"kind": "use-by", "heading": "USE BY:", "surface": "01/08/2027", "value": "01/08/2027", "notes": "Not an eligible packDate label."},
+        {"kind": "unit-sale-price", "surface": "USP RS 0.18/g", "value": "0.18/g", "notes": "Not MRP and not a net quantity declaration."}
+      ]
+    },
+    {
+      "id": "CF-004",
+      "productCode": "8906055442586",
+      "productLabel": "Organic Tattva coconut oil bottle",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8906055442586/4.jpg",
+      "sha256": "35d575f4a33160549dca7d4c22ce188a8df2fc0b644128a5155d9416d72ffde3",
+      "humanReviewRequired": true,
+      "conditions": ["curved bottle", "left declaration headings cropped", "MRP-like amount next to explicitly labelled unit price", "date heading cropped"],
+      "expectedStatus": null,
+      "expectedValues": {"netQuantity": "910 g"},
+      "fields": {
+        "mrp": {"status": "ambiguous_field", "metricEligible": false, "value": null, "surface": "699.00", "location": "White declaration block below quantity", "notes": "The standalone amount is readable but its MRP heading is outside the left crop. The next row is explicitly USP. Do not assign MRP solely from layout or from the identical USP amount."},
+        "netQuantity": {"status": "readable", "metricEligible": true, "value": "910 g", "quantity": "910", "unit": "g", "surface": "[cropped]NTENTS at 30°C: 910 g", "location": "First row of lower-left white declaration block", "notes": "Contents heading is partly cropped but the contents-at-temperature phrase and 910 g are readable. Preserve mass; do not convert this to 1 L using the USP or product catalogue."},
+        "packDate": {"status": "ambiguous_field", "metricEligible": false, "value": null, "surface": "31/03/25", "location": "Stamped date above USE BY in white block", "notes": "Digits are readable, but the heading identifying packing/manufacture is outside the left crop. Do not infer the date's role just because another row is use-by."}
+      },
+      "otherVisibleReadings": [
+        {"kind": "unassigned-price-amount", "surface": "699.00", "value": "699.00", "notes": "MRP field identity is not confirmed in-frame."},
+        {"kind": "unit-sale-price", "surface": "USP ₹ 699.00/L", "value": "699.00/L", "notes": "This is explicitly a per-litre price, not 699 litres or an independently labelled MRP."},
+        {"kind": "date-with-cropped-heading", "surface": "31/03/25", "value": "31/03/25", "notes": "Not an eligible packDate label."},
+        {"kind": "use-by", "surface": "USE BY 30/03/27", "value": "30/03/27", "notes": "Not an eligible packDate label."}
+      ]
+    },
+    {
+      "id": "CF-005",
+      "productCode": "8904083301837",
+      "productLabel": "Milky Mist ghee jar",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8904083301837/3.jpg",
+      "sha256": "b9cd89914094ebe8f591b9c5b29e5451872720c63c9ee15461926d1dd72302d2",
+      "humanReviewRequired": true,
+      "conditions": ["curved jar", "strong glare", "upper stamp rotated relative to the photo", "stamp cropped at top image boundary"],
+      "expectedStatus": null,
+      "expectedValues": {"netQuantity": "1 l", "packDate": "19/10/25"},
+      "fields": {
+        "mrp": {"status": "ambiguous_field", "metricEligible": false, "value": null, "surface": "Rs.845.00", "location": "Upper black stamp, rotated line", "notes": "Amount is readable but an MRP heading is not visible in the selected photograph. The remainder of this stamp line is cropped; do not guess the declaration role."},
+        "netQuantity": {"status": "readable", "metricEligible": true, "value": "1 l", "quantity": "1", "unit": "l", "surface": "Net Quantity: 1 Litre", "location": "Lower-right cream illustration panel", "notes": "Litre is a unit-spelling alias only; no conversion from the separate partly cropped mass-at-temperature line."},
+        "packDate": {"status": "readable", "metricEligible": true, "value": "19/10/25", "surface": "PKD:19/10/25", "location": "Upper black stamp, rotated line", "notes": "PKD and the complete printed date are readable. Preserve two-digit year; expiry information extending past the crop is not reconstructed."}
+      },
+      "otherVisibleReadings": [
+        {"kind": "unassigned-price-amount", "surface": "Rs.845.00", "value": "845.00", "notes": "Not an eligible MRP label because field heading is not confirmed in-frame."}
+      ]
+    },
+    {
+      "id": "CF-006",
+      "productCode": "8901764082405",
+      "productLabel": "Kinley water bottle, blue panel",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/11.jpg",
+      "sha256": "34b8b602484c492408dd2921d1a657e8f030a97706da41deac04c110f7354120",
+      "humanReviewRequired": true,
+      "conditions": ["curved bottle wrap", "glare", "dense regulatory numbers around declaration"],
+      "expectedStatus": null,
+      "expectedValues": {"netQuantity": "1 l"},
+      "fields": {
+        "mrp": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Photographed bottle wrap", "notes": "No readable MRP value is present in this photograph."},
+        "netQuantity": {"status": "readable", "metricEligible": true, "value": "1 l", "quantity": "1", "unit": "l", "surface": "NET QUANTITY: 1 L", "location": "Lower-centre declaration on blue wrap", "notes": "Do not substitute nutrient, licence, or BIS/CM-L numbers nearby."},
+        "packDate": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Photographed bottle wrap", "notes": "No readable packed/manufactured date value is visible."}
+      },
+      "otherVisibleReadings": []
+    },
+    {
+      "id": "CF-007",
+      "productCode": "8901764082405",
+      "productLabel": "Kinley water bottle, white-and-blue panel",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/13.jpg",
+      "sha256": "1f0025ed0036b861d1ff901f4df776cea6d78c4aafb775555bfd02d7ea5fce5c",
+      "humanReviewRequired": true,
+      "conditions": ["curved bottle wrap", "glare", "quantity unit uses litre glyph", "date and MRP directed to an unphotographed surface"],
+      "expectedStatus": null,
+      "expectedValues": {"netQuantity": "1 l"},
+      "fields": {
+        "mrp": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Photographed bottle wrap; value directed to cap/neck", "notes": "Instructions mention MRP but no price value is visible. An MRP heading alone is not an extracted MRP."},
+        "netQuantity": {"status": "readable", "metricEligible": true, "value": "1 l", "quantity": "1", "unit": "l", "surface": "NET QUANTITY: 1 ℓ", "location": "Lower-right white area", "notes": "The printed litre glyph is normalized to l, not numeral 1; the numeric quantity is 1."},
+        "packDate": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Photographed bottle wrap; manufacture date directed to cap/neck", "notes": "Relative best-before duration is not a printed manufacture/packing date. Cap/neck is not shown."}
+      },
+      "otherVisibleReadings": [
+        {"kind": "other-surface-instruction", "surface": "FOR DATE OF MANUFACTURE, BATCH NO. & M.R.P. (INCL. OF ALL TAXES): SEE CAP/NECK.", "value": null, "notes": "Instruction identifies where to capture additional evidence; it does not provide the date or price."}
+      ]
+    },
+    {
+      "id": "CF-008",
+      "productCode": "8902579001360",
+      "productLabel": "Frooti carton with retailer sticker",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8902579001360/14.jpg",
+      "sha256": "a7bebcea106e822d878184f0a88a223d4360c0e578366ed3d1c197968bf1bbab",
+      "humanReviewRequired": true,
+      "conditions": ["sideways photograph", "retailer barcode sticker over package", "retail price versus MRP semantic counterexample", "product-description quantity versus declaration counterexample"],
+      "expectedStatus": null,
+      "expectedValues": {},
+      "fields": {
+        "mrp": {"status": "ambiguous_field", "metricEligible": false, "value": null, "surface": "Rs/Qty 5.00; Total Rs. 5.00", "location": "White RELIANCE SMARTPOINT retailer sticker", "notes": "Readable retailer unit/total selling-price lines are not labelled MRP. Their numerical agreement does not prove the printed statutory MRP."},
+        "netQuantity": {"status": "ambiguous_field", "metricEligible": false, "value": null, "surface": "FROOTI MAN 125ML TPK", "location": "Product description on retailer sticker", "notes": "125ML appears in a retailer product description, not a visible package net-content declaration. Retailer Qty 1 is item count. Neither is accepted as the package declaration label here."},
+        "packDate": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Photographed carton/sticker", "notes": "No readable packed/manufactured date value is visible."}
+      },
+      "otherVisibleReadings": [
+        {"kind": "retailer-unit-selling-price", "surface": "Rs/Qty 5.00", "value": "5.00", "notes": "Not a labelled MRP."},
+        {"kind": "retailer-total-price", "surface": "Total Rs. 5.00", "value": "5.00", "notes": "Not a labelled MRP."},
+        {"kind": "retailer-product-description", "surface": "FROOTI MAN 125ML TPK", "value": "125ML", "notes": "Not an eligible package netQuantity declaration label."},
+        {"kind": "retailer-item-count", "surface": "Qty 1", "value": "1", "notes": "Do not confuse item count with net quantity in millilitres."}
+      ]
+    }
+  ]
+}

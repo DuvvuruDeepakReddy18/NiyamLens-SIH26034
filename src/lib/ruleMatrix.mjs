@@ -1,4 +1,4 @@
-export const RULE_MATRIX_VERSION = 'LMPC-MATRIX-2026.09-RC4'
+export const RULE_MATRIX_VERSION = 'LMPC-MATRIX-2026.09-RC5'
 
 export const RULE_MATRIX = [
   { id: 'R6-GENERIC', authority: 'Rule 6', title: 'Common / generic name', scope: 'General retail packages', automation: 'OCR region + officer correction', approval: 'source-encoded', source: 'DCA consolidated rules' },
@@ -10,6 +10,8 @@ export const RULE_MATRIX = [
   { id: 'R6-UNIT', authority: 'Rule 6(11)', title: 'Unit sale price', scope: 'Applicable pre-packaged commodities', automation: 'OCR value / reference unit', approval: 'source-encoded', source: 'G.S.R. 226(E), 2022' },
   { id: 'R7-HEIGHT', authority: 'Rule 7 / Table I', title: 'Minimum declaration height', scope: 'Principal display panel tier', automation: 'Calibrated region measurement + uncertainty', approval: 'source-encoded', source: 'DCA consolidated rules' },
   { id: 'R7-WIDTH', authority: 'Rule 7', title: 'Letter / numeral width', scope: 'Measured character excluding stated narrow glyphs', automation: 'Calibrated sample + manual exception confirmation', approval: 'source-encoded', source: 'DCA consolidated rules' },
+  { id: 'R8-PLACEMENT', authority: 'Rule 8', title: 'Declaration placement', scope: 'Officer-confirmed general flat-package PDP; specialist scopes deferred', automation: 'Value-bound officer observations linked to a captured panel; not automated placement detection', approval: 'requires-specialist-review', source: 'Kerala Legal Metrology Department rule reproduction' },
+  { id: 'R8-SPACE', authority: 'Rule 8(1)', title: 'Net-quantity clear space', scope: 'Same-plane numeral and nearest-print gap measurements', automation: 'Officer-supplied pixel ratios with explicit uncertainty; no claim of automatic measurement', approval: 'requires-specialist-review', source: 'Kerala Legal Metrology Department rule reproduction' },
   { id: 'R26-SMALL', authority: 'Rule 26(a)', title: 'Package up to 10 g / 10 ml', scope: 'Weight / measure packages, subject to current carve-outs', automation: 'Quantity boundary + commodity class', approval: 'source-encoded', source: 'DCA consolidated rules' },
   { id: 'R26-TOBACCO', authority: 'Rule 26(a) proviso', title: 'Tobacco carve-out', scope: 'Tobacco and tobacco products', automation: 'Small-package exemption is not applied', approval: 'source-encoded', source: 'DCA consolidated rules' },
   { id: 'R26-PAN-MASALA', authority: 'G.S.R. 881(E), 2025', title: 'Pan masala carve-out', scope: 'Pan masala packages of every size / weight', automation: 'Explicit commodity classification required', approval: 'source-encoded', source: 'PIB / 2025 amendment' },

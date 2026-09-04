@@ -1,0 +1,2240 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "niyamlens-critical-fields-v1",
+  "corpusRole": "previously-used-development-corpus",
+  "isHoldout": false,
+  "annotationStatus": "provisional-human-review-required",
+  "humanReviewed": false,
+  "sampleCount": 8,
+  "inputRows": 24,
+  "runs": [
+    {
+      "mode": "critical-baseline-raw-passes:full-gray:psm6",
+      "photoCount": 8,
+      "attemptedPhotos": 8,
+      "missingPhotos": 0,
+      "failedPhotos": 0,
+      "completeCorpusRun": true,
+      "exactMatchCorrect": 0,
+      "exactMatchSamples": 10,
+      "attemptedExactMatchSamples": 10,
+      "exactMatchRate": 0,
+      "attemptedExactMatchRate": 0,
+      "perField": {
+        "mrp": {
+          "referenceFields": 3,
+          "attemptedFields": 3,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 3,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 2,
+          "conflictFields": 0,
+          "excludedFields": 5,
+          "excludedAttemptedFields": 5,
+          "excludedWithCandidates": 0
+        },
+        "netQuantity": {
+          "referenceFields": 5,
+          "attemptedFields": 5,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 5,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 0,
+          "conflictFields": 0,
+          "excludedFields": 3,
+          "excludedAttemptedFields": 3,
+          "excludedWithCandidates": 1
+        },
+        "packDate": {
+          "referenceFields": 2,
+          "attemptedFields": 2,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 2,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 1,
+          "invalidCandidateFields": 0,
+          "conflictFields": 0,
+          "excludedFields": 6,
+          "excludedAttemptedFields": 6,
+          "excludedWithCandidates": 0
+        }
+      },
+      "sampleResults": [
+        {
+          "sampleId": "CF-001",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/6.jpg",
+          "expectedImageSha256": "9d2187d0603d8781814e24320b452d596dc826a50ba29f0a7643f6d43b0c619b",
+          "attempted": true,
+          "error": null,
+          "rawText": "—                   He            |              \\          J\n’ fo Own                                                 N el Cor | er                a 1\n1                                                                  Fa\np owen                                          500 1               ec\nge =                          MRP :® 22.      -\nL                                            (inclusive         -        Py.\na                             otal fat, g    Fa         5\nil                                                Saturated Fal. g'         en                  b>\nE                                2          Keep Undef Refrigera           2.\nLb) A                                              5s al              3\ny iad                                                                   A Anas      A\ni                                    No.  1001202 LN\nE                                                           =       Z       -      gp   AAD\n|                                                |       FOR BEST RESULTS, STURE\n7                                             CONTINUOUSLY UNDER REFR GEA\n4                                              | BELOW 8°C UNTIL “USE -BY UA\nf hi.                                          For Batch No. & “Use-Dy date 3%\n- 386.001                                                         ud {\na                                <Q      a\n. Pd     Pr  —                          1  \\\nEct                             ws (AN\n\"                                ob Jal                      | |}\nwy                     No #90126212001:\n)                                          §    Eo Ge  ¢         4%   Prgnt - Gandia ga      AD\n*&                                                               4   »       :\n[=                                                         ron      N          :\naR sta   WE\n",
+          "rawTextLength": 1839,
+          "inputMetadata": {
+            "variant": "full-gray",
+            "psm": "6",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "22.00",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "22.00",
+              "correct": false,
+              "outcome": "invalid_candidate",
+              "conflict": false,
+              "validation": {
+                "status": "invalid",
+                "message": "Missing or invalid price: grouping, sign and precision require correction."
+              },
+              "candidates": [
+                {
+                  "value": "",
+                  "evidence": "ge =                          MRP :® 22.      -",
+                  "amount": null,
+                  "minorUnits": null,
+                  "valid": false,
+                  "key": "invalid:",
+                  "validation": {
+                    "status": "invalid",
+                    "message": "Missing or invalid price: grouping, sign and precision require correction."
+                  }
+                }
+              ],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "netQuantity": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "500 ml",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "500 ml",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "packDate": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "No date identified as packed or manufactured is readable. The package refers to a use-by stamp; do not promote that date to packing date."
+            }
+          }
+        },
+        {
+          "sampleId": "CF-002",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/10.jpg",
+          "expectedImageSha256": "61d17743670bb425275e861ccdfec072e33af556ab96d6f1043bf872fed73537",
+          "attempted": true,
+          "error": null,
+          "rawText": "a —— TERT oN\nQUCERS Cos NI ST RRR ~~                                                            STH\nBo oe                                                                       ev rman oT\nWADA) Las anpiA TRAM                                 3     2 SRIVINGS Der credo\nIPRS 31 0                                                 8S Frere Cine\noo                                                    + [SeningSes —~=\nb     :     Sal Le                                                 Amount a      4; ) ;\ng for:    TIVE MILK                                              beth DRT 100 mi §\nTF C0 Aw - 388 001                                                                     | Energy Thea —      \\\nES one:                                                   | Total rat) 3 $\nBW. oATIVE MILK PRODUCERS                                                             { Saturated Fat OM\nRO TED, SYNOS: 4218.                                                                     | Trans Fat (g            S\nVILLAGE & POST,                                          aA RL     Li\neR ES ii                                    | Cholesterol (mg hs\n.                                                  madlee                     @\ny-                                                                                     D         Carbohydrate Wy\nos Ret 05.23                              2    Total Sugars (g] Tog\n2 (AND 54 36                            s   | Added Sugars (g] \"THE\n= ad      RUE) -                     2                          ¥\nem                                                    3 [Sodium ng Tel\n| S—                                            3      Calcium (mg) ul\nERS NON LTD. SABAR DAIRY,                                         g ¢\ntnd                                                       Oo                          :\n| —                                                 =                     ra\nTr                           ~     Net Content. #2\n[ENGA- 015                                             2 (EP REREAD LENS\n0.2                                          5 COOL STORE NL\nYE                                                  o (FYE Tog\nI a0 tee                     5 Marketed by. Gust Wy\n~~    GAR MANDAL,                                i=    Lid Anand - 88.001       |\na   x n    1505                                                2        ol           fad\n~ — -                                                                                   : ’ ) Xi    >\nGea :  4         :                                                                                         a8\na i.        coli gr ke.      =       Pas\n",
+          "rawTextLength": 2619,
+          "inputMetadata": {
+            "variant": "full-gray",
+            "psm": "6",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "27",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "27",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "netQuantity": {
+              "labelStatus": "illegible",
+              "eligible": false,
+              "expected": null,
+              "actual": ". #2",
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": {
+                "status": "invalid",
+                "message": "Quantity must be a finite positive value with a supported unit."
+              },
+              "candidates": [
+                {
+                  "value": ". #2",
+                  "evidence": "Tr                           ~     Net Content. #2",
+                  "quantity": null,
+                  "unit": "",
+                  "valid": false,
+                  "key": "invalid:. #2",
+                  "validation": {
+                    "status": "invalid",
+                    "message": "Quantity must be a finite positive value with a supported unit."
+                  }
+                }
+              ],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "500 is readable but the small unit at the curved/blurred right edge is not accepted as a complete strict value in this provisional annotation. Do not fill its unit from the other Amul photograph."
+            },
+            "packDate": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "The clearly headed date is Use By, not a packing/manufacture date."
+            }
+          }
+        },
+        {
+          "sampleId": "CF-003",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8906014888868/5.jpg",
+          "expectedImageSha256": "603169c4bae57c270a514d744a0f03ac4a8d4da25d1da095ba2037f8c78d2c88",
+          "attempted": true,
+          "error": null,
+          "rawText": "     3  Es aleale rsiep           \\ 4\nBATCH NGI      BF JP 030726650745\nPACKED ON:                    02/08/2020\nFE    ;                           ;     ONT\nUSE BY:                01: 082025   A hb se\n    |             aj 0d USP RS 0.1873\nMRP  - USPX:                                                                               i\nGnctusive of all taxes)\n:                             For packing unit see first 2 letters of batch no.\nwid by: GULAB OIL AND FOOD (AHMEDABAD) PVT. LTD. (Registared Users\nreliva Milk Compound, Nr. Dargah, Opp. Century Market, O/s. Premdarwaja,\nKalupur, Ahmedabad-380002, Gujarat. Phone: 079 22131151, 9925125251\nfsa’ LC.N0. 107228090012!      |\nR.         3                                ¢\nsd. by: GF: GULAB OIL & FOODS PVT. LTD (Registered Users\nPlot No.161/1, SIDC, Veraval (Shapar) 360024,     id\nTa Kotda (Sangani), Dist. Rajkot, Gujarat. Phone: 02827 254247, 252309\nfsa LIC. N0. 1007021002708\n+s bv BL: GULAB OIL & FOODS (AHMEDABAD) PVT. LTD (Registered Users\nRS No. 268\"Kadi Detroj Road, at Balasar, Ta. Kadi, Kadi,Mehsana, Gujarat - 386\n>                                               :\n:                 fsa IG. N0. 1072439900030!                  \\\nwe care about your feedback. Contact us - 92760 O51 (Customer Care Exceculivel\nhi@truestoryorganics.com | truestoryorganics.com\nA ,       a       WADE IN                   :\nRd SL        ih      INDIA\n",
+          "rawTextLength": 1392,
+          "inputMetadata": {
+            "variant": "full-gray",
+            "psm": "6",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "90.00",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "90.00",
+              "correct": false,
+              "outcome": "invalid_candidate",
+              "conflict": false,
+              "validation": {
+                "status": "invalid",
+                "message": "Missing or invalid price: grouping, sign and precision require correction."
+              },
+              "candidates": [
+                {
+                  "value": "",
+                  "evidence": "MRP  - USPX:                                                                               i",
+                  "amount": null,
+                  "minorUnits": null,
+                  "valid": false,
+                  "key": "invalid:",
+                  "validation": {
+                    "status": "invalid",
+                    "message": "Missing or invalid price: grouping, sign and precision require correction."
+                  }
+                }
+              ],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "netQuantity": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Do not derive 500 g from 90.00 divided by 0.18/g. That is arithmetic, not a visible net quantity declaration."
+            },
+            "packDate": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "02/08/2026",
+              "actual": "02/08/2020",
+              "valid": true,
+              "normalizedActual": "02/08/2020",
+              "normalizedExpected": "02/08/2026",
+              "correct": false,
+              "outcome": "wrong_value",
+              "conflict": false,
+              "validation": {
+                "status": "format_valid",
+                "message": "Calendar-valid date; product-specific date rules may still require review."
+              },
+              "candidates": [
+                {
+                  "value": "02/08/2020",
+                  "evidence": "PACKED ON:                    02/08/2020",
+                  "year": 2020,
+                  "month": 8,
+                  "day": 2,
+                  "valid": true,
+                  "key": "{\"year\":2020,\"month\":8,\"day\":2}",
+                  "validation": {
+                    "status": "format_valid",
+                    "message": "Calendar-valid date; product-specific date rules may still require review."
+                  }
+                }
+              ],
+              "wrongNumericCandidates": [
+                {
+                  "value": "02/08/2020",
+                  "evidence": "PACKED ON:                    02/08/2020",
+                  "year": 2020,
+                  "month": 8,
+                  "day": 2,
+                  "valid": true,
+                  "key": "{\"year\":2020,\"month\":8,\"day\":2}",
+                  "validation": {
+                    "status": "format_valid",
+                    "message": "Calendar-valid date; product-specific date rules may still require review."
+                  }
+                }
+              ],
+              "exclusionNote": null
+            }
+          }
+        },
+        {
+          "sampleId": "CF-004",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8906055442586/4.jpg",
+          "expectedImageSha256": "35d575f4a33160549dca7d4c22ce188a8df2fc0b644128a5155d9416d72ffde3",
+          "attempted": true,
+          "error": null,
+          "rawText": "nl Se 1 ictatta com | A\nET                 3.0 =\np> of                          Lr     ' Bu    kK\nhove  8  -         ~ For interesting knowledge bytes        > |\ncORMAT            Follow us                  :                5\n” valves)             @organictattva  ff! |          2\n 5% cop (1009                                              |\nER he          PRODUCT OF INDIA,          |\nCah _....1009   ET ———        ;                a\noe o E 89 g                                                      <               1                  Zd ’\nBL  ...529                                            YS          i\npate Ee ak                                                                          5\n5 C.....0mg                                fs. Es\neT omg\n   8906055442586\" BW\ndr          op,                     FREE FROM         Tr\nTENTS at 30  ¥.  91 0 g              ARGEMONE OIL        Zz F.\nATG                                 aa | BEN   fi\nTea  31 03-28              ———\nSE BY 30/03/37         pE——\nJ      oA\nFORE                                  QEAN _§\n",
+          "rawTextLength": 1057,
+          "inputMetadata": {
+            "variant": "full-gray",
+            "psm": "6",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "ambiguous_field",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "The standalone amount is readable but its MRP heading is outside the left crop. The next row is explicitly USP. Do not assign MRP solely from layout or from the identical USP amount."
+            },
+            "netQuantity": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "910 g",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "910 g",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "packDate": {
+              "labelStatus": "ambiguous_field",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Digits are readable, but the heading identifying packing/manufacture is outside the left crop. Do not infer the date's role just because another row is use-by."
+            }
+          }
+        },
+        {
+          "sampleId": "CF-005",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8904083301837/3.jpg",
+          "expectedImageSha256": "b9cd89914094ebe8f591b9c5b29e5451872720c63c9ee15461926d1dd72302d2",
+          "attempted": true,
+          "error": null,
+          "rawText": ":     Ba\nLT\n\n   oon       MITED         ;\n\nAa 007, ErOQERTICt, C&O\n\n * = SA To cu TER     :    :         of\n\nrrr   Z       i      i    SCAN TO      J    4      —\n\na ARESS TL      Le\n\nt      g          :                  Vv       BRIANA | Zon\nKym                 i\n| Moai genic place.  fi    Whedon we :\n\norotic quay, ss ECL\n“\n",
+          "rawTextLength": 326,
+          "inputMetadata": {
+            "variant": "full-gray",
+            "psm": "6",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "ambiguous_field",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Amount is readable but an MRP heading is not visible in the selected photograph. The remainder of this stamp line is cropped; do not guess the declaration role."
+            },
+            "netQuantity": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "1 l",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "1 l",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "packDate": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "19/10/25",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "19/10/25",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            }
+          }
+        },
+        {
+          "sampleId": "CF-006",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/11.jpg",
+          "expectedImageSha256": "34b8b602484c492408dd2921d1a657e8f030a97706da41deac04c110f7354120",
+          "attempted": true,
+          "error": null,
+          "rawText": "el                                i\nGALTS OF                                C440\na                  &\nHIME             11=\n’       Hing EEE [| Sed                            i\n5  23 ESAS      # “4 » = =  ET 7 u                                                                          2\n0. I AVIRVVVRUL   nL  ¥aValalse) ih                       oN      fi\na IA     NARA T    NB   SERRE 2        =T        |       2\nERAT LTD CMI/L- ) { | ; 031     a         4\n|    1% I !  11 UM   AAA    =i ot Ali'den Dole Dorrell  A  “—       [m       =       |\nOFA EP          = 4                             oD       rd      i\n40 -SEG-ho.        a ————         2\nThe SR      gr = £)  i. ETT      a   ———           {       :   x=   3   ol 4 &\nA        Ribs ITV: a—————           o~    p\n§ el A4A0{4 AN AAs  E——— nN  ive  gag?\n\nCo 1M2NANNNRINN —————— 00 Ehad TN\nCilia            i]   ‘8   4 | |  ‘ 1) f  ii ¥ f | | 5   —————————————————             Sry             2    LT\nea = 5 u    ;    nl al 3! 'A y UV! kV    —————————. (a)    p—   > Ie     oy 5\n+e INIDIDLE TA    CANAL AMY   Lo nl         .     Tn\nH' lami = 8 MN W2WWUL MINTY eee           ee —\n\n,   3 Inpv: } 1   f rr    Yi =   ir    ———————————————— ~3     = od 2X  TT a — >\nURRY PLAT     REEV IME    ee — O      J ae a —\n\nAm lamas 0M    NLL      i!                             a Sm gmme gm\nCb nn      2 SINE                 — TK) ee OO\n[TRUM       1             — RL >\" a\n\nPRL     .    ®]e                    ———————————      om   a   |\n:            :                 ———————————     (OR ag lg\n\n— A      i      }   §    (               ——————————————       ose mm 5 oe — i 8 po\n3     ’\\      | i i |    :    {          On  da Vel p= mn oh\nA     Nii                                              Ep    Oe a ©! =~    ~~\n\n)    ;            J   “i 1)                               sco b= \" = = p— LJ -  {\n\n¥                    i °  IATA: R REE    Be el    ;\nol.        Sees       3\n\"Yi              i                                BE ~ “Wo OF WH =\nLRH                                                  :      EE 7 et\n\na,                                       Co     ayy lS\n",
+          "rawTextLength": 2110,
+          "inputMetadata": {
+            "variant": "full-gray",
+            "psm": "6",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "No readable MRP value is present in this photograph."
+            },
+            "netQuantity": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "1 l",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "1 l",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "packDate": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "No readable packed/manufactured date value is visible."
+            }
+          }
+        },
+        {
+          "sampleId": "CF-007",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/13.jpg",
+          "expectedImageSha256": "1f0025ed0036b861d1ff901f4df776cea6d78c4aafb775555bfd02d7ea5fce5c",
+          "attempted": true,
+          "error": null,
+          "rawText": "y,              -\n\n-          \"         =\nPACKAGED DRINKI:.G WATER  Ade\nEGE WT. LTD.,                                             2\nJRL, HAUT Tt, ad\n\n:  en _-\n\n*IRATHNO. &M RD OF cm-0005146550 SE.\n | ALTHES) SE Co NECK.        ==\nBR                    THE COCA. * rrssonyy              —\n: Sa =\nS SROTTLE    -\n!           oh  W\n",
+          "rawTextLength": 328,
+          "inputMetadata": {
+            "variant": "full-gray",
+            "psm": "6",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Instructions mention MRP but no price value is visible. An MRP heading alone is not an extracted MRP."
+            },
+            "netQuantity": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "1 l",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "1 l",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "packDate": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Relative best-before duration is not a printed manufacture/packing date. Cap/neck is not shown."
+            }
+          }
+        },
+        {
+          "sampleId": "CF-008",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8902579001360/14.jpg",
+          "expectedImageSha256": "a7bebcea106e822d878184f0a88a223d4360c0e578366ed3d1c197968bf1bbab",
+          "attempted": true,
+          "error": null,
+          "rawText": "5.\n            ®    &\nNT —              >,\nANN                ~  of                 i\nQa     NR                            757       ;\nhh              avd Oc     fe          i)       \\\n—                                    H                         7 ah\nNe                            SER                                                   p          wn\nLL EF = =  |       :\nSS           Sere cramer                -\n:       9 =\n=      Ee |        {                       (==)\n                 a.      Em        :                     on\n-          fo me CO    i            Fo\n          Si —————   Sa [EE      (8)\n1    lS     == smears    — LZ (n\ngre        -—\n[4 3 FN — —   C= 5         =)\nem iT        en\n.   j=  CEssmmEr [7                =\npo        = ———\n[Hh aarp]         fx\nEERSSana ©.\nBE omens —           =\nA = fi op        =\nSg C= ARSE CUBE:        f=\ni:          ~ raaecaenss |)        1 8\n:      fF        as =      § = —\n3      f      re] “= momen. -        4   -\n:        | ews)           wv =\n|    i    or    e——— TTY      == Fa\n3     o      ENED   Poa.     set\n |        Sm——         = =\n{  7.           Pr       >    (TR,          Lt\nv7 7           Saree.     EER\nA i           Perr     Te, —~\n.           CONES ee\nParle Agro. og ci HE                    4\nfois io     ;\n",
+          "rawTextLength": 1284,
+          "inputMetadata": {
+            "variant": "full-gray",
+            "psm": "6",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "ambiguous_field",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Readable retailer unit/total selling-price lines are not labelled MRP. Their numerical agreement does not prove the printed statutory MRP."
+            },
+            "netQuantity": {
+              "labelStatus": "ambiguous_field",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "125ML appears in a retailer product description, not a visible package net-content declaration. Retailer Qty 1 is item count. Neither is accepted as the package declaration label here."
+            },
+            "packDate": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "No readable packed/manufactured date value is visible."
+            }
+          }
+        }
+      ]
+    },
+    {
+      "mode": "critical-baseline-raw-passes:reverse-sparse:psm11",
+      "photoCount": 8,
+      "attemptedPhotos": 8,
+      "missingPhotos": 0,
+      "failedPhotos": 0,
+      "completeCorpusRun": true,
+      "exactMatchCorrect": 0,
+      "exactMatchSamples": 10,
+      "attemptedExactMatchSamples": 10,
+      "exactMatchRate": 0,
+      "attemptedExactMatchRate": 0,
+      "perField": {
+        "mrp": {
+          "referenceFields": 3,
+          "attemptedFields": 3,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 3,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 2,
+          "conflictFields": 0,
+          "excludedFields": 5,
+          "excludedAttemptedFields": 5,
+          "excludedWithCandidates": 1
+        },
+        "netQuantity": {
+          "referenceFields": 5,
+          "attemptedFields": 5,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 5,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 0,
+          "conflictFields": 0,
+          "excludedFields": 3,
+          "excludedAttemptedFields": 3,
+          "excludedWithCandidates": 1
+        },
+        "packDate": {
+          "referenceFields": 2,
+          "attemptedFields": 2,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 2,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 1,
+          "conflictFields": 1,
+          "excludedFields": 6,
+          "excludedAttemptedFields": 6,
+          "excludedWithCandidates": 0
+        }
+      },
+      "sampleResults": [
+        {
+          "sampleId": "CF-001",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/6.jpg",
+          "expectedImageSha256": "9d2187d0603d8781814e24320b452d596dc826a50ba29f0a7643f6d43b0c619b",
+          "attempted": true,
+          "error": null,
+          "rawText": "—AR\n\nNel  )\n\nBi 1T  SARDAR  we Leg\n\n[ Te   BAL ARAM\n\nAL\n\n500\n\n<4\n\nm CHANDITALA\n\n~T12 702\n\ni JBTYA\n\nMRP:\n\n~\n\n(inclust\n\naS\n\nUTR\n\nAe\n\npp\n\nnergy, xCa\n\n———\n\ntal fat, g\n\n==\n\nSaturated +a\n\nak\n\nTrans Fat, 9\n\nsa\n\nKeep Unc\n\nRefria\n\noe\n\nSH\n\n1\n\nwo. 1001202100\n\nFOR BEST RESULT S, § ST\n\n|\n\n|\n\nA\n\nfitted UNDER REFRIG\n\n“BELOW 8°C UNTIL  SE-B)\n\nFor Batch No. & “Use\n\nAH\n\ne.\n\n(Ap\n\nSHE\n\nNAY\n\nIl I\n\n2621260\n\nEE LE it\n\nLE\n\n-\n",
+          "rawTextLength": 405,
+          "inputMetadata": {
+            "variant": "reverse-sparse",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "22.00",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "22.00",
+              "correct": false,
+              "outcome": "invalid_candidate",
+              "conflict": false,
+              "validation": {
+                "status": "invalid",
+                "message": "Missing or invalid price: grouping, sign and precision require correction."
+              },
+              "candidates": [
+                {
+                  "value": "",
+                  "evidence": "MRP:",
+                  "amount": null,
+                  "minorUnits": null,
+                  "valid": false,
+                  "key": "invalid:",
+                  "validation": {
+                    "status": "invalid",
+                    "message": "Missing or invalid price: grouping, sign and precision require correction."
+                  }
+                }
+              ],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "netQuantity": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "500 ml",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "500 ml",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "packDate": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "No date identified as packed or manufactured is readable. The package refers to a use-by stamp; do not promote that date to packing date."
+            }
+          }
+        },
+        {
+          "sampleId": "CF-002",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/10.jpg",
+          "expectedImageSha256": "61d17743670bb425275e861ccdfec072e33af556ab96d6f1043bf872fed73537",
+          "attempted": true,
+          "error": null,
+          "rawText": "Ep\n\n- Chee\n\ney oA\n\npi\n\n388 x\n\nAw Tay\n\nAn\n\nwr\n\nEE\n\nTp oy\n\nSTE  a,\n\nLy\n\n(07 1000\n\nMRTG\n\nmn NX Ey y  ~\n\n1\n\n    Nutritional ing    a\n\nAM VISAKH\n\nAPATNAA\n\n\\-\n\n561)\n\n55 DET Cong\n\nJ   gq\n\nArey\n\n7004\n\nAPERATIVE MILK\n\n| Amount ;\n\n100\n\nb\n\nUNON\n\n1D. ANAND - 388 X\n\n| Ener  y (\n\nTc\n\ncal)\n\n000243\n\nx\n\n| Total Fat {g\n\nby:\n\n{ Saturated Fatlo\n\nQO-OPERA\n\nMILK PRODUCERS\n\n0)\n\nAr UMITED, a ns,\n\n[Trans Fat 9)\n\n| | Cholesterol (n\n\nas\n\nCarbohydr 0\n\n[\n\nRyd 05.23\n\nTotal Sugars (g\n\nAdded Sugars (g\n\nmT )\n\nPP [&\n\ni]\n\n—.\n\nbo\n\n®\n\nProtein (\n\n}i\n\nSodium (mg)\n\n£_\n\nCalcium (mg)\n\ni\n\nDNLTD., SABAR DAIRY,\n\n* RDA stands for Recommended Delsy\n\nHIMATNAGAR - 383 008\n\nPRY\n\n** Average values\n\nDDY MILK PRODUCERS\n\nNet Content\n\nRI KUNTLOOR ROAD, HAYATH NAGAR,\n\nKEEP REFRIGERATED AT UR\n\nEAT\n\n¥\n\nD, ONO. 2382.3;\n\nCOOL, STORE IN\n\n- 211M\n\nD, KRISHNA,\n\nOF YOUR\n\nW\n\ntt.\n\nFit\n\n“1S, §Y\n\nMarketed by:\n\nMogi\n\n| omy\n\nTy\n\nLid., Anand -\n\n=\n\nair bnnrbn\n\nAg\n\nLic. No. 100\n",
+          "rawTextLength": 919,
+          "inputMetadata": {
+            "variant": "reverse-sparse",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "27",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "27",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "netQuantity": {
+              "labelStatus": "illegible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": {
+                "status": "invalid",
+                "message": "Quantity must be a finite positive value with a supported unit."
+              },
+              "candidates": [
+                {
+                  "value": "",
+                  "evidence": "Net Content",
+                  "quantity": null,
+                  "unit": "",
+                  "valid": false,
+                  "key": "invalid:",
+                  "validation": {
+                    "status": "invalid",
+                    "message": "Quantity must be a finite positive value with a supported unit."
+                  }
+                }
+              ],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "500 is readable but the small unit at the curved/blurred right edge is not accepted as a complete strict value in this provisional annotation. Do not fill its unit from the other Amul photograph."
+            },
+            "packDate": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "The clearly headed date is Use By, not a packing/manufacture date."
+            }
+          }
+        },
+        {
+          "sampleId": "CF-003",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8906014888868/5.jpg",
+          "expectedImageSha256": "603169c4bae57c270a514d744a0f03ac4a8d4da25d1da095ba2037f8c78d2c88",
+          "attempted": true,
+          "error": null,
+          "rawText": "sie\n\nWw\n\n[=]\n\nlivery\n\nat\n\nBATCH\n\nGF JP30726650745\n\n02/08/2026\n\nPACKED  8 ;\n\n01/08/2027\n\nUSE BY:\n\naf 00 Usp RS 0.183\n\nMRP ¥-US\n\nGnctusive of all taxes)\n\nFor packing unit see first 2 letters of batch no.\n\nwid by: GULAB OIL AND FOO\n\nD (AHMEDABAD) PVT. LTD. (Registered Users\n\nCentury Market, Ofs. Premdarwaia,\n\nreliva Milk Compound, Nr. Dargah, Opp.\n\nt. Phone: 079 22131151, 9825125251\n\nKalupur, Ahmedabad-380002, Gujara\n\nfsa |IG.N0. 107228890002!\n\noo\n\nAB OIL & FOODS PVT. LTD (Registered Users)\n\npkd. by \"GF: GUL\n\n) 360024,\n\nPlot No.1\n\n61/1, SIDC, Veraval (Shapar\n\narat. Phone:\n\n02827 254247,252309\n\nTa. Kotda (Sangani), Dist. Rajkot, Gu]\n\nfea’ LIC.ND.10017021002708\n\nD) PVT. LTD (Reg\n\nsid by: BL: GULAB OIL & FOO\n\nDS (AHMEDABA\n\ndi Mehsana, Guja\n\nRS No 298\"Kadi Detroj Road, at Balasa\n\nr, Ta. Kadi, Ka\n\nret RH\n\nN\n\nfsa’ 116. N0.10724999000301\n\ns - 92760 ON51 (Custo\n\nmer Care Excecutive)\n\nwe care about you\n\nr feedback. Contact u\n\nanics.com\n\n truestoryorganics.com\n\nhi@truestoryorg\n\nWADE IN\n\n<\n\n2,\n\nINDIA\n",
+          "rawTextLength": 1002,
+          "inputMetadata": {
+            "variant": "reverse-sparse",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "90.00",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "90.00",
+              "correct": false,
+              "outcome": "invalid_candidate",
+              "conflict": false,
+              "validation": {
+                "status": "invalid",
+                "message": "Missing or invalid price: grouping, sign and precision require correction."
+              },
+              "candidates": [
+                {
+                  "value": "",
+                  "evidence": "MRP ¥-US",
+                  "amount": null,
+                  "minorUnits": null,
+                  "valid": false,
+                  "key": "invalid:",
+                  "validation": {
+                    "status": "invalid",
+                    "message": "Missing or invalid price: grouping, sign and precision require correction."
+                  }
+                }
+              ],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "netQuantity": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Do not derive 500 g from 90.00 divided by 0.18/g. That is arithmetic, not a visible net quantity declaration."
+            },
+            "packDate": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "02/08/2026",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "02/08/2026",
+              "correct": false,
+              "outcome": "conflict",
+              "conflict": true,
+              "validation": {
+                "status": "conflict",
+                "message": "Distinct declarations occur in this transcript; resolve their package/panel scope before deciding compliance."
+              },
+              "candidates": [
+                {
+                  "value": "8 ;",
+                  "evidence": "PACKED  8 ;",
+                  "year": 0,
+                  "month": 0,
+                  "day": null,
+                  "valid": false,
+                  "key": "invalid:8 ;",
+                  "validation": {
+                    "status": "invalid",
+                    "message": "Date is not a valid calendar date."
+                  }
+                },
+                {
+                  "value": ". by \"GF: GUL",
+                  "evidence": "pkd. by \"GF: GUL",
+                  "year": 0,
+                  "month": 0,
+                  "day": null,
+                  "valid": false,
+                  "key": "invalid:. by \"GF: GUL",
+                  "validation": {
+                    "status": "invalid",
+                    "message": "Date is not a valid calendar date."
+                  }
+                }
+              ],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            }
+          }
+        },
+        {
+          "sampleId": "CF-004",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8906055442586/4.jpg",
+          "expectedImageSha256": "35d575f4a33160549dca7d4c22ce188a8df2fc0b644128a5155d9416d72ffde3",
+          "attempted": true,
+          "error": null,
+          "rawText": "ggestio™ ‘+71 1 14U 2£0V0%2\n\nKk A\n\nomer\n\ni WWW, organictattva.com\n\nos\n\ncto   ddres®\n\ned\n\npove\n\nFor interesting knowledge bytes.\n\nFollow us\n\nvalues)\n\n@organictattva\n\n£10] v!\n\n(1009)\n\n¥ cup\n\n—\n\n89 keal\n\nPRODUCT OF INDIA\n\n5 Ed\n\n1009\n\nsn\n\n899\n\n6.20\n\nsass?\n\n1.79\n\nomg\n\nTa add\n\nomg\n\nhil\n\n8\"906055\"442586\n\nCoconut Oil\n\nTeNTSat 30°C: 9109\n\nPALE fifi\n\nAXES\n\n--\n\nDO NOT\n\n© |\n\n-\n\n£959. 00sL\n\nPURCHASE\n\nBOTTLE IF\n\nNO\n\nUTS7C000225\n\nTAMPERED WITH\n\n4 1013. i\n\nUSE BY 30/03 37\n\nKEEP CITY\n\nFORE\n\n|\n",
+          "rawTextLength": 481,
+          "inputMetadata": {
+            "variant": "reverse-sparse",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "ambiguous_field",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "The standalone amount is readable but its MRP heading is outside the left crop. The next row is explicitly USP. Do not assign MRP solely from layout or from the identical USP amount."
+            },
+            "netQuantity": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "910 g",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "910 g",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "packDate": {
+              "labelStatus": "ambiguous_field",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Digits are readable, but the heading identifying packing/manufacture is outside the left crop. Do not infer the date's role just because another row is use-by."
+            }
+          }
+        },
+        {
+          "sampleId": "CF-005",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8904083301837/3.jpg",
+          "expectedImageSha256": "b9cd89914094ebe8f591b9c5b29e5451872720c63c9ee15461926d1dd72302d2",
+          "attempted": true,
+          "error": null,
+          "rawText": "%\n\nGWA\n\nTED\n\nct\n\n2003\n\nCARE EXECU\n\n[OFC 60)\n\n1800-419-9000\n\nTATMED &\n\nKNOW MORE\n\nSCAN TO\n\n»i\n\nBY ADDRESS\n\nfiw A)\n\nAg\n\nA\n\nEA\n\naD\n\nRy\n\nWhy\n\ni)\n\nCW\n\nWha \\l\n\n\\t ) . Woy\n\nand hygienic place   &\n\nKEEP YOUR\n\n\"¥ain progyet quality\n\nCITY CLEAN\n",
+          "rawTextLength": 235,
+          "inputMetadata": {
+            "variant": "reverse-sparse",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "ambiguous_field",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Amount is readable but an MRP heading is not visible in the selected photograph. The remainder of this stamp line is cropped; do not guess the declaration role."
+            },
+            "netQuantity": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "1 l",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "1 l",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "packDate": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "19/10/25",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "19/10/25",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            }
+          }
+        },
+        {
+          "sampleId": "CF-006",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/11.jpg",
+          "expectedImageSha256": "34b8b602484c492408dd2921d1a657e8f030a97706da41deac04c110f7354120",
+          "attempted": true,
+          "error": null,
+          "rawText": "PE\n\n1\n\nED\n\nui\n\n9\n\n41\n\ngs\n\nJ\n\nALTS\n\n043\n\n—\n\nDIU\n\nM(04* mg)\n\n®\n\nND\n\n0\n\n—\n\nRE\n\nal\n\nhE\n\nADT\n\n|\n\nDAN\n\nFy\n\nwo\n\n1!\n\nf a\n\ni\n\nfl\n\nA\n\n o\n\ni8)\n\nii!\n\ni\n\n07\n\nTAGE\n\nA\n\n2B\n\nAll\n\nWp\n\n-w\n\nL\n\nge\n\naan)\n\n3\n\nAE\n\nRD,\n\nve\n\n————\n\non\n\n/\n\na—\n\nIs\n\nE—~F\n\n—\n\nPp\n\n“en\n\n.\n\noir\n\ndi\n\nvy.\n\nrs (\\J\n\nV4\n\ni\n\ni\n\nIl\n\nJi\n\nA\n\nPo!\n\nI A\n\n= 1»\n\nl§\n\n\\ YY!\n\nFE\n\n(OR\n\nPrN\n\ni\n\nVEN\n\nN77\n\n=\n\nli\n\ny=\n\nEEE—\n\naad\n\n—\n\ni\n\nSaas\n\n=\n\nSE\n\n7\n",
+          "rawTextLength": 382,
+          "inputMetadata": {
+            "variant": "reverse-sparse",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "No readable MRP value is present in this photograph."
+            },
+            "netQuantity": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "1 l",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "1 l",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "packDate": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "No readable packed/manufactured date value is visible."
+            }
+          }
+        },
+        {
+          "sampleId": "CF-007",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/13.jpg",
+          "expectedImageSha256": "1f0025ed0036b861d1ff901f4df776cea6d78c4aafb775555bfd02d7ea5fce5c",
+          "attempted": true,
+          "error": null,
+          "rawText": "AGE DRINK] WA\n\nFONTS, TREATED WATER, SALTS OF SODIUM Aun 2:7\n\nACTURED BY\n\n“IM\n\nIER     02022\n\n1§ 14\n\nBEVERAGES PVT. LTD\n\n5.3. TARATALA ROAD, KOLKATA - 700 088, W 3.\n\nE51 BEFORE TWELVE MONTHS\n\nS\n\nl\n\nLic. No. 1001203100047\n\n5]\n\nBANE OF MANUFA\n\n(TUR\n\nBATCHNO. MRP.\n\nNCL OF cmn-000514655\n\n—\n\nALLTES): SEF CAP/NECK.\n\nA A\n\nTRADEMARK OWNER: THE COCs. = * rao)\n\nSTORE i A COOL AND DRY PLACE, nctr THE CONTUNER AWAY\n\nese m—\n\nIE ¢\n\npr\n\nFOR BIS CERTIFICATION DETAILS SEE WEBSITE ww bis.org. in\n\nSUNLIGHT. DO NOT BUY IF CAP/SEAL IS BROKEN\n\n— lo]\n\neo J\n\nFuls         Values per 100m)\n\n—_—\n\n2\n\n—————t\n\n  \"n, Protein 0\n\n0.1 mg\n\nFat 0g\n\nLe\n\nBe —\n\nplease ~~ E——\n\ncycl\n\n—\n\nm—\n\nET QUANTITY\n\nBOTTLE\n\nER USE\n\n1/\n\ngf |\n\n~—\n\nhon |\n",
+          "rawTextLength": 708,
+          "inputMetadata": {
+            "variant": "reverse-sparse",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": ".",
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": {
+                "status": "invalid",
+                "message": "Missing or invalid price: grouping, sign and precision require correction."
+              },
+              "candidates": [
+                {
+                  "value": ".",
+                  "evidence": "BATCHNO. MRP.",
+                  "amount": null,
+                  "minorUnits": null,
+                  "valid": false,
+                  "key": "invalid:.",
+                  "validation": {
+                    "status": "invalid",
+                    "message": "Missing or invalid price: grouping, sign and precision require correction."
+                  }
+                }
+              ],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Instructions mention MRP but no price value is visible. An MRP heading alone is not an extracted MRP."
+            },
+            "netQuantity": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "1 l",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "1 l",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "packDate": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Relative best-before duration is not a printed manufacture/packing date. Cap/neck is not shown."
+            }
+          }
+        },
+        {
+          "sampleId": "CF-008",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8902579001360/14.jpg",
+          "expectedImageSha256": "a7bebcea106e822d878184f0a88a223d4360c0e578366ed3d1c197968bf1bbab",
+          "attempted": true,
+          "error": null,
+          "rawText": "iy\n\nBA\n\n\\\n\nXM\n\nPe——\n\n%\n\n1a |\n\nVal\n\nR=\n\n———\n\n| FX\n\n=\n\n————\n\n-\n\n—\n\nr= =\n\n>\n\nCamm 2\n\n=\n\n——\n\nI&e)\n\ncr\n\nf=)\n\nBDig~v—\n\n=\n\nED erg\n\n—\n\nRTT maeaus\n\nJ)\n\n-2\n\nIced\n\n——e\n\n—i\n\n—,\n\n—\n\nrs\n\nIE\n\n==\n\nLr\n\n———\n\nLd =\n\n= —\n\nFey.\n\n—— nm\n\n————\n\nSef C5\n\nj=\n\nrn x ea\n\n-\n\n|\n\n—\n\n—d\n\n= CReREmEe.\n\n3} 3\n\n—\n\n=\n\nPs\n\na\n\n(5%)\n\nWu\n\n=\n\n——\n\nj=\n\nBABA smn\n\n——\n\nges\n\neo ——\n\nBD  ———\n\nFIRE\n\n—\n\nPRR\n\nPre\n\nEe FAN)\n\n——\n\n—\n\n4\n\nPe ——\n\npe\n\n——,\n\n—\n\nRa\n\n—\n\nhk,\n\nAg\n\nXN\n\na a\n",
+          "rawTextLength": 423,
+          "inputMetadata": {
+            "variant": "reverse-sparse",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "ambiguous_field",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Readable retailer unit/total selling-price lines are not labelled MRP. Their numerical agreement does not prove the printed statutory MRP."
+            },
+            "netQuantity": {
+              "labelStatus": "ambiguous_field",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "125ML appears in a retailer product description, not a visible package net-content declaration. Retailer Qty 1 is item count. Neither is accepted as the package declaration label here."
+            },
+            "packDate": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "No readable packed/manufactured date value is visible."
+            }
+          }
+        }
+      ]
+    },
+    {
+      "mode": "critical-baseline-raw-passes:standard:psm11",
+      "photoCount": 8,
+      "attemptedPhotos": 8,
+      "missingPhotos": 0,
+      "failedPhotos": 0,
+      "completeCorpusRun": true,
+      "exactMatchCorrect": 0,
+      "exactMatchSamples": 10,
+      "attemptedExactMatchSamples": 10,
+      "exactMatchRate": 0,
+      "attemptedExactMatchRate": 0,
+      "perField": {
+        "mrp": {
+          "referenceFields": 3,
+          "attemptedFields": 3,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 3,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 0,
+          "conflictFields": 0,
+          "excludedFields": 5,
+          "excludedAttemptedFields": 5,
+          "excludedWithCandidates": 0
+        },
+        "netQuantity": {
+          "referenceFields": 5,
+          "attemptedFields": 5,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 5,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 0,
+          "conflictFields": 0,
+          "excludedFields": 3,
+          "excludedAttemptedFields": 3,
+          "excludedWithCandidates": 0
+        },
+        "packDate": {
+          "referenceFields": 2,
+          "attemptedFields": 2,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 2,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 0,
+          "conflictFields": 0,
+          "excludedFields": 6,
+          "excludedAttemptedFields": 6,
+          "excludedWithCandidates": 0
+        }
+      },
+      "sampleResults": [
+        {
+          "sampleId": "CF-001",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/6.jpg",
+          "expectedImageSha256": "9d2187d0603d8781814e24320b452d596dc826a50ba29f0a7643f6d43b0c619b",
+          "attempted": true,
+          "error": null,
+          "rawText": "ok\n\n———\n\n[14\n\n{0\n\nki\n\nEE\n\nLo  |\n\nBrung\n\nH\n\nll\n\n|\n\nli\n\nBal ©\n\n\"tl\n\nI\n\nae | od\n\n601:\n\na Jl\n\na,\n\nL- 3 {\n\nGen x\n",
+          "rawTextLength": 108,
+          "inputMetadata": {
+            "variant": "standard",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "22.00",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "22.00",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "netQuantity": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "500 ml",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "500 ml",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "packDate": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "No date identified as packed or manufactured is readable. The package refers to a use-by stamp; do not promote that date to packing date."
+            }
+          }
+        },
+        {
+          "sampleId": "CF-002",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/10.jpg",
+          "expectedImageSha256": "61d17743670bb425275e861ccdfec072e33af556ab96d6f1043bf872fed73537",
+          "attempted": true,
+          "error": null,
+          "rawText": "Tg eee\" C\n\npe.\n\n~e\n\noN\n\n“J\n\nif\n\nye\n\npe\n\nrd\n\nEMRARZ\n\na+\n\n~~ SN—\n\n3105.23\n\nsoe\n\n1&V\n\n ]\n\nq)\n\nfx\n\n“a\n\nRill\n\nmi2.36\n\n\"a\n\nHTT\n\nlh\n\n-\n\nLa\n\nWRAN\n\n-\n\nw\n\nfor\n\nvi\n\n“wt\n\nXT\n\n-\n\n—\n\nmu\n\n~~\n\nDIX\n\nAf\n\nAUN\n\nWw\n\nwih\n\ni\n\n2h\n\na by.\n\nSIA- RA)\n\naR\n\n»\n\n1\n\n{Y KDED CO\n\nDARY K\n\nViti WW\n\nAT AN\n\nAL\n\nTELA\n\n£1\n\n84s\n\nAINA\n\nJA\n\nx Xr\n\nWN\n\n5\n\nmn\n\nNO\n\nRVATE LIMITE\n\nUN\n\nGE A\n\n, NUZVID\n\nD, XR!\n\n=\n\nRg\n\n£ (rie\n\nMm\n\n23\n\ni Gg\n\n118 a“\n\na\n\nCTS, SYNO. 4\n\n1G\n\na\n\nNg ¥\n\noJ\n\nE, HA\n\nAYATH NAG GAR MAND\n\nLi§\n\n\\- 501 50%\n\nLS\n\nfs\n\namd\n\n400\n\nVe\n\n~\n\nwe\n\nYour feedback\n\nGM\n\nvo!\n\nRl\n\n£48 \\\n\npy\n\nEN\n\ny f\n\na1\n\nay\n\n~\n\n=\n\nLow\n\nFh 14\n",
+          "rawTextLength": 579,
+          "inputMetadata": {
+            "variant": "standard",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "27",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "27",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "netQuantity": {
+              "labelStatus": "illegible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "500 is readable but the small unit at the curved/blurred right edge is not accepted as a complete strict value in this provisional annotation. Do not fill its unit from the other Amul photograph."
+            },
+            "packDate": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "The clearly headed date is Use By, not a packing/manufacture date."
+            }
+          }
+        },
+        {
+          "sampleId": "CF-003",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8906014888868/5.jpg",
+          "expectedImageSha256": "603169c4bae57c270a514d744a0f03ac4a8d4da25d1da095ba2037f8c78d2c88",
+          "attempted": true,
+          "error": null,
+          "rawText": "&\n\n[(&)\n\nLI\n\n™\n\ndan  (1745\n\nVas\n\nYa\n\nON\n\ni\n\n11\n\n|]\n\nC. 4\n\n|\n\nHb\n\nRS |\n\niI\n\n-~\n\nng unit see ni\n\nr\n\n{1}\n\nA H  MED! AB AD\n\n.\n\n:\n\n)\n\n(\"Re\n\ntC\n\nIr\n\nnaarwa\n\nNr.\n\n!\n\nJarga\n\ni\n\nhy Opp. Century ! Marke\n\n“4\n\n13\n\n992512525\n\n|\n\nL\n\nclele 02, Gujarat. Phone: 079 2\n\nLIC. ND. 107224999 00 nl\n\na\n\nred Users)\n\n17, 252309\n\n. 382\n",
+          "rawTextLength": 311,
+          "inputMetadata": {
+            "variant": "standard",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "90.00",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "90.00",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "netQuantity": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Do not derive 500 g from 90.00 divided by 0.18/g. That is arithmetic, not a visible net quantity declaration."
+            },
+            "packDate": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "02/08/2026",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "02/08/2026",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            }
+          }
+        },
+        {
+          "sampleId": "CF-004",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8906055442586/4.jpg",
+          "expectedImageSha256": "35d575f4a33160549dca7d4c22ce188a8df2fc0b644128a5155d9416d72ffde3",
+          "attempted": true,
+          "error": null,
+          "rawText": "L\n\nU2LUV0%)\n\n£2 950\n\n2 WHO! gaia. com |\n\na\n\nbytes,\n\n5)\n\n—\n\nPRODUCT OF INDIA\n\nlil\n\n8\"906055\"442586\n\nFROM\n\nEMONE OIL\n\nfe, et\n\nT5230 C: 910\n\n\\\n\n- ow -\n\nES\n\n-\n\n-\n\noo.\n\nDO NOT\n\nT Bay.  THE\n\nPURCHASE\n\n{3d 71\n\n g - —_—\n\nBOTTLE IF\n\nof\n\nEER ELE SE\n\n(LL\n\n0225\n\nTAMPERED WITH\n\n+00\n\n«1\n\nii\n\n-\n\nre\n\nHH\n\n1\n\n==\n\nKEEP CITY\n\n“8\n\nIPI\n",
+          "rawTextLength": 316,
+          "inputMetadata": {
+            "variant": "standard",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "ambiguous_field",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "The standalone amount is readable but its MRP heading is outside the left crop. The next row is explicitly USP. Do not assign MRP solely from layout or from the identical USP amount."
+            },
+            "netQuantity": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "910 g",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "910 g",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "packDate": {
+              "labelStatus": "ambiguous_field",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Digits are readable, but the heading identifying packing/manufacture is outside the left crop. Do not infer the date's role just because another row is use-by."
+            }
+          }
+        },
+        {
+          "sampleId": "CF-005",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8904083301837/3.jpg",
+          "expectedImageSha256": "b9cd89914094ebe8f591b9c5b29e5451872720c63c9ee15461926d1dd72302d2",
+          "attempted": true,
+          "error": null,
+          "rawText": "Je}\n\nv1\n\n(fy\n\n>\n\nLU\n\ni\n\nVE\n\nhy\n\nFs Bb\n\n8\n\n5 Fo\n\n§\n\nITED\n\n‘\n\n“a\n\nAN\n\n&»\n\nFi 4\n\n&\n\n200\n\nES CONTACT\n\nEXECUTIVE\n\n100-419-9000\n\nTATED &\n\nWEED BY ADDRESS\n\n3\n\nLS\n\ni\n\nAL\n\nPi HEE\n\nand hy gien\n\nic place   &\n\nKEEP YOUR\n\nProduct quality\n\nCITY CLEAN\n\na\n\naE\n",
+          "rawTextLength": 244,
+          "inputMetadata": {
+            "variant": "standard",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "ambiguous_field",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Amount is readable but an MRP heading is not visible in the selected photograph. The remainder of this stamp line is cropped; do not guess the declaration role."
+            },
+            "netQuantity": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "1 l",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "1 l",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "packDate": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "19/10/25",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "19/10/25",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            }
+          }
+        },
+        {
+          "sampleId": "CF-006",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/11.jpg",
+          "expectedImageSha256": "34b8b602484c492408dd2921d1a657e8f030a97706da41deac04c110f7354120",
+          "attempted": true,
+          "error": null,
+          "rawText": "5s\n\nse.\n\nfi\n\nED\n\n9\n\nTF\n\nui\n\no4\n\n= Rd\n\n *\n\na\n\ngs\n\nJ\n\n43\n\n\\{\n\n}\n\nIl\n\ni\n\nfy\n\ni\n\nJ\n\n%\n\n1\n\n4\n\ni          Noi: tiaras\n\n[54\n\nfi\n\nIA\n\nth\n\nASSN\n\n»\n\nAN U1)\n\n-\n\ny\n\nie\n\nod\n\nURES\n\nal!\n\nEN\n\nA\n\n) QF(.5\n\n-\n\nE——\n\nA\n\nIa\n\nAY\n\nE—\n\nFr —\n\n—\n\n———————\n\ngenes\n\na al\n\nIB\n\n>\n\n- &\n\nJi]\n\now\n\n1%  4\n\nj)\n\n-\n\n—\n\ni\n\nv AL\n\npo\n\nin\n\nNDL\n\npS pe\n\ni,\n\n(CE\n\n—\n\nIU\n\nSEmoresssoowmeweeerem\n\nw 0\n\n>a\n\n18\n\ngy\n\n1a\n\nA\n\ni\n\nRES\n",
+          "rawTextLength": 379,
+          "inputMetadata": {
+            "variant": "standard",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "No readable MRP value is present in this photograph."
+            },
+            "netQuantity": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "1 l",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "1 l",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "packDate": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "No readable packed/manufactured date value is visible."
+            }
+          }
+        },
+        {
+          "sampleId": "CF-007",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/13.jpg",
+          "expectedImageSha256": "1f0025ed0036b861d1ff901f4df776cea6d78c4aafb775555bfd02d7ea5fce5c",
+          "attempted": true,
+          "error": null,
+          "rawText": "0\n\nED ORIN; WE\n\nR    020M\n\nMANUFACTURED BY\n\nFONTS: TAEATED WATER, SALTS OF SODIUM ann :7im=\n\nWM\n\n1§ 14\n\n343, TARATALA ROAD, KOLKATA - 700 088, W.B.\n\nBEVERAGES PVT, LTD,\n\nE51 BEFORE TWELVE MONTHS\n\nS\n\nl\n\nLic. No. 1012021000047\n\n5\n\nARNE OF MANUFA\n\n(TURE,\n\nBATCHNO. SMR\n\nINC\n\nLOF cmn-\n\n000514655\n\nCe ———\n\nALLTAXES): SEF CAP/NECK.\n\nTRADEMARK OWMER: THE COC. -  “1 A IMD)\n\np—\n\nA\n\nSTORE IN A COOL AND DRY PLACE. nc? HE COMTANER AWAY\n\nSUNLIGHT. DO NOT BUY IF CAP/SEAL IS BROKEN\n\np—\n\n= ee]\n\nFOR BIS CERTIFICATION DETAILS SEE WFRSITE www bis.org.in\n\n——_\n\nS—\n\n— 7)\n\nFils\n\nValues per 100m!) |\n\nee \\,\n\n2\n\n\"  Protein 09\n\n0.1mg\n\nFat 0g\n\nLe\n\nm— O\n\nBe —\n\ncycl\n\n—\n\nET QUANTITY\n\nBOTTLE\n\nER US\n\n1/\n\n‘ i\n\nPh,\n",
+          "rawTextLength": 688,
+          "inputMetadata": {
+            "variant": "standard",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Instructions mention MRP but no price value is visible. An MRP heading alone is not an extracted MRP."
+            },
+            "netQuantity": {
+              "labelStatus": "readable",
+              "eligible": true,
+              "expected": "1 l",
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": "1 l",
+              "correct": false,
+              "outcome": "not_extracted",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": null
+            },
+            "packDate": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Relative best-before duration is not a printed manufacture/packing date. Cap/neck is not shown."
+            }
+          }
+        },
+        {
+          "sampleId": "CF-008",
+          "sourcePath": "datasets/openfoodfacts-india/real-labels/8902579001360/14.jpg",
+          "expectedImageSha256": "a7bebcea106e822d878184f0a88a223d4360c0e578366ed3d1c197968bf1bbab",
+          "attempted": true,
+          "error": null,
+          "rawText": "$24\n\n7\"\n\nL]\n\nN\n\nNN\n\nBa\n\nee —\n\n7\n\n| =F\n\nf=\n\n———\n\n—\n\n———\n\n—————\n\n——\n\nrem acme\n\n— =x\n\n-\n\nCameEeeE 2\n\nTEED hs\n\nere menus\n\n—\n\nicy\n\n——\n\n———\n\nem ren.\n\nAWA EST\n\nLd\n\nir\n\nForty. me\n\n=\n\n—\n\nmn ew\n\n1%\n\n=\n\nBr sac nas\n\nDa aT.\n\n—\n\naX\n\nmd ——\n\n= CRerzmEe.\n\n} 3\n\n~~\n\n(SR\n\nTI,\n\n= wy\n\nBABU) som\n\nj= ==\n\nES Pe)\n\nLe\n\noe —\n\n[3 a\n\n—e\n\nSa 5\n\n————\n\na\n\n>\n\nEL FN\n\n——\n\n4\n\nBie go\n\n—\n\n-—.\n\n—\n",
+          "rawTextLength": 360,
+          "inputMetadata": {
+            "variant": "standard",
+            "psm": "11",
+            "crop": null,
+            "manuallySelectedRoi": false,
+            "suppliedProvenance": {
+              "mode": "whole-image-three-pass",
+              "engine": "tesseract.js",
+              "model": "bundled-fast-eng",
+              "preprocessing": "sharp-browser-approximation",
+              "sourceHashVerified": true,
+              "textEdited": false,
+              "manualCrop": false,
+              "manualRotation": false
+            },
+            "provenance": "Imported raw experiment field; no independent attestation of capture or transcript integrity."
+          },
+          "fields": {
+            "mrp": {
+              "labelStatus": "ambiguous_field",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "Readable retailer unit/total selling-price lines are not labelled MRP. Their numerical agreement does not prove the printed statutory MRP."
+            },
+            "netQuantity": {
+              "labelStatus": "ambiguous_field",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "125ML appears in a retailer product description, not a visible package net-content declaration. Retailer Qty 1 is item count. Neither is accepted as the package declaration label here."
+            },
+            "packDate": {
+              "labelStatus": "not_visible",
+              "eligible": false,
+              "expected": null,
+              "actual": null,
+              "valid": false,
+              "normalizedActual": null,
+              "normalizedExpected": null,
+              "correct": null,
+              "outcome": "excluded_label",
+              "conflict": false,
+              "validation": null,
+              "candidates": [],
+              "wrongNumericCandidates": [],
+              "exclusionNote": "No readable packed/manufactured date value is visible."
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "complianceVerdictMetric": null,
+  "definitions": {
+    "exactMatch": "One valid conflict-free extraction candidate whose normalized value exactly matches the readable photo label. Raw OCR is passed to the actual extractor unchanged; precomputed predictions and numeric-presence probes are ignored.",
+    "normalization": "Trim/collapse whitespace and ignore case; normalize quantity unit spelling only. No OCR digit repair, date meaning conversion, century inference or unit conversion.",
+    "exactMatchSamples": "All readable reference fields in the frozen corpus for this mode. Missing rows are visible; full-corpus exactMatchRate is null if any readable reference lacks an attempted row.",
+    "attemptedExactMatchRate": "Exact matches / readable fields on attempted photos, including OCR errors and empty transcripts as failures. This is a partial-run diagnostic when coverage is incomplete, not a full-corpus accuracy claim.",
+    "excludedFields": "not_visible, illegible and ambiguous_field labels never count as correct negatives, errors or positives; candidates on them are diagnostics only.",
+    "conflict": "Multiple distinct candidates prevent an exact match, even if one candidate matches the label."
+  },
+  "limitations": [
+    "Previously used development photographs; not an unseen-product holdout or a representative field sample.",
+    "Photo labels are provisional AI annotations requiring independent human review.",
+    "Scoring supplied raw OCR outputs does not independently prove their freshness, source identity, lack of editing, or that OCR ran on the whole photograph.",
+    "ROI variants may use manually selected crops; do not describe them as automatic field localization.",
+    "No legal verdict labels, compliance accuracy, false-clear rate, measurement accuracy, or officer/cloud workflow claims are measured."
+  ],
+  "generatedAt": "2026-09-04T10:32:39.589Z",
+  "manifest": {
+    "path": "C:\\Users\\duvvu\\Documents\\ChatGPT\\SIH 2026\\niyamlens\\datasets\\critical-fields.v1.json",
+    "sha256": "4f869df89f6246e774189a7522e2798f5ab680b83e887eb8ddeae6c08fd977ad"
+  },
+  "inputFiles": [
+    {
+      "path": "C:\\Users\\duvvu\\Documents\\ChatGPT\\SIH 2026\\niyamlens\\reports\\recognition-2026-09-04\\critical-baseline-raw-passes.jsonl",
+      "sha256": "21a90308253c7ce57a81c20a917844f108215ae441653d0e121cb623e887a382",
+      "adaptedRows": 24,
+      "sessionRows": 1,
+      "unmatchedRows": 0
+    }
+  ],
+  "unmatchedRows": [],
+  "sourceVerification": {
+    "verified": true,
+    "count": 8,
+    "mechanism": "SHA256 of exact local source bytes; not proof that the imported OCR rows used those bytes."
+  }
+}

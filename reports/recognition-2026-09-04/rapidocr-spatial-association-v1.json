@@ -1,0 +1,1074 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-04T10:43:06.839Z",
+  "experiment": "conservative-same-row-spatial-association-v1",
+  "status": "experimental-not-integrated",
+  "input": {
+    "path": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+    "sha256": "d5febd520cb6debb1486548879a54e127ce184c7f3ab695d8bfc09340b677030"
+  },
+  "manifest": {
+    "path": "datasets/critical-fields.v1.json",
+    "sha256": "4f869df89f6246e774189a7522e2798f5ab680b83e887eb8ddeae6c08fd977ad",
+    "annotationStatus": "provisional-human-review-required",
+    "corpusRole": "previously-used-development-corpus",
+    "isHoldout": false
+  },
+  "helper": {
+    "path": "src/lib/spatialOcr.mjs",
+    "sha256": "546e5df72029bddc42b38e42b547919a2d21c697709265e7519b2c6d58323a00"
+  },
+  "sourceHashesVerified": 8,
+  "thresholds": {
+    "maxLines": 1000,
+    "maxTextCharacters": 100000,
+    "maxLineCharacters": 2000,
+    "maxSkewDegrees": 12,
+    "maxPairAngleDifference": 5,
+    "maxEdgeAngleDifference": 5,
+    "maxHeightRatio": 2.5,
+    "maxCentreOffsetHeights": 0.35,
+    "minVerticalOverlap": 0.65,
+    "maxGapHeights": 12
+  },
+  "summary": {
+    "photos": 8,
+    "eligibleCriticalFields": 10,
+    "rawExactMatches": 1,
+    "spatialExactMatches": 1,
+    "acceptedAssociations": 0,
+    "perField": {
+      "mrp": {
+        "referenceFields": 3,
+        "rawCorrect": 1,
+        "spatialCorrect": 1
+      },
+      "netQuantity": {
+        "referenceFields": 5,
+        "rawCorrect": 0,
+        "spatialCorrect": 0
+      },
+      "packDate": {
+        "referenceFields": 2,
+        "rawCorrect": 0,
+        "spatialCorrect": 0
+      }
+    },
+    "complianceVerdictMetric": null
+  },
+  "interpretation": "No measured improvement on this frozen development set. Same-row-only association abstained on all joins; the existing one correct Amul MRP remains the only valid exact critical field. Do not market this helper as an accuracy gain.",
+  "limitations": [
+    "Provisional AI visual labels require independent human review; this is reused development data, not holdout.",
+    "No thresholds were changed after observing the eight-photo comparison.",
+    "Original OCR strings remain exact and separately retained in the hash-linked raw artifact. Helper output retains rawLines plus complete row-to-box mappings; this report repeats full mappings for joined rows only.",
+    "Only same-row two-box geometry is attempted. Stacked labels, rotated or skewed print, cropped text, multi-heading boxes and recognition errors remain unresolved.",
+    "Actual extractor is rerun on both transcripts; no ground-truth-directed repair, model rerun, numeric-presence scoring or legal verdict labels."
+  ],
+  "samples": [
+    {
+      "sampleId": "CF-001",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/6.jpg",
+      "sourceSha256": "9d2187d0603d8781814e24320b452d596dc826a50ba29f0a7643f6d43b0c619b",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/0/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ],
+        "indexMapping": "Each array position is the same original OCR line; no mutation."
+      },
+      "originalLineCount": 54,
+      "rawTextPreserved": true,
+      "transcriptChanged": false,
+      "rawText": "MILKY MILK\nPASTEURISED HOMOGENISER\nTONED MILK\n-308001\nNet Content:\nPILTD SARDARPARA\n PO BALARAM\n500m\n-785135\nTD CHANDITALA\nENGAL-712702\nMRP:22.00\nITO.VILL JIBTYA\n(inclusiver all taxes)\nBANKURA\nUTRITIONAL INFORMATION per iog (apprax. values)\nCTS(P)LTD..\nUse-by date\nEnergy, kcal\n57.8\nTotal Carbohydral \n3.0\nAdded Sugr.\nOPO MAKALPUR,\nTotal fat, g\nESTBENGAL-712 305\nSaturated Fat, g\n2.0\nProlten, g\nTrans Fat, g\n0\nCalcium mg\nXMARPOLE.\nKeep Undef Refrigeration\nHRBOUR-A\n13\nFsat\nKNO4JE\n1:04/07/19\n10012021000071\nLic. No.\nFOR BEST RESULTS, STORE\nCONTINUOUSLY UNDER REFRIGERATION\nBELOW 8°C UNTIL “USE-BY DATE\"\na\nFor Batch No. & \"Use-by date\" see seai areastamo\nPERATIVE MILK\nANAND-388-001\nreedback\nCae Executive at\n(al free ( -9 PM)\n890126226012\nCO,\nNand-388001",
+      "derivedTranscript": "MILKY MILK\nPASTEURISED HOMOGENISER\nTONED MILK\n-308001\nNet Content:\nPILTD SARDARPARA\n PO BALARAM\n500m\n-785135\nTD CHANDITALA\nENGAL-712702\nMRP:22.00\nITO.VILL JIBTYA\n(inclusiver all taxes)\nBANKURA\nUTRITIONAL INFORMATION per iog (apprax. values)\nCTS(P)LTD..\nUse-by date\nEnergy, kcal\n57.8\nTotal Carbohydral \n3.0\nAdded Sugr.\nOPO MAKALPUR,\nTotal fat, g\nESTBENGAL-712 305\nSaturated Fat, g\n2.0\nProlten, g\nTrans Fat, g\n0\nCalcium mg\nXMARPOLE.\nKeep Undef Refrigeration\nHRBOUR-A\n13\nFsat\nKNO4JE\n1:04/07/19\n10012021000071\nLic. No.\nFOR BEST RESULTS, STORE\nCONTINUOUSLY UNDER REFRIGERATION\nBELOW 8°C UNTIL “USE-BY DATE\"\na\nFor Batch No. & \"Use-by date\" see seai areastamo\nPERATIVE MILK\nANAND-388-001\nreedback\nCae Executive at\n(al free ( -9 PM)\n890126226012\nCO,\nNand-388001",
+      "joinedRows": [],
+      "unchangedRows": 54,
+      "associations": [],
+      "abstentions": [
+        {
+          "sourceId": "CF-001:line-5",
+          "reason": "no_unambiguous_same_row_value",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-001:line-18",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        }
+      ],
+      "fields": {
+        "mrp": {
+          "labelStatus": "readable",
+          "expected": "22.00",
+          "eligible": true,
+          "raw": {
+            "actual": "22.00",
+            "valid": true,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "22.00",
+                "valid": true
+              }
+            ],
+            "correct": true
+          },
+          "spatial": {
+            "actual": "22.00",
+            "valid": true,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "22.00",
+                "valid": true
+              }
+            ],
+            "correct": true
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "readable",
+          "expected": "500 ml",
+          "eligible": true,
+          "raw": {
+            "actual": ":",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ":",
+                "valid": false
+              }
+            ],
+            "correct": false
+          },
+          "spatial": {
+            "actual": ":",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ":",
+                "valid": false
+              }
+            ],
+            "correct": false
+          }
+        },
+        "packDate": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        }
+      }
+    },
+    {
+      "sampleId": "CF-002",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/10.jpg",
+      "sourceSha256": "61d17743670bb425275e861ccdfec072e33af556ab96d6f1043bf872fed73537",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/1/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ],
+        "indexMapping": "Each array position is the same original OCR line; no mutation."
+      },
+      "originalLineCount": 76,
+      "rawTextPreserved": true,
+      "transcriptChanged": false,
+      "rawText": "PASTEURISED\nANPUR-385001\npstorgen Inform\nNe1001202100025\nNutritional Informatice\nnalure.\n2 servings per container\nUTHAPURAM VISAKHAPATNATU\nServing Size\nRAPRADESH-531 031\n10113003000251\nAmount per 100 mL\"\ndactured for:\nEnergy\nNDISTRICT C-OPERATIVE MILK\n(kcal)\nTotal Fat\n(g)\n1012021000243\nSaturated Fat\nctured by:\n9\nSTRICT CO-OPERATIVE MILK PRODUCERS\"\nTrans Fat\nMETPB VLLAGE & POST,\nCholesterol (mg)\nSV03AE/MRP290R\nCarbohydrate\nTotal Sugars\nUseBy:31.05.23\nAdded Sugars\nAUAIENVILLAGE.TR KANDRIGA\nUSP0:05/mLT1236\nProtein\nCHTOUR (ANDHRAPRADESH)-517 571\nSodium\n(mg)\n10114010000916\ntutatured for.\nCalcium\n(mg)\nANTHA DISTRICT CO-OPERATIVE\nPRODUCERS UNION LTD., SABAR DAIRY,\nRDA stands for Recommended Day\nOST BORIA HIMATNAGAR-383 006\n**Average values\n012021000207\nlendactured by.\nILGONDA-RANGA REDDY MILK PRODUCERS\nNet Content: 500m\nYADED CO-OP. UNION LTD.,\nDARY KUNTLOOR ROAD, HAYATH NAGAR,\nABA (TELANGANA)-501 505\nKEEP REFRIGERATED ATCO BELON\n10014047000133\nOAPRIVATE LIMITED, D.NO. 238/2,3;\nCOL,LSTOREINCHLE SECTONOE\nILLAGE, NUZVID, KRISHNA\n35H-1\nOFYOUREFRIGERATOR ANDCONSU\n止10113800238\nD PRODUCTS OSY O.118-119.\nMarketed by: Guara C-op\nAVLAGE HAYATH NAGAR MANDAL\nEREDI TELANGANA - 501 505\nLtd.,Anand -388001 Inda\n10016470577\nfssat\nNeapaprciataicictyeedbac.\nLic. No.10012021000\n CUutomer are Executive at\n253e AM –PM)\nunlly\ncustomercare@amul.coop\nGOMMFLd, Anand - 388 001\n8901262",
+      "derivedTranscript": "PASTEURISED\nANPUR-385001\npstorgen Inform\nNe1001202100025\nNutritional Informatice\nnalure.\n2 servings per container\nUTHAPURAM VISAKHAPATNATU\nServing Size\nRAPRADESH-531 031\n10113003000251\nAmount per 100 mL\"\ndactured for:\nEnergy\nNDISTRICT C-OPERATIVE MILK\n(kcal)\nTotal Fat\n(g)\n1012021000243\nSaturated Fat\nctured by:\n9\nSTRICT CO-OPERATIVE MILK PRODUCERS\"\nTrans Fat\nMETPB VLLAGE & POST,\nCholesterol (mg)\nSV03AE/MRP290R\nCarbohydrate\nTotal Sugars\nUseBy:31.05.23\nAdded Sugars\nAUAIENVILLAGE.TR KANDRIGA\nUSP0:05/mLT1236\nProtein\nCHTOUR (ANDHRAPRADESH)-517 571\nSodium\n(mg)\n10114010000916\ntutatured for.\nCalcium\n(mg)\nANTHA DISTRICT CO-OPERATIVE\nPRODUCERS UNION LTD., SABAR DAIRY,\nRDA stands for Recommended Day\nOST BORIA HIMATNAGAR-383 006\n**Average values\n012021000207\nlendactured by.\nILGONDA-RANGA REDDY MILK PRODUCERS\nNet Content: 500m\nYADED CO-OP. UNION LTD.,\nDARY KUNTLOOR ROAD, HAYATH NAGAR,\nABA (TELANGANA)-501 505\nKEEP REFRIGERATED ATCO BELON\n10014047000133\nOAPRIVATE LIMITED, D.NO. 238/2,3;\nCOL,LSTOREINCHLE SECTONOE\nILLAGE, NUZVID, KRISHNA\n35H-1\nOFYOUREFRIGERATOR ANDCONSU\n止10113800238\nD PRODUCTS OSY O.118-119.\nMarketed by: Guara C-op\nAVLAGE HAYATH NAGAR MANDAL\nEREDI TELANGANA - 501 505\nLtd.,Anand -388001 Inda\n10016470577\nfssat\nNeapaprciataicictyeedbac.\nLic. No.10012021000\n CUutomer are Executive at\n253e AM –PM)\nunlly\ncustomercare@amul.coop\nGOMMFLd, Anand - 388 001\n8901262",
+      "joinedRows": [],
+      "unchangedRows": 76,
+      "associations": [],
+      "abstentions": [
+        {
+          "sourceId": "CF-002:line-1",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-002:line-6",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-002:line-11",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-002:line-13",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-002:line-19",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-002:line-73",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        }
+      ],
+      "fields": {
+        "mrp": {
+          "labelStatus": "readable",
+          "expected": "27",
+          "eligible": true,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": false
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": false
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "illegible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": ": 500m",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ": 500m",
+                "valid": false
+              }
+            ],
+            "correct": null
+          },
+          "spatial": {
+            "actual": ": 500m",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ": 500m",
+                "valid": false
+              }
+            ],
+            "correct": null
+          }
+        },
+        "packDate": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        }
+      }
+    },
+    {
+      "sampleId": "CF-003",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8906014888868/5.jpg",
+      "sourceSha256": "603169c4bae57c270a514d744a0f03ac4a8d4da25d1da095ba2037f8c78d2c88",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/2/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ],
+        "indexMapping": "Each array position is the same original OCR line; no mutation."
+      },
+      "originalLineCount": 30,
+      "rawTextPreserved": true,
+      "transcriptChanged": false,
+      "rawText": "doorstep\nCERT\n回乐\ndelivery\nGFJP030726650745\nBATCHNO:\n02/08/2026\nPACKED ON:\n01/08/2027\nUSE BY:\n90.00 USP\nRS 0.18/9\nMRP-USP:\n(Inclusive of all taxes)\nFor packing unit see first 2 letters of batch no.\nMktd by: GULAB OIL AND FOOD (AHMEDABAD) PVT. LTD. (Registered Users)\nTeliya Mill Compound, Nr. Dargah, Opp. Century Market,O/s. Premdarwaja,\nKalupur, Ahmedabad-380002, Gujarat. Phone: 079 22131151, 9925125251\nfssai LI. NO.107229990121\nPkd. by: GF: GULAB OIL & FOODS PVT. LTD (Registered Users)\nPlot No.161/1, SIDC, Veraval (Shapar) 360024,\nTa. Kotda (Sangani), Dist. Rajkot, Gujarat. Phone: 02827 254247, 252309\nfssai' LIC. NO.10017021002708\nPkd by: BL: GULAB OIL & FOODS (AHMEDABAD) PVT. LTD ('Registered Users)\nR.S No. 296, Kadi Detroj Road, at Balasar, Ta. Kadi, Kadi,Mehsana, Gujarat - 382715\nfssai LIC. NO.10724999000301\nWe care about your feedback. Contact us - 92760 01151 (Customer Care Excecutive)\nhi@truestoryorganics.com I truestoryorganics.com\nMADE IN\nINDIA",
+      "derivedTranscript": "doorstep\nCERT\n回乐\ndelivery\nGFJP030726650745\nBATCHNO:\n02/08/2026\nPACKED ON:\n01/08/2027\nUSE BY:\n90.00 USP\nRS 0.18/9\nMRP-USP:\n(Inclusive of all taxes)\nFor packing unit see first 2 letters of batch no.\nMktd by: GULAB OIL AND FOOD (AHMEDABAD) PVT. LTD. (Registered Users)\nTeliya Mill Compound, Nr. Dargah, Opp. Century Market,O/s. Premdarwaja,\nKalupur, Ahmedabad-380002, Gujarat. Phone: 079 22131151, 9925125251\nfssai LI. NO.107229990121\nPkd. by: GF: GULAB OIL & FOODS PVT. LTD (Registered Users)\nPlot No.161/1, SIDC, Veraval (Shapar) 360024,\nTa. Kotda (Sangani), Dist. Rajkot, Gujarat. Phone: 02827 254247, 252309\nfssai' LIC. NO.10017021002708\nPkd by: BL: GULAB OIL & FOODS (AHMEDABAD) PVT. LTD ('Registered Users)\nR.S No. 296, Kadi Detroj Road, at Balasar, Ta. Kadi, Kadi,Mehsana, Gujarat - 382715\nfssai LIC. NO.10724999000301\nWe care about your feedback. Contact us - 92760 01151 (Customer Care Excecutive)\nhi@truestoryorganics.com I truestoryorganics.com\nMADE IN\nINDIA",
+      "joinedRows": [],
+      "unchangedRows": 30,
+      "associations": [],
+      "abstentions": [
+        {
+          "sourceId": "CF-003:line-8",
+          "reason": "no_unambiguous_same_row_value",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-003:line-10",
+          "reason": "no_unambiguous_same_row_value",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-003:line-13",
+          "reason": "multiple_declaration_headings_in_one_box",
+          "candidateIds": []
+        }
+      ],
+      "fields": {
+        "mrp": {
+          "labelStatus": "readable",
+          "expected": "90.00",
+          "eligible": true,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "",
+                "valid": false
+              }
+            ],
+            "correct": false
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "",
+                "valid": false
+              }
+            ],
+            "correct": false
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        },
+        "packDate": {
+          "labelStatus": "readable",
+          "expected": "02/08/2026",
+          "eligible": true,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": true,
+            "candidateValues": [
+              {
+                "value": "",
+                "valid": false
+              },
+              {
+                "value": ". by: GF: GULAB OIL & FOODS PVT. LTD (Registered Users)",
+                "valid": false
+              }
+            ],
+            "correct": false
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": true,
+            "candidateValues": [
+              {
+                "value": "",
+                "valid": false
+              },
+              {
+                "value": ". by: GF: GULAB OIL & FOODS PVT. LTD (Registered Users)",
+                "valid": false
+              }
+            ],
+            "correct": false
+          }
+        }
+      }
+    },
+    {
+      "sampleId": "CF-004",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8906055442586/4.jpg",
+      "sourceSha256": "35d575f4a33160549dca7d4c22ce188a8df2fc0b644128a5155d9416d72ffde3",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/3/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ],
+        "indexMapping": "Each array position is the same original OCR line; no mutation."
+      },
+      "originalLineCount": 44,
+      "rawTextPreserved": true,
+      "transcriptChanged": false,
+      "rawText": "+911204260545\nk and suggestions,\nwww.organictattva.com\nct our customer\nve at address\nFor interesting knowledge bytes,\nabove or\nFollow us\nfO\nINFORMATION\n@organictattva\npprox. values)\ncontainer 9.1\n1½ cup (100 g)\n899 Kcal\nPRODUCT OF INDIA\n100g\n89g\nat.\n.6.2g\nrated Fat.\n.1.7g\nated Fat.\n0mg\n0mg\n8\"906055\"442586\nOrganic Coconut Oil\nFREE FROM\nNTENTS at 30°C: 910g\nARGEMONE OIL\n699.00\nUSPF 699:00/L\nDO NOT\naxes)\nPURCHASE\n0T97C000225\nBOTTLE IF\nNO.\nTAMPERED WITH\n31/03/25\nUSE BY 30/03/27\nKEEP CITY\nFORE\nCLEAN",
+      "derivedTranscript": "+911204260545\nk and suggestions,\nwww.organictattva.com\nct our customer\nve at address\nFor interesting knowledge bytes,\nabove or\nFollow us\nfO\nINFORMATION\n@organictattva\npprox. values)\ncontainer 9.1\n1½ cup (100 g)\n899 Kcal\nPRODUCT OF INDIA\n100g\n89g\nat.\n.6.2g\nrated Fat.\n.1.7g\nated Fat.\n0mg\n0mg\n8\"906055\"442586\nOrganic Coconut Oil\nFREE FROM\nNTENTS at 30°C: 910g\nARGEMONE OIL\n699.00\nUSPF 699:00/L\nDO NOT\naxes)\nPURCHASE\n0T97C000225\nBOTTLE IF\nNO.\nTAMPERED WITH\n31/03/25\nUSE BY 30/03/27\nKEEP CITY\nFORE\nCLEAN",
+      "joinedRows": [],
+      "unchangedRows": 44,
+      "associations": [],
+      "abstentions": [
+        {
+          "sourceId": "CF-004:line-2",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-004:line-4",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-004:line-5",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-004:line-7",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-004:line-10",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-004:line-12",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-004:line-13",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-004:line-19",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-004:line-21",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-004:line-38",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        }
+      ],
+      "fields": {
+        "mrp": {
+          "labelStatus": "ambiguous_field",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "readable",
+          "expected": "910 g",
+          "eligible": true,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": false
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": false
+          }
+        },
+        "packDate": {
+          "labelStatus": "ambiguous_field",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        }
+      }
+    },
+    {
+      "sampleId": "CF-005",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8904083301837/3.jpg",
+      "sourceSha256": "b9cd89914094ebe8f591b9c5b29e5451872720c63c9ee15461926d1dd72302d2",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/4/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ],
+        "indexMapping": "Each array position is the same original OCR line; no mutation."
+      },
+      "originalLineCount": 23,
+      "rawTextPreserved": true,
+      "transcriptChanged": false,
+      "rawText": "30℃(910\nured & Marketed by\nVillage,\n/23.Pattkranpalay\n-638 057, ErodDlstrict,\nIssai\nNo.10017042003191\nQUERIES CONTACT\nMilk.r\nTEDBADK/\nSTOMER CARE EXECUTIVE\nREE NO.1800-419-9000\nDORDONTACT AT MFD &\nMARKETED BY ADDRESS\nSCAN TO\nKNOW MORE\nstomercare@milkymist.com\nust:www.mikymist.com\ng Keep in an irtight\nndertretataao qualty\nKEEP YOUR\nNet Quantity\nCITYCLEAN",
+      "derivedTranscript": "30℃(910\nured & Marketed by\nVillage,\n/23.Pattkranpalay\n-638 057, ErodDlstrict,\nIssai\nNo.10017042003191\nQUERIES CONTACT\nMilk.r\nTEDBADK/\nSTOMER CARE EXECUTIVE\nREE NO.1800-419-9000\nDORDONTACT AT MFD &\nMARKETED BY ADDRESS\nSCAN TO\nKNOW MORE\nstomercare@milkymist.com\nust:www.mikymist.com\ng Keep in an irtight\nndertretataao qualty\nKEEP YOUR\nNet Quantity\nCITYCLEAN",
+      "joinedRows": [],
+      "unchangedRows": 23,
+      "associations": [],
+      "abstentions": [
+        {
+          "sourceId": "CF-005:line-1",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-005:line-2",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-005:line-22",
+          "reason": "no_unambiguous_same_row_value",
+          "candidateIds": []
+        }
+      ],
+      "fields": {
+        "mrp": {
+          "labelStatus": "ambiguous_field",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "readable",
+          "expected": "1 l",
+          "eligible": true,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "",
+                "valid": false
+              }
+            ],
+            "correct": false
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "",
+                "valid": false
+              }
+            ],
+            "correct": false
+          }
+        },
+        "packDate": {
+          "labelStatus": "readable",
+          "expected": "19/10/25",
+          "eligible": true,
+          "raw": {
+            "actual": "&",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "&",
+                "valid": false
+              }
+            ],
+            "correct": false
+          },
+          "spatial": {
+            "actual": "&",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "&",
+                "valid": false
+              }
+            ],
+            "correct": false
+          }
+        }
+      }
+    },
+    {
+      "sampleId": "CF-006",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/11.jpg",
+      "sourceSha256": "34b8b602484c492408dd2921d1a657e8f030a97706da41deac04c110f7354120",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/5/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ],
+        "indexMapping": "Each array position is the same original OCR line; no mutation."
+      },
+      "originalLineCount": 35,
+      "rawTextPreserved": true,
+      "transcriptChanged": false,
+      "rawText": "OZONIZED\nIS14543\nS/SALTS OF\nmgll\nAND SODIUM (0.1*n\n.RECYCLE\n8163-170,\nKONDAN VILLAGE,\nWO\nNo.100110420001\nB0-27-000-05-AAACH3005M-22\nCM/L-6100089707\nTHE COCA-COLAC\nRAGES PVT.LTD.,\nfssai\nRD,SEC-56,\nLic. No.\n0824\n10012011000620\nSTORE IN A COOL AND\nTOR AT:\nDRY PLACE. KEEPTHE\n4\nGHT 18.49\ncola.com\nCONTAINER AWAY\nROM DIRECT\nNLIGHT.DO NOT\nBUY IF CAP/SEAL IS\nBROKEN.\nNET QUANTITY:\nFOR BIS CERTIFICATION\nDETAILS SEE\nWEBSITE www.bis.gov.in\n1L",
+      "derivedTranscript": "OZONIZED\nIS14543\nS/SALTS OF\nmgll\nAND SODIUM (0.1*n\n.RECYCLE\n8163-170,\nKONDAN VILLAGE,\nWO\nNo.100110420001\nB0-27-000-05-AAACH3005M-22\nCM/L-6100089707\nTHE COCA-COLAC\nRAGES PVT.LTD.,\nfssai\nRD,SEC-56,\nLic. No.\n0824\n10012011000620\nSTORE IN A COOL AND\nTOR AT:\nDRY PLACE. KEEPTHE\n4\nGHT 18.49\ncola.com\nCONTAINER AWAY\nROM DIRECT\nNLIGHT.DO NOT\nBUY IF CAP/SEAL IS\nBROKEN.\nNET QUANTITY:\nFOR BIS CERTIFICATION\nDETAILS SEE\nWEBSITE www.bis.gov.in\n1L",
+      "joinedRows": [],
+      "unchangedRows": 35,
+      "associations": [],
+      "abstentions": [
+        {
+          "sourceId": "CF-006:line-11",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-006:line-13",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-006:line-18",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-006:line-24",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-006:line-31",
+          "reason": "no_unambiguous_same_row_value",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-006:line-33",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        }
+      ],
+      "fields": {
+        "mrp": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "readable",
+          "expected": "1 l",
+          "eligible": true,
+          "raw": {
+            "actual": ":",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ":",
+                "valid": false
+              }
+            ],
+            "correct": false
+          },
+          "spatial": {
+            "actual": ":",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ":",
+                "valid": false
+              }
+            ],
+            "correct": false
+          }
+        },
+        "packDate": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        }
+      }
+    },
+    {
+      "sampleId": "CF-007",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/13.jpg",
+      "sourceSha256": "1f0025ed0036b861d1ff901f4df776cea6d78c4aafb775555bfd02d7ea5fce5c",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/6/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ],
+        "indexMapping": "Each array position is the same original OCR line; no mutation."
+      },
+      "originalLineCount": 40,
+      "rawTextPreserved": true,
+      "transcriptChanged": false,
+      "rawText": "PACKAGED DRINKIG WATER\nOZONIZED\nINGREDIENTS:TREATED WATER, SALTS OF SODIUM A\nIS14543\nMANUFACTURED BY\nDIAMOND BEVERAGES PVT. LTD.,\nP-43. TARATALA ROAD, KOLKATA - 700 088, W.B.\nEssai\nBEST BEFORE TWELVE MONTHS\nFROM MANUFACTURE\nLic.No.10012031000040\nFOR DATE OF MANUFACTURE,\nCM/-0005146558\nBATCH NO. & M.R.P. (INCL. OF\nALL TAXES): SEE CAP/NECK.\n100\nTRADEMARK OWNER: THE COCAA COMPANY\nMER HELPLINE:1800-208-2653\nE-MAIL:indiahelpline@coca-cola.com\nSTORE IN ACOOL AND DRY PLACE. REEP THE CONTAINER AWAY\nFROM DIRECT SUNLIGHT. DO NOT BUY IF CAP/SEAL IS BROKEN.\nFOR BIS CERTIFICATION DETAILS SEE WEBSITE WW.bis.org.in\nNutrition acts (Typical Values per 100ml)\nEnery O Kcal\nCarbohydrate Og\nC\nSugar 0g\nProtein 0g\nFat Og\n811901\nSodium 0.3 mg\nMagnesium 0.1 mg\nCRUSH THE\nplease\nrecycle\nBOTTLE\nNET QUANTITY:\nONSSUNM\nAFTER USE\n1l",
+      "derivedTranscript": "PACKAGED DRINKIG WATER\nOZONIZED\nINGREDIENTS:TREATED WATER, SALTS OF SODIUM A\nIS14543\nMANUFACTURED BY\nDIAMOND BEVERAGES PVT. LTD.,\nP-43. TARATALA ROAD, KOLKATA - 700 088, W.B.\nEssai\nBEST BEFORE TWELVE MONTHS\nFROM MANUFACTURE\nLic.No.10012031000040\nFOR DATE OF MANUFACTURE,\nCM/-0005146558\nBATCH NO. & M.R.P. (INCL. OF\nALL TAXES): SEE CAP/NECK.\n100\nTRADEMARK OWNER: THE COCAA COMPANY\nMER HELPLINE:1800-208-2653\nE-MAIL:indiahelpline@coca-cola.com\nSTORE IN ACOOL AND DRY PLACE. REEP THE CONTAINER AWAY\nFROM DIRECT SUNLIGHT. DO NOT BUY IF CAP/SEAL IS BROKEN.\nFOR BIS CERTIFICATION DETAILS SEE WEBSITE WW.bis.org.in\nNutrition acts (Typical Values per 100ml)\nEnery O Kcal\nCarbohydrate Og\nC\nSugar 0g\nProtein 0g\nFat Og\n811901\nSodium 0.3 mg\nMagnesium 0.1 mg\nCRUSH THE\nplease\nrecycle\nBOTTLE\nNET QUANTITY:\nONSSUNM\nAFTER USE\n1l",
+      "joinedRows": [],
+      "unchangedRows": 40,
+      "associations": [],
+      "abstentions": [
+        {
+          "sourceId": "CF-007:line-16",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-007:line-18",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-007:line-19",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-007:line-30",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-007:line-37",
+          "reason": "no_unambiguous_same_row_value",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-007:line-38",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        }
+      ],
+      "fields": {
+        "mrp": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "",
+                "valid": false
+              }
+            ],
+            "correct": null
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "",
+                "valid": false
+              }
+            ],
+            "correct": null
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "readable",
+          "expected": "1 l",
+          "eligible": true,
+          "raw": {
+            "actual": ":",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ":",
+                "valid": false
+              }
+            ],
+            "correct": false
+          },
+          "spatial": {
+            "actual": ":",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ":",
+                "valid": false
+              }
+            ],
+            "correct": false
+          }
+        },
+        "packDate": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        }
+      }
+    },
+    {
+      "sampleId": "CF-008",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8902579001360/14.jpg",
+      "sourceSha256": "a7bebcea106e822d878184f0a88a223d4360c0e578366ed3d1c197968bf1bbab",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/7/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ],
+        "indexMapping": "Each array position is the same original OCR line; no mutation."
+      },
+      "originalLineCount": 10,
+      "rawTextPreserved": true,
+      "transcriptChanged": false,
+      "rawText": "5000\n5.00\nRELIANCE SHARTPOINT\nSINCE 1985\nFROOTI MAN 125ML TPK\nRs/Qly\nBulbe ed o nlan at sapn ou\nTotal Rs\nNon PCR Label\nParlē Agro",
+      "derivedTranscript": "5000\n5.00\nRELIANCE SHARTPOINT\nSINCE 1985\nFROOTI MAN 125ML TPK\nRs/Qly\nBulbe ed o nlan at sapn ou\nTotal Rs\nNon PCR Label\nParlē Agro",
+      "joinedRows": [],
+      "unchangedRows": 10,
+      "associations": [],
+      "abstentions": [
+        {
+          "sourceId": "CF-008:line-1",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-008:line-2",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-008:line-3",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-008:line-4",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-008:line-5",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-008:line-6",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-008:line-7",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-008:line-8",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        },
+        {
+          "sourceId": "CF-008:line-9",
+          "reason": "unsupported_rotation_or_skew",
+          "candidateIds": []
+        }
+      ],
+      "fields": {
+        "mrp": {
+          "labelStatus": "ambiguous_field",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "ambiguous_field",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        },
+        "packDate": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "spatial": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        }
+      }
+    }
+  ]
+}

@@ -20,10 +20,14 @@ jobs:
           npm install --global npm@11.13.0 --no-audit --no-fund --ignore-scripts --fetch-timeout=30000 --fetch-retries=2 --fetch-retry-mintimeout=2000 --fetch-retry-maxtimeout=5000
           npm --version
       - run: npm ci --no-audit --no-fund
+      - name: Verify committed local OCR assets (offline SHA-256 gate)
+        run: node tools/verify-ocr-assets.mjs
       - run: npm test
       - name: Test audit gate failure handling
         run: node --test .github/scripts/audit-production.test.mjs
       - run: npm run build
+      - name: Verify OCR assets in the deployable build
+        run: node tools/verify-ocr-assets.mjs dist/ocr/paddle-v1
       - name: Audit production dependencies
         timeout-minutes: 4
         run: node .github/scripts/audit-production.mjs

@@ -148,12 +148,21 @@ const levenshteinDistance = (left, right) => {
   return previous[right.length]
 }
 
-const lineSimilarity = (left, right) => {
+const lineSimilarity = (left, right, budget) => {
   const a = comparableOcrLine(left)
   const b = comparableOcrLine(right)
   if (!a || !b) return 0
+  // Near-identical strings can contain different legal values. Never merge
+  // those merely because their edit distance is small.
+  const numbers = (text) => (text.match(/[-+]?\d+(?:[.,:/-]\d+)*/g) || []).join('|')
+  const units = (text) => (text.toLowerCase().match(/\b(?:kg|g|gm|gms|ml|l|litre|litres|liter|liters|pcs)\b/g) || []).join('|')
+  if (numbers(left) !== numbers(right) || units(left) !== units(right)) return 0
   if (a === b) return 1
   if ((a.includes(b) || b.includes(a)) && Math.min(a.length, b.length) >= 5) return Math.min(a.length, b.length) / Math.max(a.length, b.length)
+  if (Math.min(a.length, b.length) / Math.max(a.length, b.length) < .78 || a.length > 300 || b.length > 300) return 0
+  const cost = a.length * b.length
+  if (budget.remaining < cost) return 0
+  budget.remaining -= cost
   return 1 - levenshteinDistance(a, b) / Math.max(a.length, b.length)
 }
 
@@ -165,20 +174,24 @@ const lineQuality = (value) => {
 }
 
 export function mergeOcrPassTexts(texts = []) {
+  if (!Array.isArray(texts) || texts.length > 64 || texts.some((text) => typeof text !== 'string') || texts.reduce((total, text) => total + text.length, 0) > 500000) throw new Error('OCR output is too large to merge safely. Capture a tighter declaration panel.')
   const merged = []
+  const budget = { remaining: 5000000 }
+  let comparisons = 0
   for (const text of texts) {
     const lines = String(text || '').replace(/\r/g, '').split('\n').map(normalizeOcrLine).filter(Boolean)
     for (const line of lines) {
       let bestIndex = -1
       let bestSimilarity = 0
       merged.forEach((existing, index) => {
-        const similarity = lineSimilarity(existing, line)
+        const similarity = ++comparisons <= 200000 ? lineSimilarity(existing, line, budget) : Number(existing === line)
         if (similarity > bestSimilarity) { bestIndex = index; bestSimilarity = similarity }
       })
       if (bestIndex >= 0 && bestSimilarity >= .78) {
         if (lineQuality(line) > lineQuality(merged[bestIndex])) merged[bestIndex] = line
       } else if (lineQuality(line) >= 3 && !(/^.{1,8}$/.test(line) && !/\d/.test(line) && !/[A-Z]{2}/.test(line))) {
         merged.push(line)
+        if (merged.length > 3000) throw new Error('OCR produced too many lines. Select a smaller declaration region.')
       }
     }
   }
@@ -225,7 +238,11 @@ export function matchDeclarationRegions(extraction, words = []) {
   if (!extraction?.fields?.length || !words.length) return []
   const lines = new Map()
   words.forEach((word) => {
-    const key = `${word.panelId}::${word.lineText}`
+    // OCR engines/crops can retain different coordinate frames for the same
+    // panel and line. Union only within one frame and one geometry type: a
+    // line polygon is not interchangeable with a set of glyph/word boxes.
+    // Do not guess a scale or transform for mixed observations.
+    const key = JSON.stringify([word.panelId, word.lineText, word.pageWidth, word.pageHeight, word.geometryKind ?? 'unspecified'])
     if (!lines.has(key)) lines.set(key, [])
     lines.get(key).push(word)
   })

@@ -144,3 +144,27 @@ test('opening locally cached evidence still verifies its bytes without requestin
     assert.equal(result.evidenceItems[0].originalUrl, localImage)
   })
 })
+
+test('managed seal transmits exact OCR passes but excludes image word boxes', async () => {
+  const { api } = setup(); const source = record()
+  Object.assign(source.evidenceItems[0], { originalUrl: `data:image/png;base64,${png.toString('base64')}`, analysisUrl: `data:image/png;base64,${png.toString('base64')}`, ocrProvider: 'tesseract.js', ocrPasses: [{ id: 'raw:1', text: ' MRP:22.00\r\n', provider: 'tesseract.js' }], ocrWords: [] })
+  let submitted
+  await withFetch(async (url, options) => {
+    if (String(url).startsWith('data:')) return nativeFetch(url, options)
+    if (url === '/api/evidence') return json({ path: JSON.parse(options.body).kind === 'original' ? originalPath : analysisPath, verified: true })
+    assert.equal(url, '/api/cases')
+    submitted = JSON.parse(options.body).record
+    return json({ record: submitted })
+  }, async () => { await api.transport({ kind: 'seal', payload: source }) })
+  assert.deepEqual(submitted.evidenceItems[0].ocrPasses, source.evidenceItems[0].ocrPasses)
+  assert.equal(submitted.evidenceItems[0].ocrWords, undefined)
+})
+
+test('invalid OCR history fails before any private image upload', async () => {
+  const { api } = setup(); const source = record(); let requests = 0
+  source.evidenceItems[0].ocrPasses = [{ id: 'duplicate', text: '40' }, { id: 'duplicate', text: '48' }]
+  await withFetch(async () => { requests++; return json({}) }, async () => {
+    await assert.rejects(api.transport({ kind: 'seal', payload: source }), { status: 422, message: /Duplicate/ })
+  })
+  assert.equal(requests, 0)
+})

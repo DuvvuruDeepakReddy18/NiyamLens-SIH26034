@@ -73,3 +73,20 @@ test('OCR reliability rejects empty recognition even when capture quality is hig
   assert.equal(result.score, 0)
   assert.match(result.reason, /no readable/i)
 })
+
+test('OCR merging never erases conflicting numeric declarations or units', () => {
+  for (const [first, second] of [['MRP Rs. 40.00', 'MRP Rs. 48.00'], ['NET QTY 100 g', 'NET QTY 100 ml'], ['PACKED 08/2026', 'PACKED 09/2026'], ['MRP Rs. 50', 'MRP Rs. -50']]) {
+    const merged = mergeOcrPassTexts([first, second])
+    assert.ok(merged.includes(first))
+    assert.ok(merged.includes(second))
+  }
+})
+
+test('OCR merging bounds malformed output and keeps long distinct lines without quadratic edit-distance work', () => {
+  assert.throws(() => mergeOcrPassTexts(['x'.repeat(500001)]), /too large/)
+  assert.throws(() => mergeOcrPassTexts([{}]), /too large/)
+  const start = performance.now()
+  const merged = mergeOcrPassTexts(['a'.repeat(90000), 'b'.repeat(90000)])
+  assert.equal(merged.split('\n').length, 2)
+  assert.ok(performance.now() - start < 1000)
+})

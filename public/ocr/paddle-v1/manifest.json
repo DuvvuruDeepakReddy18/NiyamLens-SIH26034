@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "assetId": "paddle-v1",
+  "preparedOn": "2026-09-04",
+  "purpose": "Optional local browser OCR experiment; recognition quality and browser compatibility must be separately verified.",
+  "sdkVersion": "0.4.2",
+  "onnxRuntimeVersion": "1.24.3",
+  "photosUploaded": false,
+  "noRuntimeCdnFallback": "Caller must explicitly provide same-origin model URLs, a custom same-origin worker and ortOptions.wasmPaths. This preparation script does not modify SDK behaviour or application defaults.",
+  "runtimeOptions": {
+    "backend": "wasm",
+    "numThreads": 1,
+    "proxy": false,
+    "wasmPaths": "/ocr/paddle-v1/runtime/"
+  },
+  "workerUrl": "/ocr/paddle-v1/worker.js",
+  "modelAssets": {
+    "det": {
+      "modelName": "PP-OCRv6_small_det",
+      "url": "/ocr/paddle-v1/models/PP-OCRv6_small_det_onnx_infer.tar"
+    },
+    "rec": {
+      "modelName": "PP-OCRv6_small_rec",
+      "url": "/ocr/paddle-v1/models/PP-OCRv6_small_rec_onnx_infer.tar"
+    }
+  },
+  "sourceHashPolicy": "Local SDK/runtime files and downloaded model archives must match pinned SHA-256 digests. First-source capture is an explicit bootstrap step, never automatic trust on every run.",
+  "licenses": "Original worker comments are preserved byte-for-byte. See licenses/ and per-artifact source records. Project licences alone do not independently prove all model-training data or redistribution rights.",
+  "artifacts": [
+    {
+      "path": "worker.js",
+      "bytes": 11341486,
+      "sha256": "477db3f009c118823a5f9ebe15f1e96c1c464165715ba28a9884290f61addf52",
+      "sourceUrl": "https://registry.npmjs.org/@paddleocr/paddleocr-js/-/paddleocr-js-0.4.2.tgz",
+      "sourceEntry": "@paddleocr/paddleocr-js/dist/assets/worker-entry-C9UNuyOJ.js",
+      "license": "Apache-2.0 SDK; embedded dependency notices retained in original bytes"
+    },
+    {
+      "path": "runtime/ort-wasm-simd-threaded.jsep.mjs",
+      "bytes": 46595,
+      "sha256": "9a99acd12acc495184c9ea4d458ac9424f8180aacfbc7b8371ed64f9351e4a81",
+      "sourceUrl": "https://registry.npmjs.org/onnxruntime-web/-/onnxruntime-web-1.24.3.tgz",
+      "sourceEntry": "onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.mjs",
+      "license": "MIT plus bundled third-party components"
+    },
+    {
+      "path": "runtime/ort-wasm-simd-threaded.jsep.wasm",
+      "bytes": 25014754,
+      "sha256": "2e0a3d0e3f6b7c13ecfaba38c13691fd19c9ed470e72f9d7d8416ca59ab6dbcd",
+      "sourceUrl": "https://registry.npmjs.org/onnxruntime-web/-/onnxruntime-web-1.24.3.tgz",
+      "sourceEntry": "onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.wasm",
+      "license": "MIT plus bundled third-party components"
+    },
+    {
+      "path": "models/PP-OCRv6_small_det_onnx_infer.tar",
+      "bytes": 9891840,
+      "sha256": "d218f6fbf0f1c23d2161bd6ac7f5eaa6104fa89955c09290497e31008e2618e4",
+      "sourceUrl": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv6_small_det_onnx_infer.tar",
+      "license": "Official Paddle model archive; upstream PaddleOCR project Apache-2.0 licence retained separately; archive resource list retained for review",
+      "declaredModelName": "PP-OCRv6_small_det",
+      "resources": [
+        {
+          "name": "PP-OCRv6_small_det_onnx_infer/inference.onnx",
+          "bytes": 9880512,
+          "sha256": "d73e0058b7a8086bbd57f3d10b8bcd4ff95363f67e06e2762b5e814fe9c9410e"
+        },
+        {
+          "name": "PP-OCRv6_small_det_onnx_infer/inference.yml",
+          "bytes": 885,
+          "sha256": "193f435274bf9f0b5f71a929bbfbcf148282df7e633b34e7c373e8f44741b516"
+        }
+      ],
+      "requiredResourcesPresent": true,
+      "browserInferenceVerified": false
+    },
+    {
+      "path": "models/PP-OCRv6_small_rec_onnx_infer.tar",
+      "bytes": 21319680,
+      "sha256": "d267ab077a44a0eedb1ea8f8c542d263f211de8e9d7a029bf9fcfff7e5a88fb1",
+      "sourceUrl": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv6_small_rec_onnx_infer.tar",
+      "license": "Official Paddle model archive; upstream PaddleOCR project Apache-2.0 licence retained separately; archive resource list retained for review",
+      "declaredModelName": "PP-OCRv6_small_rec",
+      "resources": [
+        {
+          "name": "PP-OCRv6_small_rec_onnx_infer/inference.onnx",
+          "bytes": 21159378,
+          "sha256": "5435fd747c9e0efe15a96d0b378d5bd157e9492ed8fd80edf08f30d02fa24634"
+        },
+        {
+          "name": "PP-OCRv6_small_rec_onnx_infer/inference.yml",
+          "bytes": 150579,
+          "sha256": "ab078671bb49f06228eadccd34f1bb501e157f7a047095ffb943ba81512c77d1"
+        }
+      ],
+      "requiredResourcesPresent": true,
+      "browserInferenceVerified": false
+    },
+    {
+      "path": "licenses/PaddleOCR-LICENSE.txt",
+      "bytes": 11376,
+      "sha256": "3840c5c0c61c294264d2dd77b8777be6ddd90121ef4e0e64abcd22edea581d6e",
+      "sourceUrl": "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/LICENSE",
+      "license": "Apache-2.0 upstream project licence"
+    },
+    {
+      "path": "licenses/ONNXRuntime-LICENSE.txt",
+      "bytes": 1073,
+      "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c",
+      "sourceUrl": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.24.3/LICENSE",
+      "license": "MIT"
+    },
+    {
+      "path": "licenses/ONNXRuntime-ThirdPartyNotices.txt",
+      "bytes": 325054,
+      "sha256": "0e07b95f3a8d6230037707c5c4a2b554d12c4cb67369669ac255635528ffcee2",
+      "sourceUrl": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.24.3/ThirdPartyNotices.txt",
+      "license": "Upstream third-party notices"
+    },
+    {
+      "path": "licenses/paddleocr-paddleocr-js/package.json",
+      "bytes": 1640,
+      "sha256": "b0852f082e668d85e480ec8804e3b7430c60a5b920991d1be75e5d2e5d6879be",
+      "sourcePackage": "@paddleocr/paddleocr-js",
+      "sourceEntry": "package.json",
+      "purpose": "Preserved installed-package metadata/licence/source notices; transitive dependency versions do not establish exact bundled-worker versions"
+    },
+    {
+      "path": "licenses/paddleocr-paddleocr-js/README.md",
+      "bytes": 8361,
+      "sha256": "b8d96b2cd14df481c77e67743345f4f478aa25fe7149b1ee41e863811666ebfe",
+      "sourcePackage": "@paddleocr/paddleocr-js",
+      "sourceEntry": "README.md",
+      "purpose": "Preserved installed-package metadata/licence/source notices; transitive dependency versions do not establish exact bundled-worker versions"
+    },
+    {
+      "path": "licenses/onnxruntime-web/package.json",
+      "bytes": 4551,
+      "sha256": "edf1fff2184d8ca160e055f25c280ba4cf91b1db9109369573c6e73088aefb4b",
+      "sourcePackage": "onnxruntime-web",
+      "sourceEntry": "package.json",
+      "purpose": "Preserved installed-package metadata/licence/source notices; transitive dependency versions do not establish exact bundled-worker versions"
+    },
+    {
+      "path": "licenses/techstark-opencv-js/package.json",
+      "bytes": 934,
+      "sha256": "e04887eeeaeef91d673c6cd07d92e05da4f41655cb08de461f9d633581b175a3",
+      "sourcePackage": "@techstark/opencv-js",
+      "sourceEntry": "package.json",
+      "purpose": "Preserved installed-package metadata/licence/source notices; transitive dependency versions do not establish exact bundled-worker versions"
+    },
+    {
+      "path": "licenses/techstark-opencv-js/LICENSE",
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "sourcePackage": "@techstark/opencv-js",
+      "sourceEntry": "LICENSE",
+      "purpose": "Preserved installed-package metadata/licence/source notices; transitive dependency versions do not establish exact bundled-worker versions"
+    },
+    {
+      "path": "licenses/js-yaml/package.json",
+      "bytes": 2281,
+      "sha256": "3eeb05aa0ceb4c3686e44c9b5d9b88f914b099ba9a7426b36947e65c6373d9a5",
+      "sourcePackage": "js-yaml",
+      "sourceEntry": "package.json",
+      "purpose": "Preserved installed-package metadata/licence/source notices; transitive dependency versions do not establish exact bundled-worker versions"
+    },
+    {
+      "path": "licenses/js-yaml/LICENSE",
+      "bytes": 1084,
+      "sha256": "a07bc24468b9654ce76a547d47a2db282d07733b715db4c73a98bd63961f9550",
+      "sourcePackage": "js-yaml",
+      "sourceEntry": "LICENSE",
+      "purpose": "Preserved installed-package metadata/licence/source notices; transitive dependency versions do not establish exact bundled-worker versions"
+    },
+    {
+      "path": "licenses/clipper-lib/package.json",
+      "bytes": 448,
+      "sha256": "ceb486780dca92ab9582a5fa991c7b0c277752403c9a0b53625e5439f8d0cbdd",
+      "sourcePackage": "clipper-lib",
+      "sourceEntry": "package.json",
+      "purpose": "Preserved installed-package metadata/licence/source notices; transitive dependency versions do not establish exact bundled-worker versions"
+    },
+    {
+      "path": "licenses/clipper-lib/clipper.js",
+      "bytes": 203786,
+      "sha256": "a650c6946682edc1a64016f6553eeb5c32ce45eb7ca0ad5d8221961af011d97c",
+      "sourcePackage": "clipper-lib",
+      "sourceEntry": "clipper.js",
+      "purpose": "Preserved installed-package metadata/licence/source notices; transitive dependency versions do not establish exact bundled-worker versions"
+    }
+  ],
+  "totalArtifactBytes": 68186300
+}

@@ -1,0 +1,502 @@
+{
+  "purpose": "Literal token-presence diagnostics; not field extraction accuracy",
+  "manifestSha256": "4f869df89f6246e774189a7522e2798f5ab680b83e887eb8ddeae6c08fd977ad",
+  "warning": "A matching number anywhere in OCR can belong to another field. No heading/location association or accepted verdict is inferred. Quantity spelling/case normalization only; no digit repair or arithmetic. This previously used eight-image development corpus has provisional AI labels, not human-reviewed holdout ground truth.",
+  "runs": [
+    {
+      "mode": "english-original",
+      "rawTokenPresent": 5,
+      "eligibleTokens": 10,
+      "inferenceMs": 31560,
+      "inputSha256": "5e2ed6853c9d67bb990406e895b334897dc2374d50a84c6620ab083a65ad18e8",
+      "fields": [
+        {
+          "sampleId": "CF-001",
+          "field": "mrp",
+          "expected": "22.00",
+          "rawTokenPresent": true,
+          "matchedToken": "22.00",
+          "matchedLine": "MRP:22.00",
+          "error": null
+        },
+        {
+          "sampleId": "CF-001",
+          "field": "netQuantity",
+          "expected": "500 ml",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-002",
+          "field": "mrp",
+          "expected": "27",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-003",
+          "field": "mrp",
+          "expected": "90.00",
+          "rawTokenPresent": true,
+          "matchedToken": "90.00",
+          "matchedLine": "90.00 USP",
+          "error": null
+        },
+        {
+          "sampleId": "CF-003",
+          "field": "packDate",
+          "expected": "02/08/2026",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-004",
+          "field": "netQuantity",
+          "expected": "910 g",
+          "rawTokenPresent": true,
+          "matchedToken": "910 g",
+          "matchedLine": "TENTS at 30° C: 910 g",
+          "error": null
+        },
+        {
+          "sampleId": "CF-005",
+          "field": "netQuantity",
+          "expected": "1 l",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-005",
+          "field": "packDate",
+          "expected": "19/10/25",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-006",
+          "field": "netQuantity",
+          "expected": "1 l",
+          "rawTokenPresent": true,
+          "matchedToken": "1L",
+          "matchedLine": "1L",
+          "error": null
+        },
+        {
+          "sampleId": "CF-007",
+          "field": "netQuantity",
+          "expected": "1 l",
+          "rawTokenPresent": true,
+          "matchedToken": "1l",
+          "matchedLine": "1l",
+          "error": null
+        }
+      ]
+    },
+    {
+      "mode": "english-highres",
+      "rawTokenPresent": 5,
+      "eligibleTokens": 10,
+      "inferenceMs": 53334,
+      "inputSha256": "5e2ed6853c9d67bb990406e895b334897dc2374d50a84c6620ab083a65ad18e8",
+      "fields": [
+        {
+          "sampleId": "CF-001",
+          "field": "mrp",
+          "expected": "22.00",
+          "rawTokenPresent": true,
+          "matchedToken": "22.00",
+          "matchedLine": "MRP:22.00",
+          "error": null
+        },
+        {
+          "sampleId": "CF-001",
+          "field": "netQuantity",
+          "expected": "500 ml",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-002",
+          "field": "mrp",
+          "expected": "27",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-003",
+          "field": "mrp",
+          "expected": "90.00",
+          "rawTokenPresent": true,
+          "matchedToken": "90.00",
+          "matchedLine": "90.00 USP",
+          "error": null
+        },
+        {
+          "sampleId": "CF-003",
+          "field": "packDate",
+          "expected": "02/08/2026",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-004",
+          "field": "netQuantity",
+          "expected": "910 g",
+          "rawTokenPresent": true,
+          "matchedToken": "910 g",
+          "matchedLine": "TENTS at 30° C: 910 g",
+          "error": null
+        },
+        {
+          "sampleId": "CF-005",
+          "field": "netQuantity",
+          "expected": "1 l",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-005",
+          "field": "packDate",
+          "expected": "19/10/25",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-006",
+          "field": "netQuantity",
+          "expected": "1 l",
+          "rawTokenPresent": true,
+          "matchedToken": "1L",
+          "matchedLine": "1L",
+          "error": null
+        },
+        {
+          "sampleId": "CF-007",
+          "field": "netQuantity",
+          "expected": "1 l",
+          "rawTokenPresent": true,
+          "matchedToken": "1l",
+          "matchedLine": "1l",
+          "error": null
+        }
+      ]
+    },
+    {
+      "mode": "english-grid",
+      "rawTokenPresent": 5,
+      "eligibleTokens": 10,
+      "inferenceMs": 98432,
+      "inputSha256": "5e2ed6853c9d67bb990406e895b334897dc2374d50a84c6620ab083a65ad18e8",
+      "fields": [
+        {
+          "sampleId": "CF-001",
+          "field": "mrp",
+          "expected": "22.00",
+          "rawTokenPresent": true,
+          "matchedToken": "22.00",
+          "matchedLine": "MRP:22.00",
+          "error": null
+        },
+        {
+          "sampleId": "CF-001",
+          "field": "netQuantity",
+          "expected": "500 ml",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-002",
+          "field": "mrp",
+          "expected": "27",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-003",
+          "field": "mrp",
+          "expected": "90.00",
+          "rawTokenPresent": true,
+          "matchedToken": "90.00",
+          "matchedLine": "90.00 US",
+          "error": null
+        },
+        {
+          "sampleId": "CF-003",
+          "field": "packDate",
+          "expected": "02/08/2026",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-004",
+          "field": "netQuantity",
+          "expected": "910 g",
+          "rawTokenPresent": true,
+          "matchedToken": "910g",
+          "matchedLine": "NTENTS at 30° C: 910g",
+          "error": null
+        },
+        {
+          "sampleId": "CF-005",
+          "field": "netQuantity",
+          "expected": "1 l",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-005",
+          "field": "packDate",
+          "expected": "19/10/25",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-006",
+          "field": "netQuantity",
+          "expected": "1 l",
+          "rawTokenPresent": true,
+          "matchedToken": "1L",
+          "matchedLine": "1L",
+          "error": null
+        },
+        {
+          "sampleId": "CF-007",
+          "field": "netQuantity",
+          "expected": "1 l",
+          "rawTokenPresent": true,
+          "matchedToken": "1l",
+          "matchedLine": "1l",
+          "error": null
+        }
+      ]
+    },
+    {
+      "mode": "english-rotate90",
+      "rawTokenPresent": 3,
+      "eligibleTokens": 10,
+      "inferenceMs": 29696,
+      "inputSha256": "5e2ed6853c9d67bb990406e895b334897dc2374d50a84c6620ab083a65ad18e8",
+      "fields": [
+        {
+          "sampleId": "CF-001",
+          "field": "mrp",
+          "expected": "22.00",
+          "rawTokenPresent": true,
+          "matchedToken": "22.00",
+          "matchedLine": "MRP:22.00",
+          "error": null
+        },
+        {
+          "sampleId": "CF-001",
+          "field": "netQuantity",
+          "expected": "500 ml",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-002",
+          "field": "mrp",
+          "expected": "27",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-003",
+          "field": "mrp",
+          "expected": "90.00",
+          "rawTokenPresent": true,
+          "matchedToken": "90.00",
+          "matchedLine": "90.00 USP RS 0.18/9",
+          "error": null
+        },
+        {
+          "sampleId": "CF-003",
+          "field": "packDate",
+          "expected": "02/08/2026",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-004",
+          "field": "netQuantity",
+          "expected": "910 g",
+          "rawTokenPresent": true,
+          "matchedToken": "910 g",
+          "matchedLine": "NTENTS at 30° C: 910 g",
+          "error": null
+        },
+        {
+          "sampleId": "CF-005",
+          "field": "netQuantity",
+          "expected": "1 l",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-005",
+          "field": "packDate",
+          "expected": "19/10/25",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-006",
+          "field": "netQuantity",
+          "expected": "1 l",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-007",
+          "field": "netQuantity",
+          "expected": "1 l",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        }
+      ]
+    },
+    {
+      "mode": "rapidocr-default-whole-image",
+      "rawTokenPresent": 6,
+      "eligibleTokens": 10,
+      "inferenceMs": 30811,
+      "inputSha256": "d5febd520cb6debb1486548879a54e127ce184c7f3ab695d8bfc09340b677030",
+      "fields": [
+        {
+          "sampleId": "CF-001",
+          "field": "mrp",
+          "expected": "22.00",
+          "rawTokenPresent": true,
+          "matchedToken": "22.00",
+          "matchedLine": "MRP:22.00",
+          "error": null
+        },
+        {
+          "sampleId": "CF-001",
+          "field": "netQuantity",
+          "expected": "500 ml",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-002",
+          "field": "mrp",
+          "expected": "27",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-003",
+          "field": "mrp",
+          "expected": "90.00",
+          "rawTokenPresent": true,
+          "matchedToken": "90.00",
+          "matchedLine": "90.00 USP",
+          "error": null
+        },
+        {
+          "sampleId": "CF-003",
+          "field": "packDate",
+          "expected": "02/08/2026",
+          "rawTokenPresent": true,
+          "matchedToken": "02/08/2026",
+          "matchedLine": "02/08/2026",
+          "error": null
+        },
+        {
+          "sampleId": "CF-004",
+          "field": "netQuantity",
+          "expected": "910 g",
+          "rawTokenPresent": true,
+          "matchedToken": "910g",
+          "matchedLine": "NTENTS at 30°C: 910g",
+          "error": null
+        },
+        {
+          "sampleId": "CF-005",
+          "field": "netQuantity",
+          "expected": "1 l",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-005",
+          "field": "packDate",
+          "expected": "19/10/25",
+          "rawTokenPresent": false,
+          "matchedToken": null,
+          "matchedLine": null,
+          "error": null
+        },
+        {
+          "sampleId": "CF-006",
+          "field": "netQuantity",
+          "expected": "1 l",
+          "rawTokenPresent": true,
+          "matchedToken": "1L",
+          "matchedLine": "1L",
+          "error": null
+        },
+        {
+          "sampleId": "CF-007",
+          "field": "netQuantity",
+          "expected": "1 l",
+          "rawTokenPresent": true,
+          "matchedToken": "1l",
+          "matchedLine": "1l",
+          "error": null
+        }
+      ]
+    }
+  ]
+}

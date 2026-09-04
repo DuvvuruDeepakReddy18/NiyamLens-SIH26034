@@ -1,0 +1,3097 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-04T11:04:49.640Z",
+  "experiment": "general-overlap-reading-order-v1",
+  "status": "experimental-helper-not-integrated",
+  "input": {
+    "path": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+    "sha256": "d5febd520cb6debb1486548879a54e127ce184c7f3ab695d8bfc09340b677030"
+  },
+  "manifest": {
+    "path": "datasets/critical-fields.v1.json",
+    "sha256": "4f869df89f6246e774189a7522e2798f5ab680b83e887eb8ddeae6c08fd977ad",
+    "annotationStatus": "provisional-human-review-required",
+    "corpusRole": "previously-used-development-corpus",
+    "isHoldout": false
+  },
+  "code": [
+    {
+      "path": "src/lib/ocrReadingOrder.mjs",
+      "sha256": "0d47d388874b07d595acf02089fdeba64d0c2d6d86d414002e91e2349d6c5e0e"
+    },
+    {
+      "path": "src/lib/extraction.mjs",
+      "sha256": "a24f6295a1827e3e020eadac572f47ae4998667c41034ea4dc06803dd6fbb3ef"
+    },
+    {
+      "path": "src/lib/labelParser.mjs",
+      "sha256": "b4e4d243023e18ed3fc88429a3ef1abe8c132c899c669113463e37d56f57ec99"
+    }
+  ],
+  "sourceHashesVerified": 8,
+  "policy": {
+    "maxLines": 1000,
+    "maxCharacters": 100000,
+    "maxLineCharacters": 2000,
+    "maxSkewDegrees": 15,
+    "maxEdgeSkewDifference": 5,
+    "maxPairSkewDifference": 5,
+    "minVerticalOverlap": 0.5,
+    "maxCentreOffsetHeights": 0.6,
+    "maxHeightRatio": 2.5,
+    "maxGapHeights": 8,
+    "maxPartsPerRow": 12
+  },
+  "summary": {
+    "photos": 8,
+    "eligibleCriticalFields": 10,
+    "rawExactMatches": 1,
+    "derivedExactMatches": 2,
+    "reviewableProposalCount": 1,
+    "perField": {
+      "mrp": {
+        "referenceFields": 3,
+        "rawCorrect": 1,
+        "derivedCorrect": 1
+      },
+      "netQuantity": {
+        "referenceFields": 5,
+        "rawCorrect": 0,
+        "derivedCorrect": 0
+      },
+      "packDate": {
+        "referenceFields": 2,
+        "rawCorrect": 0,
+        "derivedCorrect": 1
+      }
+    },
+    "complianceVerdictMetric": null,
+    "automaticProductionAccuracyClaim": null
+  },
+  "jaggeryGeometry": {
+    "explanation": "Heading and value columns have different row pitches. Their centres are not equal, but projected half-height overlap yields unique PACKED/date and USEBY/date pairs. MRP/price does not meet the row band. No ordinal matching between column rows is used.",
+    "pairs": [
+      {
+        "label": "batch",
+        "heading": {
+          "index": 5,
+          "text": "BATCHNO:",
+          "box": [
+            [
+              40.109092712402344,
+              303.1451416015625
+            ],
+            [
+              371.00909423828125,
+              303.1451416015625
+            ],
+            [
+              371.00909423828125,
+              367.5635070800781
+            ],
+            [
+              40.109092712402344,
+              367.5635070800781
+            ]
+          ],
+          "geometry": {
+            "width": 330.9000015258789,
+            "height": 64.41836547851562,
+            "angle": 0,
+            "centre": [
+              205.5590934753418,
+              335.3543243408203
+            ],
+            "supported": true
+          }
+        },
+        "value": {
+          "index": 4,
+          "text": "GFJP030726650745",
+          "box": [
+            [
+              937.550048828125,
+              266.5151062011719
+            ],
+            [
+              1690.8489990234375,
+              243.7792205810547
+            ],
+            [
+              1694.609130859375,
+              357.4586486816406
+            ],
+            [
+              941.3102416992188,
+              380.1945495605469
+            ]
+          ],
+          "geometry": {
+            "width": 753.6419463044072,
+            "height": 113.74160597078131,
+            "angle": -1.728763121053019,
+            "centre": [
+              1316.079605102539,
+              311.9868812561035
+            ],
+            "supported": true
+          }
+        },
+        "relation": {
+          "compatible": true,
+          "reason": null,
+          "metrics": {
+            "angleDegrees": -0.8643815605265094,
+            "horizontalGap": 567.0290753181034,
+            "gapHeights": 4.98523887084701,
+            "overlapFraction": 1,
+            "centreOffsetHeights": 0.05812973293742799,
+            "heightRatio": 1.7656704749628525
+          }
+        }
+      },
+      {
+        "label": "packed-date",
+        "heading": {
+          "index": 7,
+          "text": "PACKED ON:",
+          "box": [
+            [
+              45.12273025512695,
+              439.5604553222656
+            ],
+            [
+              417.38525390625,
+              439.5604553222656
+            ],
+            [
+              417.38525390625,
+              502.7156982421875
+            ],
+            [
+              45.12273025512695,
+              502.7156982421875
+            ]
+          ],
+          "geometry": {
+            "width": 372.26252365112305,
+            "height": 63.155242919921875,
+            "angle": 0,
+            "centre": [
+              231.25399208068848,
+              471.13807678222656
+            ],
+            "supported": true
+          }
+        },
+        "value": {
+          "index": 6,
+          "text": "02/08/2026",
+          "box": [
+            [
+              950.0841064453125,
+              370.0896911621094
+            ],
+            [
+              1420.112548828125,
+              359.98486328125
+            ],
+            [
+              1422.619384765625,
+              468.61187744140625
+            ],
+            [
+              952.5909423828125,
+              478.7167053222656
+            ]
+          ],
+          "geometry": {
+            "width": 470.13704831178177,
+            "height": 108.65593601717454,
+            "angle": -1.231574023912528,
+            "centre": [
+              1186.3517456054688,
+              419.3507843017578
+            ],
+            "supported": true
+          }
+        },
+        "relation": {
+          "compatible": true,
+          "reason": null,
+          "metrics": {
+            "angleDegrees": -0.615787011956264,
+            "horizontalGap": 533.4147104998642,
+            "gapHeights": 4.909209105847202,
+            "overlapFraction": 0.7282958630307725,
+            "centreOffsetHeights": 0.3821197186991412,
+            "heightRatio": 1.720457890644892
+          }
+        }
+      },
+      {
+        "label": "use-by",
+        "heading": {
+          "index": 9,
+          "text": "USE BY:",
+          "box": [
+            [
+              45.12273025512695,
+              574.7127075195312
+            ],
+            [
+              280.7636413574219,
+              565.8709716796875
+            ],
+            [
+              283.2704772949219,
+              635.3417358398438
+            ],
+            [
+              47.629547119140625,
+              644.1834716796875
+            ]
+          ],
+          "geometry": {
+            "width": 235.80674242327132,
+            "height": 69.51597839058063,
+            "angle": -2.1488483443832114,
+            "centre": [
+              164.19659900665283,
+              605.0272216796875
+            ],
+            "supported": true
+          }
+        },
+        "value": {
+          "index": 8,
+          "text": "01/08/2027",
+          "box": [
+            [
+              955.0977783203125,
+              481.242919921875
+            ],
+            [
+              1420.112548828125,
+              473.664306640625
+            ],
+            [
+              1421.365966796875,
+              581.0281982421875
+            ],
+            [
+              956.3511962890625,
+              588.6068115234375
+            ]
+          ],
+          "geometry": {
+            "width": 465.07652291821853,
+            "height": 107.3712078559073,
+            "angle": -0.9336996252221669,
+            "centre": [
+              1188.2318725585938,
+              531.1355590820312
+            ],
+            "supported": true
+          }
+        },
+        "relation": {
+          "compatible": true,
+          "reason": null,
+          "metrics": {
+            "angleDegrees": -1.5412739848026893,
+            "horizontalGap": 674.0942363094721,
+            "gapHeights": 6.278165718449492,
+            "overlapFraction": 0.6364162971674688,
+            "centreOffsetHeights": 0.4314135082429937,
+            "heightRatio": 1.5445543649351274
+          }
+        }
+      },
+      {
+        "label": "mrp-versus-price",
+        "heading": {
+          "index": 12,
+          "text": "MRP-USP:",
+          "box": [
+            [
+              52.643184661865234,
+              708.601806640625
+            ],
+            [
+              467.5216064453125,
+              698.4969482421875
+            ],
+            [
+              468.7750244140625,
+              769.2308349609375
+            ],
+            [
+              53.8965950012207,
+              779.3356323242188
+            ]
+          ],
+          "geometry": {
+            "width": 415.00146454355786,
+            "height": 70.74496066950388,
+            "angle": -1.39522691676152,
+            "centre": [
+              260.70910263061523,
+              738.9163055419922
+            ],
+            "supported": true
+          }
+        },
+        "value": {
+          "index": 10,
+          "text": "90.00 USP",
+          "box": [
+            [
+              953.8443603515625,
+              584.8175048828125
+            ],
+            [
+              1385.01708984375,
+              574.7127075195312
+            ],
+            [
+              1387.52392578125,
+              684.602783203125
+            ],
+            [
+              956.3511962890625,
+              694.7076416015625
+            ]
+          ],
+          "geometry": {
+            "width": 431.2911200155248,
+            "height": 109.91869571334249,
+            "angle": -1.3425200402414719,
+            "centre": [
+              1170.6841430664062,
+              634.7101593017578
+            ],
+            "supported": true
+          }
+        },
+        "relation": {
+          "compatible": false,
+          "reason": "insufficient_vertical_overlap",
+          "metrics": {
+            "angleDegrees": -1.368873478501496,
+            "horizontalGap": 488.7806083894536,
+            "gapHeights": 4.4467467996904455,
+            "overlapFraction": 0.11401795354649591,
+            "centreOffsetHeights": 0.7499901954687884,
+            "heightRatio": 1.5537318089248056
+          }
+        }
+      }
+    ]
+  },
+  "interpretation": "Same current parser and exact8photos: raw1/10 valid exact critical fields, full derived ordering2/10. The only additional eligible field is Jaggery PACKED ON:02/08/2026. Exactly1review-only declaration proposal survives filtering. General full-row transcript is not safe for automatic adoption because unrelated same-y columns also get joined.",
+  "parserInteraction": "Parent dotted-PKD-BY punctuation fix is present in both arms. Raw remains1/10 with that parser; adding geometry produces2/10. Removing the spurious PKD.by conflict is a prerequisite for the reconstructed date to count, not an OCR character-recognition gain.",
+  "deploymentRecommendation": "Do not silently replace raw OCR with the full derived transcript. At most expose strict mapped reviewableDeclarationProposals for explicit officer acceptance, preserving raw evidence and logging the decision.",
+  "limitations": [
+    "AI visual labels are provisional and require independent human review; this is reused development data, not holdout.",
+    "Geometry policy was developed after inspecting development-image box geometry and synthetic safety cases, not measured on an independent evaluation set.",
+    "Numeric values, headings, units, spelling and punctuation are not repaired. Only row order and spaces change.",
+    "Original strings and boxes are retained in the hash-linked input; reconstructed-row parts repeat exact source mappings.",
+    "Broad row joins include unrelated columns, such as AFTER USE plus1l; proposed declaration filter excludes these but has no independent field-validation proof.",
+    "No officer has accepted the proposal during this benchmark; suggestions are not verified facts or automatic compliance decisions.",
+    "No legal verdict metric, probabilistic confidence calibration, representative field accuracy or production-live claim is made."
+  ],
+  "samples": [
+    {
+      "sampleId": "CF-001",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/6.jpg",
+      "sourceSha256": "9d2187d0603d8781814e24320b452d596dc826a50ba29f0a7643f6d43b0c619b",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/0/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ]
+      },
+      "rawText": "MILKY MILK\nPASTEURISED HOMOGENISER\nTONED MILK\n-308001\nNet Content:\nPILTD SARDARPARA\n PO BALARAM\n500m\n-785135\nTD CHANDITALA\nENGAL-712702\nMRP:22.00\nITO.VILL JIBTYA\n(inclusiver all taxes)\nBANKURA\nUTRITIONAL INFORMATION per iog (apprax. values)\nCTS(P)LTD..\nUse-by date\nEnergy, kcal\n57.8\nTotal Carbohydral \n3.0\nAdded Sugr.\nOPO MAKALPUR,\nTotal fat, g\nESTBENGAL-712 305\nSaturated Fat, g\n2.0\nProlten, g\nTrans Fat, g\n0\nCalcium mg\nXMARPOLE.\nKeep Undef Refrigeration\nHRBOUR-A\n13\nFsat\nKNO4JE\n1:04/07/19\n10012021000071\nLic. No.\nFOR BEST RESULTS, STORE\nCONTINUOUSLY UNDER REFRIGERATION\nBELOW 8°C UNTIL “USE-BY DATE\"\na\nFor Batch No. & \"Use-by date\" see seai areastamo\nPERATIVE MILK\nANAND-388-001\nreedback\nCae Executive at\n(al free ( -9 PM)\n890126226012\nCO,\nNand-388001",
+      "derivedTranscript": "MILKY MILK\nPASTEURISED HOMOGENISER\n-308001\nTONED MILK\nPILTD SARDARPARA\nNet Content:\n PO BALARAM\n-785135\n500m\nTD CHANDITALA\nENGAL-712702\nMRP:22.00\nITO.VILL JIBTYA\nBANKURA\n(inclusiver all taxes)\nUTRITIONAL INFORMATION per iog (apprax. values)\nCTS(P)LTD..\n57.8\nEnergy, kcal\nTotal Carbohydral \nOPO MAKALPUR,\nTotal fat, g 3.0 Added Sugr.\nESTBENGAL-712 305\nSaturated Fat, g 2.0 Prolten, g\nUse-by date\nTrans Fat, g 0 Calcium mg\nXMARPOLE.\nHRBOUR-A\nKeep Undef Refrigeration\n13\nKNO4JE\nFsat\n1:04/07/19\nLic. No. 10012021000071\nFOR BEST RESULTS, STORE\nCONTINUOUSLY UNDER REFRIGERATION\nBELOW 8°C UNTIL “USE-BY DATE\"\na\nFor Batch No. & \"Use-by date\" see seai areastamo\nPERATIVE MILK\nANAND-388-001\nreedback\nCae Executive at\n(al free ( -9 PM)\n890126226012\nCO,\nNand-388001",
+      "rawTextPreserved": true,
+      "statistics": {
+        "sourceLines": 54,
+        "outputRows": 47,
+        "reconstructedRows": 4,
+        "rejectedGroups": 2,
+        "pairChecks": 1431
+      },
+      "reconstructedRows": [
+        {
+          "id": "row:CF-001:line-25+CF-001:line-22+CF-001:line-23",
+          "kind": "reconstructed-row",
+          "text": "Total fat, g 3.0 Added Sugr.",
+          "panelId": "CF-001",
+          "baselineAngleDegrees": 1.4482277882861287,
+          "sourceIds": [
+            "CF-001:line-25",
+            "CF-001:line-22",
+            "CF-001:line-23"
+          ],
+          "sourceIndexes": [
+            24,
+            21,
+            22
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-001:line-25",
+              "sourceIndex": 24,
+              "text": "Total fat, g",
+              "box": [
+                [
+                  1066.17578125,
+                  686.2257690429688
+                ],
+                [
+                  1188.45751953125,
+                  686.2257690429688
+                ],
+                [
+                  1188.45751953125,
+                  729.1148681640625
+                ],
+                [
+                  1066.17578125,
+                  729.1148681640625
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-001:line-22",
+              "sourceIndex": 21,
+              "text": "3.0",
+              "box": [
+                [
+                  1396.6397705078125,
+                  676.0140991210938
+                ],
+                [
+                  1443.1270751953125,
+                  676.0140991210938
+                ],
+                [
+                  1443.1270751953125,
+                  714.8185424804688
+                ],
+                [
+                  1396.6397705078125,
+                  714.8185424804688
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-001:line-23",
+              "sourceIndex": 22,
+              "text": "Added Sugr.",
+              "box": [
+                [
+                  1493.65673828125,
+                  669.8870849609375
+                ],
+                [
+                  1628.0655517578125,
+                  680.0987548828125
+                ],
+                [
+                  1624.023193359375,
+                  730.1360473632812
+                ],
+                [
+                  1489.6143798828125,
+                  719.9243774414062
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "row:CF-001:line-27+CF-001:line-28+CF-001:line-29",
+          "kind": "reconstructed-row",
+          "text": "Saturated Fat, g 2.0 Prolten, g",
+          "panelId": "CF-001",
+          "baselineAngleDegrees": 0.7417547585744168,
+          "sourceIds": [
+            "CF-001:line-27",
+            "CF-001:line-28",
+            "CF-001:line-29"
+          ],
+          "sourceIndexes": [
+            26,
+            27,
+            28
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-001:line-27",
+              "sourceIndex": 26,
+              "text": "Saturated Fat, g",
+              "box": [
+                [
+                  1091.440673828125,
+                  731.1572265625
+                ],
+                [
+                  1297.6016845703125,
+                  728.0936889648438
+                ],
+                [
+                  1298.6121826171875,
+                  773.025146484375
+                ],
+                [
+                  1092.451171875,
+                  776.0886840820312
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-001:line-28",
+              "sourceIndex": 27,
+              "text": "2.0",
+              "box": [
+                [
+                  1398.6610107421875,
+                  726.0513916015625
+                ],
+                [
+                  1445.148193359375,
+                  726.0513916015625
+                ],
+                [
+                  1445.148193359375,
+                  764.8558349609375
+                ],
+                [
+                  1398.6610107421875,
+                  764.8558349609375
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-001:line-29",
+              "sourceIndex": 28,
+              "text": "Prolten, g",
+              "box": [
+                [
+                  1453.2330322265625,
+                  721.9666748046875
+                ],
+                [
+                  1548.228759765625,
+                  727.0725708007812
+                ],
+                [
+                  1546.20751953125,
+                  770.9828491210938
+                ],
+                [
+                  1451.2117919921875,
+                  765.876953125
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "row:CF-001:line-30+CF-001:line-31+CF-001:line-32",
+          "kind": "reconstructed-row",
+          "text": "Trans Fat, g 0 Calcium mg",
+          "panelId": "CF-001",
+          "baselineAngleDegrees": 1.02371549612027,
+          "sourceIds": [
+            "CF-001:line-30",
+            "CF-001:line-31",
+            "CF-001:line-32"
+          ],
+          "sourceIndexes": [
+            29,
+            30,
+            31
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-001:line-30",
+              "sourceIndex": 29,
+              "text": "Trans Fat, g",
+              "box": [
+                [
+                  1094.472412109375,
+                  782.2156982421875
+                ],
+                [
+                  1247.072021484375,
+                  782.2156982421875
+                ],
+                [
+                  1247.072021484375,
+                  827.1471557617188
+                ],
+                [
+                  1094.472412109375,
+                  827.1471557617188
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-001:line-31",
+              "sourceIndex": 30,
+              "text": "0",
+              "box": [
+                [
+                  1422.9151611328125,
+                  778.1309814453125
+                ],
+                [
+                  1447.16943359375,
+                  778.1309814453125
+                ],
+                [
+                  1447.16943359375,
+                  813.8719482421875
+                ],
+                [
+                  1422.9151611328125,
+                  813.8719482421875
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-001:line-32",
+              "sourceIndex": 31,
+              "text": "Calcium mg",
+              "box": [
+                [
+                  1456.2647705078125,
+                  770.9828491210938
+                ],
+                [
+                  1570.4617919921875,
+                  777.10986328125
+                ],
+                [
+                  1568.4405517578125,
+                  819.9989624023438
+                ],
+                [
+                  1454.2435302734375,
+                  813.8719482421875
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "row:CF-001:line-41+CF-001:line-40",
+          "kind": "reconstructed-row",
+          "text": "Lic. No. 10012021000071",
+          "panelId": "CF-001",
+          "baselineAngleDegrees": -1.8747561353227724,
+          "sourceIds": [
+            "CF-001:line-41",
+            "CF-001:line-40"
+          ],
+          "sourceIndexes": [
+            40,
+            39
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-001:line-41",
+              "sourceIndex": 40,
+              "text": "Lic. No.",
+              "box": [
+                [
+                  998.466064453125,
+                  1071.20654296875
+                ],
+                [
+                  1158.1397705078125,
+                  1067.1219482421875
+                ],
+                [
+                  1159.150390625,
+                  1117.1591796875
+                ],
+                [
+                  999.4766235351562,
+                  1121.243896484375
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-001:line-40",
+              "sourceIndex": 39,
+              "text": "10012021000071",
+              "box": [
+                [
+                  1174.309326171875,
+                  1012.9999389648438
+                ],
+                [
+                  1788.7498779296875,
+                  988.4918823242188
+                ],
+                [
+                  1792.792236328125,
+                  1101.8416748046875
+                ],
+                [
+                  1178.3516845703125,
+                  1126.3497314453125
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "unchangedSourceIds": [
+        "CF-001:line-1",
+        "CF-001:line-2",
+        "CF-001:line-4",
+        "CF-001:line-3",
+        "CF-001:line-6",
+        "CF-001:line-5",
+        "CF-001:line-7",
+        "CF-001:line-9",
+        "CF-001:line-8",
+        "CF-001:line-10",
+        "CF-001:line-11",
+        "CF-001:line-12",
+        "CF-001:line-13",
+        "CF-001:line-15",
+        "CF-001:line-14",
+        "CF-001:line-16",
+        "CF-001:line-17",
+        "CF-001:line-20",
+        "CF-001:line-19",
+        "CF-001:line-21",
+        "CF-001:line-24",
+        "CF-001:line-26",
+        "CF-001:line-18",
+        "CF-001:line-33",
+        "CF-001:line-35",
+        "CF-001:line-34",
+        "CF-001:line-36",
+        "CF-001:line-38",
+        "CF-001:line-37",
+        "CF-001:line-39",
+        "CF-001:line-42",
+        "CF-001:line-43",
+        "CF-001:line-44",
+        "CF-001:line-45",
+        "CF-001:line-46",
+        "CF-001:line-47",
+        "CF-001:line-48",
+        "CF-001:line-49",
+        "CF-001:line-50",
+        "CF-001:line-51",
+        "CF-001:line-52",
+        "CF-001:line-53",
+        "CF-001:line-54"
+      ],
+      "abstentions": [
+        {
+          "sourceIds": [
+            "CF-001:line-18"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-001:line-19",
+            "CF-001:line-20",
+            "CF-001:line-21"
+          ],
+          "reason": "transitive_row_ambiguity"
+        }
+      ],
+      "reviewable": {
+        "proposals": [],
+        "rejected": [],
+        "policy": "Exact standalone MRP/net quantity/packing heading plus one mapped value box; strict valid conflict-free corresponding extraction; unresolved or conflicting same-field evidence blocks suggestions. Use-by, serving, manufacturer-BY, ordinary columns and incomplete values are excluded. Officer acceptance is mandatory; no raw transcript is changed."
+      },
+      "fields": {
+        "mrp": {
+          "labelStatus": "readable",
+          "expected": "22.00",
+          "eligible": true,
+          "raw": {
+            "actual": "22.00",
+            "valid": true,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "22.00",
+                "valid": true
+              }
+            ],
+            "correct": true
+          },
+          "derived": {
+            "actual": "22.00",
+            "valid": true,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "22.00",
+                "valid": true
+              }
+            ],
+            "correct": true
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "readable",
+          "expected": "500 ml",
+          "eligible": true,
+          "raw": {
+            "actual": ":",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ":",
+                "valid": false
+              }
+            ],
+            "correct": false
+          },
+          "derived": {
+            "actual": ":",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ":",
+                "valid": false
+              }
+            ],
+            "correct": false
+          }
+        },
+        "packDate": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        }
+      }
+    },
+    {
+      "sampleId": "CF-002",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/10.jpg",
+      "sourceSha256": "61d17743670bb425275e861ccdfec072e33af556ab96d6f1043bf872fed73537",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/1/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ]
+      },
+      "rawText": "PASTEURISED\nANPUR-385001\npstorgen Inform\nNe1001202100025\nNutritional Informatice\nnalure.\n2 servings per container\nUTHAPURAM VISAKHAPATNATU\nServing Size\nRAPRADESH-531 031\n10113003000251\nAmount per 100 mL\"\ndactured for:\nEnergy\nNDISTRICT C-OPERATIVE MILK\n(kcal)\nTotal Fat\n(g)\n1012021000243\nSaturated Fat\nctured by:\n9\nSTRICT CO-OPERATIVE MILK PRODUCERS\"\nTrans Fat\nMETPB VLLAGE & POST,\nCholesterol (mg)\nSV03AE/MRP290R\nCarbohydrate\nTotal Sugars\nUseBy:31.05.23\nAdded Sugars\nAUAIENVILLAGE.TR KANDRIGA\nUSP0:05/mLT1236\nProtein\nCHTOUR (ANDHRAPRADESH)-517 571\nSodium\n(mg)\n10114010000916\ntutatured for.\nCalcium\n(mg)\nANTHA DISTRICT CO-OPERATIVE\nPRODUCERS UNION LTD., SABAR DAIRY,\nRDA stands for Recommended Day\nOST BORIA HIMATNAGAR-383 006\n**Average values\n012021000207\nlendactured by.\nILGONDA-RANGA REDDY MILK PRODUCERS\nNet Content: 500m\nYADED CO-OP. UNION LTD.,\nDARY KUNTLOOR ROAD, HAYATH NAGAR,\nABA (TELANGANA)-501 505\nKEEP REFRIGERATED ATCO BELON\n10014047000133\nOAPRIVATE LIMITED, D.NO. 238/2,3;\nCOL,LSTOREINCHLE SECTONOE\nILLAGE, NUZVID, KRISHNA\n35H-1\nOFYOUREFRIGERATOR ANDCONSU\n止10113800238\nD PRODUCTS OSY O.118-119.\nMarketed by: Guara C-op\nAVLAGE HAYATH NAGAR MANDAL\nEREDI TELANGANA - 501 505\nLtd.,Anand -388001 Inda\n10016470577\nfssat\nNeapaprciataicictyeedbac.\nLic. No.10012021000\n CUutomer are Executive at\n253e AM –PM)\nunlly\ncustomercare@amul.coop\nGOMMFLd, Anand - 388 001\n8901262",
+      "derivedTranscript": "PASTEURISED\nANPUR-385001\npstorgen Inform\nNe1001202100025\nNutritional Informatice\nnalure.\n2 servings per container\nUTHAPURAM VISAKHAPATNATU\nServing Size\nRAPRADESH-531 031\n10113003000251\nAmount per 100 mL\"\ndactured for:\nNDISTRICT C-OPERATIVE MILK\nEnergy\n(kcal)\nTotal Fat\n(g)\n1012021000243\nSaturated Fat\n9\nctured by:\nSTRICT CO-OPERATIVE MILK PRODUCERS\"\nTrans Fat\nMETPB VLLAGE & POST,\nCholesterol (mg)\nSV03AE/MRP290R\nCarbohydrate\nTotal Sugars\nUseBy:31.05.23\nAdded Sugars\nAUAIENVILLAGE.TR KANDRIGA\nProtein\nUSP0:05/mLT1236\nCHTOUR (ANDHRAPRADESH)-517 571\nSodium\n(mg)\n10114010000916\nCalcium\n(mg)\ntutatured for.\nANTHA DISTRICT CO-OPERATIVE\nRDA stands for Recommended Day\nPRODUCERS UNION LTD., SABAR DAIRY,\nOST BORIA HIMATNAGAR-383 006\n**Average values\n012021000207\nlendactured by.\nNet Content: 500m\nILGONDA-RANGA REDDY MILK PRODUCERS\nYADED CO-OP. UNION LTD.,\nDARY KUNTLOOR ROAD, HAYATH NAGAR,\nKEEP REFRIGERATED ATCO BELON\nABA (TELANGANA)-501 505\n10014047000133\nCOL,LSTOREINCHLE SECTONOE\nOAPRIVATE LIMITED, D.NO. 238/2,3;\nOFYOUREFRIGERATOR ANDCONSU\nILLAGE, NUZVID, KRISHNA\n35H-1\n止10113800238\nMarketed by: Guara C-op\nD PRODUCTS OSY O.118-119.\nLtd.,Anand -388001 Inda\nAVLAGE HAYATH NAGAR MANDAL\nEREDI TELANGANA - 501 505\nfssat\n10016470577\nLic. No.10012021000\nNeapaprciataicictyeedbac.\n CUutomer are Executive at\n253e AM –PM)\nunlly\ncustomercare@amul.coop\nGOMMFLd, Anand - 388 001\n8901262",
+      "rawTextPreserved": true,
+      "statistics": {
+        "sourceLines": 76,
+        "outputRows": 76,
+        "reconstructedRows": 0,
+        "rejectedGroups": 2,
+        "pairChecks": 2850
+      },
+      "reconstructedRows": [],
+      "unchangedSourceIds": [
+        "CF-002:line-1",
+        "CF-002:line-2",
+        "CF-002:line-3",
+        "CF-002:line-4",
+        "CF-002:line-5",
+        "CF-002:line-6",
+        "CF-002:line-7",
+        "CF-002:line-8",
+        "CF-002:line-9",
+        "CF-002:line-10",
+        "CF-002:line-11",
+        "CF-002:line-12",
+        "CF-002:line-13",
+        "CF-002:line-15",
+        "CF-002:line-14",
+        "CF-002:line-16",
+        "CF-002:line-17",
+        "CF-002:line-18",
+        "CF-002:line-19",
+        "CF-002:line-20",
+        "CF-002:line-22",
+        "CF-002:line-21",
+        "CF-002:line-23",
+        "CF-002:line-24",
+        "CF-002:line-25",
+        "CF-002:line-26",
+        "CF-002:line-27",
+        "CF-002:line-28",
+        "CF-002:line-29",
+        "CF-002:line-30",
+        "CF-002:line-31",
+        "CF-002:line-32",
+        "CF-002:line-34",
+        "CF-002:line-33",
+        "CF-002:line-35",
+        "CF-002:line-36",
+        "CF-002:line-37",
+        "CF-002:line-38",
+        "CF-002:line-40",
+        "CF-002:line-41",
+        "CF-002:line-39",
+        "CF-002:line-42",
+        "CF-002:line-44",
+        "CF-002:line-43",
+        "CF-002:line-45",
+        "CF-002:line-46",
+        "CF-002:line-47",
+        "CF-002:line-48",
+        "CF-002:line-50",
+        "CF-002:line-49",
+        "CF-002:line-51",
+        "CF-002:line-52",
+        "CF-002:line-54",
+        "CF-002:line-53",
+        "CF-002:line-55",
+        "CF-002:line-57",
+        "CF-002:line-56",
+        "CF-002:line-60",
+        "CF-002:line-58",
+        "CF-002:line-59",
+        "CF-002:line-61",
+        "CF-002:line-63",
+        "CF-002:line-62",
+        "CF-002:line-66",
+        "CF-002:line-64",
+        "CF-002:line-65",
+        "CF-002:line-68",
+        "CF-002:line-67",
+        "CF-002:line-70",
+        "CF-002:line-69",
+        "CF-002:line-71",
+        "CF-002:line-72",
+        "CF-002:line-73",
+        "CF-002:line-74",
+        "CF-002:line-75",
+        "CF-002:line-76"
+      ],
+      "abstentions": [
+        {
+          "sourceIds": [
+            "CF-002:line-6"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-002:line-73"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        }
+      ],
+      "reviewable": {
+        "proposals": [],
+        "rejected": [],
+        "policy": "Exact standalone MRP/net quantity/packing heading plus one mapped value box; strict valid conflict-free corresponding extraction; unresolved or conflicting same-field evidence blocks suggestions. Use-by, serving, manufacturer-BY, ordinary columns and incomplete values are excluded. Officer acceptance is mandatory; no raw transcript is changed."
+      },
+      "fields": {
+        "mrp": {
+          "labelStatus": "readable",
+          "expected": "27",
+          "eligible": true,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": false
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": false
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "illegible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": ": 500m",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ": 500m",
+                "valid": false
+              }
+            ],
+            "correct": null
+          },
+          "derived": {
+            "actual": ": 500m",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ": 500m",
+                "valid": false
+              }
+            ],
+            "correct": null
+          }
+        },
+        "packDate": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        }
+      }
+    },
+    {
+      "sampleId": "CF-003",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8906014888868/5.jpg",
+      "sourceSha256": "603169c4bae57c270a514d744a0f03ac4a8d4da25d1da095ba2037f8c78d2c88",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/2/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ]
+      },
+      "rawText": "doorstep\nCERT\n回乐\ndelivery\nGFJP030726650745\nBATCHNO:\n02/08/2026\nPACKED ON:\n01/08/2027\nUSE BY:\n90.00 USP\nRS 0.18/9\nMRP-USP:\n(Inclusive of all taxes)\nFor packing unit see first 2 letters of batch no.\nMktd by: GULAB OIL AND FOOD (AHMEDABAD) PVT. LTD. (Registered Users)\nTeliya Mill Compound, Nr. Dargah, Opp. Century Market,O/s. Premdarwaja,\nKalupur, Ahmedabad-380002, Gujarat. Phone: 079 22131151, 9925125251\nfssai LI. NO.107229990121\nPkd. by: GF: GULAB OIL & FOODS PVT. LTD (Registered Users)\nPlot No.161/1, SIDC, Veraval (Shapar) 360024,\nTa. Kotda (Sangani), Dist. Rajkot, Gujarat. Phone: 02827 254247, 252309\nfssai' LIC. NO.10017021002708\nPkd by: BL: GULAB OIL & FOODS (AHMEDABAD) PVT. LTD ('Registered Users)\nR.S No. 296, Kadi Detroj Road, at Balasar, Ta. Kadi, Kadi,Mehsana, Gujarat - 382715\nfssai LIC. NO.10724999000301\nWe care about your feedback. Contact us - 92760 01151 (Customer Care Excecutive)\nhi@truestoryorganics.com I truestoryorganics.com\nMADE IN\nINDIA",
+      "derivedTranscript": "doorstep\nCERT\n回乐\ndelivery\nBATCHNO: GFJP030726650745\nPACKED ON: 02/08/2026\nUSE BY: 01/08/2027\nRS 0.18/9\n90.00 USP\nMRP-USP:\n(Inclusive of all taxes)\nFor packing unit see first 2 letters of batch no.\nMktd by: GULAB OIL AND FOOD (AHMEDABAD) PVT. LTD. (Registered Users)\nTeliya Mill Compound, Nr. Dargah, Opp. Century Market,O/s. Premdarwaja,\nKalupur, Ahmedabad-380002, Gujarat. Phone: 079 22131151, 9925125251\nfssai LI. NO.107229990121\nPkd. by: GF: GULAB OIL & FOODS PVT. LTD (Registered Users)\nPlot No.161/1, SIDC, Veraval (Shapar) 360024,\nTa. Kotda (Sangani), Dist. Rajkot, Gujarat. Phone: 02827 254247, 252309\nfssai' LIC. NO.10017021002708\nPkd by: BL: GULAB OIL & FOODS (AHMEDABAD) PVT. LTD ('Registered Users)\nR.S No. 296, Kadi Detroj Road, at Balasar, Ta. Kadi, Kadi,Mehsana, Gujarat - 382715\nfssai LIC. NO.10724999000301\nWe care about your feedback. Contact us - 92760 01151 (Customer Care Excecutive)\nhi@truestoryorganics.com I truestoryorganics.com\nMADE IN\nINDIA",
+      "rawTextPreserved": true,
+      "statistics": {
+        "sourceLines": 30,
+        "outputRows": 27,
+        "reconstructedRows": 3,
+        "rejectedGroups": 2,
+        "pairChecks": 435
+      },
+      "reconstructedRows": [
+        {
+          "id": "row:CF-003:line-6+CF-003:line-5",
+          "kind": "reconstructed-row",
+          "text": "BATCHNO: GFJP030726650745",
+          "panelId": "CF-003",
+          "baselineAngleDegrees": -0.8643815605265095,
+          "sourceIds": [
+            "CF-003:line-6",
+            "CF-003:line-5"
+          ],
+          "sourceIndexes": [
+            5,
+            4
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-003:line-6",
+              "sourceIndex": 5,
+              "text": "BATCHNO:",
+              "box": [
+                [
+                  40.109092712402344,
+                  303.1451416015625
+                ],
+                [
+                  371.00909423828125,
+                  303.1451416015625
+                ],
+                [
+                  371.00909423828125,
+                  367.5635070800781
+                ],
+                [
+                  40.109092712402344,
+                  367.5635070800781
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-003:line-5",
+              "sourceIndex": 4,
+              "text": "GFJP030726650745",
+              "box": [
+                [
+                  937.550048828125,
+                  266.5151062011719
+                ],
+                [
+                  1690.8489990234375,
+                  243.7792205810547
+                ],
+                [
+                  1694.609130859375,
+                  357.4586486816406
+                ],
+                [
+                  941.3102416992188,
+                  380.1945495605469
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "row:CF-003:line-8+CF-003:line-7",
+          "kind": "reconstructed-row",
+          "text": "PACKED ON: 02/08/2026",
+          "panelId": "CF-003",
+          "baselineAngleDegrees": -0.615787011956264,
+          "sourceIds": [
+            "CF-003:line-8",
+            "CF-003:line-7"
+          ],
+          "sourceIndexes": [
+            7,
+            6
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-003:line-8",
+              "sourceIndex": 7,
+              "text": "PACKED ON:",
+              "box": [
+                [
+                  45.12273025512695,
+                  439.5604553222656
+                ],
+                [
+                  417.38525390625,
+                  439.5604553222656
+                ],
+                [
+                  417.38525390625,
+                  502.7156982421875
+                ],
+                [
+                  45.12273025512695,
+                  502.7156982421875
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-003:line-7",
+              "sourceIndex": 6,
+              "text": "02/08/2026",
+              "box": [
+                [
+                  950.0841064453125,
+                  370.0896911621094
+                ],
+                [
+                  1420.112548828125,
+                  359.98486328125
+                ],
+                [
+                  1422.619384765625,
+                  468.61187744140625
+                ],
+                [
+                  952.5909423828125,
+                  478.7167053222656
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "row:CF-003:line-10+CF-003:line-9",
+          "kind": "reconstructed-row",
+          "text": "USE BY: 01/08/2027",
+          "panelId": "CF-003",
+          "baselineAngleDegrees": -1.541273984802689,
+          "sourceIds": [
+            "CF-003:line-10",
+            "CF-003:line-9"
+          ],
+          "sourceIndexes": [
+            9,
+            8
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-003:line-10",
+              "sourceIndex": 9,
+              "text": "USE BY:",
+              "box": [
+                [
+                  45.12273025512695,
+                  574.7127075195312
+                ],
+                [
+                  280.7636413574219,
+                  565.8709716796875
+                ],
+                [
+                  283.2704772949219,
+                  635.3417358398438
+                ],
+                [
+                  47.629547119140625,
+                  644.1834716796875
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-003:line-9",
+              "sourceIndex": 8,
+              "text": "01/08/2027",
+              "box": [
+                [
+                  955.0977783203125,
+                  481.242919921875
+                ],
+                [
+                  1420.112548828125,
+                  473.664306640625
+                ],
+                [
+                  1421.365966796875,
+                  581.0281982421875
+                ],
+                [
+                  956.3511962890625,
+                  588.6068115234375
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "unchangedSourceIds": [
+        "CF-003:line-1",
+        "CF-003:line-2",
+        "CF-003:line-3",
+        "CF-003:line-4",
+        "CF-003:line-12",
+        "CF-003:line-11",
+        "CF-003:line-13",
+        "CF-003:line-14",
+        "CF-003:line-15",
+        "CF-003:line-16",
+        "CF-003:line-17",
+        "CF-003:line-18",
+        "CF-003:line-19",
+        "CF-003:line-20",
+        "CF-003:line-21",
+        "CF-003:line-22",
+        "CF-003:line-23",
+        "CF-003:line-24",
+        "CF-003:line-25",
+        "CF-003:line-26",
+        "CF-003:line-27",
+        "CF-003:line-28",
+        "CF-003:line-29",
+        "CF-003:line-30"
+      ],
+      "abstentions": [
+        {
+          "sourceIds": [
+            "CF-003:line-1",
+            "CF-003:line-3",
+            "CF-003:line-4",
+            "CF-003:line-2"
+          ],
+          "reason": "parallel_or_overlapping_column_candidates"
+        },
+        {
+          "sourceIds": [
+            "CF-003:line-11",
+            "CF-003:line-12"
+          ],
+          "reason": "multiple_numeric_fragments_for_one_heading"
+        }
+      ],
+      "reviewable": {
+        "proposals": [
+          {
+            "id": "proposal:row:CF-003:line-8+CF-003:line-7",
+            "rowId": "row:CF-003:line-8+CF-003:line-7",
+            "field": "packDate",
+            "value": "02/08/2026",
+            "text": "PACKED ON: 02/08/2026",
+            "sourceIds": [
+              "CF-003:line-8",
+              "CF-003:line-7"
+            ],
+            "sourceIndexes": [
+              7,
+              6
+            ],
+            "parts": [
+              {
+                "sourceId": "CF-003:line-8",
+                "sourceIndex": 7,
+                "text": "PACKED ON:",
+                "box": [
+                  [
+                    45.12273025512695,
+                    439.5604553222656
+                  ],
+                  [
+                    417.38525390625,
+                    439.5604553222656
+                  ],
+                  [
+                    417.38525390625,
+                    502.7156982421875
+                  ],
+                  [
+                    45.12273025512695,
+                    502.7156982421875
+                  ]
+                ]
+              },
+              {
+                "sourceId": "CF-003:line-7",
+                "sourceIndex": 6,
+                "text": "02/08/2026",
+                "box": [
+                  [
+                    950.0841064453125,
+                    370.0896911621094
+                  ],
+                  [
+                    1420.112548828125,
+                    359.98486328125
+                  ],
+                  [
+                    1422.619384765625,
+                    468.61187744140625
+                  ],
+                  [
+                    952.5909423828125,
+                    478.7167053222656
+                  ]
+                ]
+              }
+            ],
+            "validation": {
+              "status": "format_valid",
+              "message": "Calendar-valid date; product-specific date rules may still require review."
+            },
+            "requiresOfficerReview": true,
+            "eligibleForAutomaticVerdict": false
+          }
+        ],
+        "rejected": [],
+        "policy": "Exact standalone MRP/net quantity/packing heading plus one mapped value box; strict valid conflict-free corresponding extraction; unresolved or conflicting same-field evidence blocks suggestions. Use-by, serving, manufacturer-BY, ordinary columns and incomplete values are excluded. Officer acceptance is mandatory; no raw transcript is changed."
+      },
+      "fields": {
+        "mrp": {
+          "labelStatus": "readable",
+          "expected": "90.00",
+          "eligible": true,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "",
+                "valid": false
+              }
+            ],
+            "correct": false
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "",
+                "valid": false
+              }
+            ],
+            "correct": false
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        },
+        "packDate": {
+          "labelStatus": "readable",
+          "expected": "02/08/2026",
+          "eligible": true,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "",
+                "valid": false
+              }
+            ],
+            "correct": false
+          },
+          "derived": {
+            "actual": "02/08/2026",
+            "valid": true,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "02/08/2026",
+                "valid": true
+              }
+            ],
+            "correct": true
+          }
+        }
+      }
+    },
+    {
+      "sampleId": "CF-004",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8906055442586/4.jpg",
+      "sourceSha256": "35d575f4a33160549dca7d4c22ce188a8df2fc0b644128a5155d9416d72ffde3",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/3/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ]
+      },
+      "rawText": "+911204260545\nk and suggestions,\nwww.organictattva.com\nct our customer\nve at address\nFor interesting knowledge bytes,\nabove or\nFollow us\nfO\nINFORMATION\n@organictattva\npprox. values)\ncontainer 9.1\n1½ cup (100 g)\n899 Kcal\nPRODUCT OF INDIA\n100g\n89g\nat.\n.6.2g\nrated Fat.\n.1.7g\nated Fat.\n0mg\n0mg\n8\"906055\"442586\nOrganic Coconut Oil\nFREE FROM\nNTENTS at 30°C: 910g\nARGEMONE OIL\n699.00\nUSPF 699:00/L\nDO NOT\naxes)\nPURCHASE\n0T97C000225\nBOTTLE IF\nNO.\nTAMPERED WITH\n31/03/25\nUSE BY 30/03/27\nKEEP CITY\nFORE\nCLEAN",
+      "derivedTranscript": "+911204260545\nk and suggestions,\nct our customer\nwww.organictattva.com\nve at address\nabove or\nFor interesting knowledge bytes,\nFollow us\nINFORMATION\nfO\n@organictattva\npprox. values)\ncontainer 9.1\n1½ cup (100 g)\n899 Kcal\nPRODUCT OF INDIA\n100g\n89g\nat.\n.6.2g\nrated Fat.\n.1.7g\nated Fat.\n0mg\n0mg\n8\"906055\"442586\nOrganic Coconut Oil\nFREE FROM\nNTENTS at 30°C: 910g\nARGEMONE OIL\n699.00\nDO NOT\nUSPF 699:00/L\naxes)\nPURCHASE\nBOTTLE IF\n0T97C000225\nNO.\nTAMPERED WITH\n31/03/25\nUSE BY 30/03/27\nKEEP CITY\nCLEAN\nFORE",
+      "rawTextPreserved": true,
+      "statistics": {
+        "sourceLines": 44,
+        "outputRows": 44,
+        "reconstructedRows": 0,
+        "rejectedGroups": 13,
+        "pairChecks": 946
+      },
+      "reconstructedRows": [],
+      "unchangedSourceIds": [
+        "CF-004:line-1",
+        "CF-004:line-2",
+        "CF-004:line-4",
+        "CF-004:line-3",
+        "CF-004:line-5",
+        "CF-004:line-7",
+        "CF-004:line-6",
+        "CF-004:line-8",
+        "CF-004:line-10",
+        "CF-004:line-9",
+        "CF-004:line-11",
+        "CF-004:line-12",
+        "CF-004:line-13",
+        "CF-004:line-14",
+        "CF-004:line-15",
+        "CF-004:line-16",
+        "CF-004:line-17",
+        "CF-004:line-18",
+        "CF-004:line-19",
+        "CF-004:line-20",
+        "CF-004:line-21",
+        "CF-004:line-22",
+        "CF-004:line-23",
+        "CF-004:line-24",
+        "CF-004:line-25",
+        "CF-004:line-26",
+        "CF-004:line-27",
+        "CF-004:line-28",
+        "CF-004:line-29",
+        "CF-004:line-30",
+        "CF-004:line-31",
+        "CF-004:line-33",
+        "CF-004:line-32",
+        "CF-004:line-34",
+        "CF-004:line-35",
+        "CF-004:line-37",
+        "CF-004:line-36",
+        "CF-004:line-38",
+        "CF-004:line-39",
+        "CF-004:line-40",
+        "CF-004:line-41",
+        "CF-004:line-42",
+        "CF-004:line-44",
+        "CF-004:line-43"
+      ],
+      "abstentions": [
+        {
+          "sourceIds": [
+            "CF-004:line-2"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-004:line-4"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-004:line-5"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-004:line-7"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-004:line-8",
+            "CF-004:line-9",
+            "CF-004:line-11"
+          ],
+          "reason": "parallel_or_overlapping_column_candidates"
+        },
+        {
+          "sourceIds": [
+            "CF-004:line-10"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-004:line-12"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-004:line-13"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-004:line-19"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-004:line-28",
+            "CF-004:line-29",
+            "CF-004:line-30"
+          ],
+          "reason": "parallel_or_overlapping_column_candidates"
+        },
+        {
+          "sourceIds": [
+            "CF-004:line-32",
+            "CF-004:line-35",
+            "CF-004:line-34",
+            "CF-004:line-33"
+          ],
+          "reason": "parallel_or_overlapping_column_candidates"
+        },
+        {
+          "sourceIds": [
+            "CF-004:line-36",
+            "CF-004:line-39",
+            "CF-004:line-37"
+          ],
+          "reason": "parallel_or_overlapping_column_candidates"
+        },
+        {
+          "sourceIds": [
+            "CF-004:line-38"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        }
+      ],
+      "reviewable": {
+        "proposals": [],
+        "rejected": [],
+        "policy": "Exact standalone MRP/net quantity/packing heading plus one mapped value box; strict valid conflict-free corresponding extraction; unresolved or conflicting same-field evidence blocks suggestions. Use-by, serving, manufacturer-BY, ordinary columns and incomplete values are excluded. Officer acceptance is mandatory; no raw transcript is changed."
+      },
+      "fields": {
+        "mrp": {
+          "labelStatus": "ambiguous_field",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "readable",
+          "expected": "910 g",
+          "eligible": true,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": false
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": false
+          }
+        },
+        "packDate": {
+          "labelStatus": "ambiguous_field",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        }
+      }
+    },
+    {
+      "sampleId": "CF-005",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8904083301837/3.jpg",
+      "sourceSha256": "b9cd89914094ebe8f591b9c5b29e5451872720c63c9ee15461926d1dd72302d2",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/4/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ]
+      },
+      "rawText": "30℃(910\nured & Marketed by\nVillage,\n/23.Pattkranpalay\n-638 057, ErodDlstrict,\nIssai\nNo.10017042003191\nQUERIES CONTACT\nMilk.r\nTEDBADK/\nSTOMER CARE EXECUTIVE\nREE NO.1800-419-9000\nDORDONTACT AT MFD &\nMARKETED BY ADDRESS\nSCAN TO\nKNOW MORE\nstomercare@milkymist.com\nust:www.mikymist.com\ng Keep in an irtight\nndertretataao qualty\nKEEP YOUR\nNet Quantity\nCITYCLEAN",
+      "derivedTranscript": "30℃(910\nured & Marketed by\nVillage,\n/23.Pattkranpalay\n-638 057, ErodDlstrict,\nIssai\nNo.10017042003191\nMilk.r\nQUERIES CONTACT\nTEDBADK/\nSTOMER CARE EXECUTIVE\nREE NO.1800-419-9000\nDORDONTACT AT MFD & SCAN TO\nMARKETED BY ADDRESS KNOW MORE\nstomercare@milkymist.com\nust:www.mikymist.com\ng Keep in an irtight\nndertretataao qualty\nNet Quantity\nKEEP YOUR\nCITYCLEAN",
+      "rawTextPreserved": true,
+      "statistics": {
+        "sourceLines": 23,
+        "outputRows": 21,
+        "reconstructedRows": 2,
+        "rejectedGroups": 2,
+        "pairChecks": 253
+      },
+      "reconstructedRows": [
+        {
+          "id": "row:CF-005:line-13+CF-005:line-15",
+          "kind": "reconstructed-row",
+          "text": "DORDONTACT AT MFD & SCAN TO",
+          "panelId": "CF-005",
+          "baselineAngleDegrees": 1.1577684248801163,
+          "sourceIds": [
+            "CF-005:line-13",
+            "CF-005:line-15"
+          ],
+          "sourceIndexes": [
+            12,
+            14
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-005:line-13",
+              "sourceIndex": 12,
+              "text": "DORDONTACT AT MFD &",
+              "box": [
+                [
+                  33.26388931274414,
+                  1590.15869140625
+                ],
+                [
+                  468.3555603027344,
+                  1607.751953125
+                ],
+                [
+                  464.3638916015625,
+                  1717.3714599609375
+                ],
+                [
+                  29.2722225189209,
+                  1699.7781982421875
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-005:line-15",
+              "sourceIndex": 14,
+              "text": "SCAN TO",
+              "box": [
+                [
+                  874.1749877929688,
+                  1688.9515380859375
+                ],
+                [
+                  1027.1888427734375,
+                  1688.9515380859375
+                ],
+                [
+                  1027.1888427734375,
+                  1741.7313232421875
+                ],
+                [
+                  874.1749877929688,
+                  1741.7313232421875
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "row:CF-005:line-14+CF-005:line-16",
+          "kind": "reconstructed-row",
+          "text": "MARKETED BY ADDRESS KNOW MORE",
+          "panelId": "CF-005",
+          "baselineAngleDegrees": 2.4876047525849607,
+          "sourceIds": [
+            "CF-005:line-14",
+            "CF-005:line-16"
+          ],
+          "sourceIndexes": [
+            13,
+            15
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-005:line-14",
+              "sourceIndex": 13,
+              "text": "MARKETED BY ADDRESS",
+              "box": [
+                [
+                  35.92499923706055,
+                  1683.5382080078125
+                ],
+                [
+                  486.98333740234375,
+                  1717.3714599609375
+                ],
+                [
+                  479,
+                  1826.9908447265625
+                ],
+                [
+                  27.941667556762695,
+                  1793.15771484375
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-005:line-16",
+              "sourceIndex": 15,
+              "text": "KNOW MORE",
+              "box": [
+                [
+                  836.91943359375,
+                  1737.6712646484375
+                ],
+                [
+                  1063.1138916015625,
+                  1740.3779296875
+                ],
+                [
+                  1063.1138916015625,
+                  1791.8043212890625
+                ],
+                [
+                  836.91943359375,
+                  1789.09765625
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "unchangedSourceIds": [
+        "CF-005:line-1",
+        "CF-005:line-2",
+        "CF-005:line-3",
+        "CF-005:line-4",
+        "CF-005:line-5",
+        "CF-005:line-6",
+        "CF-005:line-7",
+        "CF-005:line-9",
+        "CF-005:line-8",
+        "CF-005:line-10",
+        "CF-005:line-11",
+        "CF-005:line-12",
+        "CF-005:line-17",
+        "CF-005:line-18",
+        "CF-005:line-19",
+        "CF-005:line-20",
+        "CF-005:line-22",
+        "CF-005:line-21",
+        "CF-005:line-23"
+      ],
+      "abstentions": [
+        {
+          "sourceIds": [
+            "CF-005:line-1"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-005:line-2"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        }
+      ],
+      "reviewable": {
+        "proposals": [],
+        "rejected": [],
+        "policy": "Exact standalone MRP/net quantity/packing heading plus one mapped value box; strict valid conflict-free corresponding extraction; unresolved or conflicting same-field evidence blocks suggestions. Use-by, serving, manufacturer-BY, ordinary columns and incomplete values are excluded. Officer acceptance is mandatory; no raw transcript is changed."
+      },
+      "fields": {
+        "mrp": {
+          "labelStatus": "ambiguous_field",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "readable",
+          "expected": "1 l",
+          "eligible": true,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "",
+                "valid": false
+              }
+            ],
+            "correct": false
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "",
+                "valid": false
+              }
+            ],
+            "correct": false
+          }
+        },
+        "packDate": {
+          "labelStatus": "readable",
+          "expected": "19/10/25",
+          "eligible": true,
+          "raw": {
+            "actual": "&",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "&",
+                "valid": false
+              }
+            ],
+            "correct": false
+          },
+          "derived": {
+            "actual": "& SCAN TO",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "& SCAN TO",
+                "valid": false
+              }
+            ],
+            "correct": false
+          }
+        }
+      }
+    },
+    {
+      "sampleId": "CF-006",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/11.jpg",
+      "sourceSha256": "34b8b602484c492408dd2921d1a657e8f030a97706da41deac04c110f7354120",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/5/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ]
+      },
+      "rawText": "OZONIZED\nIS14543\nS/SALTS OF\nmgll\nAND SODIUM (0.1*n\n.RECYCLE\n8163-170,\nKONDAN VILLAGE,\nWO\nNo.100110420001\nB0-27-000-05-AAACH3005M-22\nCM/L-6100089707\nTHE COCA-COLAC\nRAGES PVT.LTD.,\nfssai\nRD,SEC-56,\nLic. No.\n0824\n10012011000620\nSTORE IN A COOL AND\nTOR AT:\nDRY PLACE. KEEPTHE\n4\nGHT 18.49\ncola.com\nCONTAINER AWAY\nROM DIRECT\nNLIGHT.DO NOT\nBUY IF CAP/SEAL IS\nBROKEN.\nNET QUANTITY:\nFOR BIS CERTIFICATION\nDETAILS SEE\nWEBSITE www.bis.gov.in\n1L",
+      "derivedTranscript": "OZONIZED\nIS14543\nS/SALTS OF\nmgll\nAND SODIUM (0.1*n\n.RECYCLE\n8163-170,\nKONDAN VILLAGE,\nWO\nNo.100110420001\nRAGES PVT.LTD., CM/L-6100089707\nRD,SEC-56, fssai\nTHE COCA-COLAC\nLic. No.\n0824\nB0-27-000-05-AAACH3005M-22\n10012011000620\nSTORE IN A COOL AND\nTOR AT:\n4\nDRY PLACE. KEEPTHE\ncola.com\nCONTAINER AWAY\nGHT 18.49\nROM DIRECT\nNLIGHT.DO NOT\nBUY IF CAP/SEAL IS\nBROKEN.\nNET QUANTITY:\nFOR BIS CERTIFICATION\nDETAILS SEE\n1L\nWEBSITE www.bis.gov.in",
+      "rawTextPreserved": true,
+      "statistics": {
+        "sourceLines": 35,
+        "outputRows": 33,
+        "reconstructedRows": 2,
+        "rejectedGroups": 6,
+        "pairChecks": 595
+      },
+      "reconstructedRows": [
+        {
+          "id": "row:CF-006:line-14+CF-006:line-12",
+          "kind": "reconstructed-row",
+          "text": "RAGES PVT.LTD., CM/L-6100089707",
+          "panelId": "CF-006",
+          "baselineAngleDegrees": -0.6078676038867012,
+          "sourceIds": [
+            "CF-006:line-14",
+            "CF-006:line-12"
+          ],
+          "sourceIndexes": [
+            13,
+            11
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-006:line-14",
+              "sourceIndex": 13,
+              "text": "RAGES PVT.LTD.,",
+              "box": [
+                [
+                  0,
+                  1422.98486328125
+                ],
+                [
+                  662.4527587890625,
+                  1418.4959716796875
+                ],
+                [
+                  664.6683349609375,
+                  1642.9415283203125
+                ],
+                [
+                  0,
+                  1647.430419921875
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-006:line-12",
+              "sourceIndex": 11,
+              "text": "CM/L-6100089707",
+              "box": [
+                [
+                  708.9795532226562,
+                  1290.56201171875
+                ],
+                [
+                  2572.2666015625,
+                  1263.6285400390625
+                ],
+                [
+                  2578.9130859375,
+                  1633.963623046875
+                ],
+                [
+                  715.6262817382812,
+                  1660.8970947265625
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "row:CF-006:line-16+CF-006:line-15",
+          "kind": "reconstructed-row",
+          "text": "RD,SEC-56, fssai",
+          "panelId": "CF-006",
+          "baselineAngleDegrees": 0.8012528575817524,
+          "sourceIds": [
+            "CF-006:line-16",
+            "CF-006:line-15"
+          ],
+          "sourceIndexes": [
+            15,
+            14
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-006:line-16",
+              "sourceIndex": 15,
+              "text": "RD,SEC-56,",
+              "box": [
+                [
+                  0,
+                  1633.963623046875
+                ],
+                [
+                  518.4412841796875,
+                  1633.963623046875
+                ],
+                [
+                  518.4412841796875,
+                  1874.120361328125
+                ],
+                [
+                  0,
+                  1874.120361328125
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-006:line-15",
+              "sourceIndex": 14,
+              "text": "fssai",
+              "box": [
+                [
+                  695.6862182617188,
+                  1577.852294921875
+                ],
+                [
+                  1457.8392333984375,
+                  1600.296875
+                ],
+                [
+                  1444.5458984375,
+                  2082.854736328125
+                ],
+                [
+                  682.392822265625,
+                  2062.65478515625
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "unchangedSourceIds": [
+        "CF-006:line-1",
+        "CF-006:line-2",
+        "CF-006:line-3",
+        "CF-006:line-4",
+        "CF-006:line-5",
+        "CF-006:line-6",
+        "CF-006:line-7",
+        "CF-006:line-8",
+        "CF-006:line-9",
+        "CF-006:line-10",
+        "CF-006:line-13",
+        "CF-006:line-17",
+        "CF-006:line-18",
+        "CF-006:line-11",
+        "CF-006:line-19",
+        "CF-006:line-20",
+        "CF-006:line-21",
+        "CF-006:line-23",
+        "CF-006:line-22",
+        "CF-006:line-25",
+        "CF-006:line-26",
+        "CF-006:line-24",
+        "CF-006:line-27",
+        "CF-006:line-28",
+        "CF-006:line-29",
+        "CF-006:line-30",
+        "CF-006:line-31",
+        "CF-006:line-32",
+        "CF-006:line-33",
+        "CF-006:line-35",
+        "CF-006:line-34"
+      ],
+      "abstentions": [
+        {
+          "sourceIds": [
+            "CF-006:line-2",
+            "CF-006:line-4",
+            "CF-006:line-6"
+          ],
+          "reason": "transitive_row_ambiguity"
+        },
+        {
+          "sourceIds": [
+            "CF-006:line-11"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-006:line-13"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-006:line-18"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-006:line-20",
+            "CF-006:line-23",
+            "CF-006:line-22",
+            "CF-006:line-21"
+          ],
+          "reason": "parallel_or_overlapping_column_candidates"
+        },
+        {
+          "sourceIds": [
+            "CF-006:line-24"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        }
+      ],
+      "reviewable": {
+        "proposals": [],
+        "rejected": [],
+        "policy": "Exact standalone MRP/net quantity/packing heading plus one mapped value box; strict valid conflict-free corresponding extraction; unresolved or conflicting same-field evidence blocks suggestions. Use-by, serving, manufacturer-BY, ordinary columns and incomplete values are excluded. Officer acceptance is mandatory; no raw transcript is changed."
+      },
+      "fields": {
+        "mrp": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "readable",
+          "expected": "1 l",
+          "eligible": true,
+          "raw": {
+            "actual": ":",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ":",
+                "valid": false
+              }
+            ],
+            "correct": false
+          },
+          "derived": {
+            "actual": ":",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ":",
+                "valid": false
+              }
+            ],
+            "correct": false
+          }
+        },
+        "packDate": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        }
+      }
+    },
+    {
+      "sampleId": "CF-007",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/13.jpg",
+      "sourceSha256": "1f0025ed0036b861d1ff901f4df776cea6d78c4aafb775555bfd02d7ea5fce5c",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/6/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ]
+      },
+      "rawText": "PACKAGED DRINKIG WATER\nOZONIZED\nINGREDIENTS:TREATED WATER, SALTS OF SODIUM A\nIS14543\nMANUFACTURED BY\nDIAMOND BEVERAGES PVT. LTD.,\nP-43. TARATALA ROAD, KOLKATA - 700 088, W.B.\nEssai\nBEST BEFORE TWELVE MONTHS\nFROM MANUFACTURE\nLic.No.10012031000040\nFOR DATE OF MANUFACTURE,\nCM/-0005146558\nBATCH NO. & M.R.P. (INCL. OF\nALL TAXES): SEE CAP/NECK.\n100\nTRADEMARK OWNER: THE COCAA COMPANY\nMER HELPLINE:1800-208-2653\nE-MAIL:indiahelpline@coca-cola.com\nSTORE IN ACOOL AND DRY PLACE. REEP THE CONTAINER AWAY\nFROM DIRECT SUNLIGHT. DO NOT BUY IF CAP/SEAL IS BROKEN.\nFOR BIS CERTIFICATION DETAILS SEE WEBSITE WW.bis.org.in\nNutrition acts (Typical Values per 100ml)\nEnery O Kcal\nCarbohydrate Og\nC\nSugar 0g\nProtein 0g\nFat Og\n811901\nSodium 0.3 mg\nMagnesium 0.1 mg\nCRUSH THE\nplease\nrecycle\nBOTTLE\nNET QUANTITY:\nONSSUNM\nAFTER USE\n1l",
+      "derivedTranscript": "PACKAGED DRINKIG WATER\nOZONIZED\nINGREDIENTS:TREATED WATER, SALTS OF SODIUM A\nIS14543\nMANUFACTURED BY\nDIAMOND BEVERAGES PVT. LTD.,\nP-43. TARATALA ROAD, KOLKATA - 700 088, W.B.\nBEST BEFORE TWELVE MONTHS Essai\nFROM MANUFACTURE Lic.No.10012031000040\nFOR DATE OF MANUFACTURE, CM/-0005146558\nBATCH NO. & M.R.P. (INCL. OF\nALL TAXES): SEE CAP/NECK.\nTRADEMARK OWNER: THE COCAA COMPANY\nSTORE IN ACOOL AND DRY PLACE. REEP THE CONTAINER AWAY\n100\nFROM DIRECT SUNLIGHT. DO NOT BUY IF CAP/SEAL IS BROKEN.\nFOR BIS CERTIFICATION DETAILS SEE WEBSITE WW.bis.org.in\nNutrition acts (Typical Values per 100ml)\nEnery O Kcal Carbohydrate Og\nC\nMER HELPLINE:1800-208-2653\nSugar 0g Protein 0g Fat Og\nSodium 0.3 mg Magnesium 0.1 mg\n811901\nE-MAIL:indiahelpline@coca-cola.com\nplease\nrecycle\nCRUSH THE\nNET QUANTITY:\nBOTTLE\nONSSUNM\nAFTER USE 1l",
+      "rawTextPreserved": true,
+      "statistics": {
+        "sourceLines": 40,
+        "outputRows": 32,
+        "reconstructedRows": 7,
+        "rejectedGroups": 5,
+        "pairChecks": 780
+      },
+      "reconstructedRows": [
+        {
+          "id": "row:CF-007:line-9+CF-007:line-8",
+          "kind": "reconstructed-row",
+          "text": "BEST BEFORE TWELVE MONTHS Essai",
+          "panelId": "CF-007",
+          "baselineAngleDegrees": 0.8258989233467853,
+          "sourceIds": [
+            "CF-007:line-9",
+            "CF-007:line-8"
+          ],
+          "sourceIndexes": [
+            8,
+            7
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-007:line-9",
+              "sourceIndex": 8,
+              "text": "BEST BEFORE TWELVE MONTHS",
+              "box": [
+                [
+                  193.08511352539062,
+                  835.48388671875
+                ],
+                [
+                  722.8723754882812,
+                  824.1935424804688
+                ],
+                [
+                  724.4680786132812,
+                  904.8387451171875
+                ],
+                [
+                  194.6808624267578,
+                  916.1290283203125
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-007:line-8",
+              "sourceIndex": 7,
+              "text": "Essai",
+              "box": [
+                [
+                  1042.0213623046875,
+                  808.0645141601562
+                ],
+                [
+                  1267.0213623046875,
+                  819.3548583984375
+                ],
+                [
+                  1260.6383056640625,
+                  946.774169921875
+                ],
+                [
+                  1035.6383056640625,
+                  935.48388671875
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "row:CF-007:line-10+CF-007:line-11",
+          "kind": "reconstructed-row",
+          "text": "FROM MANUFACTURE Lic.No.10012031000040",
+          "panelId": "CF-007",
+          "baselineAngleDegrees": 0.17279922952569193,
+          "sourceIds": [
+            "CF-007:line-10",
+            "CF-007:line-11"
+          ],
+          "sourceIndexes": [
+            9,
+            10
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-007:line-10",
+              "sourceIndex": 9,
+              "text": "FROM MANUFACTURE",
+              "box": [
+                [
+                  194.6808624267578,
+                  903.225830078125
+                ],
+                [
+                  560.1063842773438,
+                  896.774169921875
+                ],
+                [
+                  561.7021484375,
+                  974.1935424804688
+                ],
+                [
+                  196.27659606933594,
+                  980.6451416015625
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-007:line-11",
+              "sourceIndex": 10,
+              "text": "Lic.No.10012031000040",
+              "box": [
+                [
+                  840.9574584960938,
+                  922.5806274414062
+                ],
+                [
+                  1453.723388671875,
+                  937.0968017578125
+                ],
+                [
+                  1452.127685546875,
+                  1017.741943359375
+                ],
+                [
+                  839.3617553710938,
+                  1003.225830078125
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "row:CF-007:line-12+CF-007:line-13",
+          "kind": "reconstructed-row",
+          "text": "FOR DATE OF MANUFACTURE, CM/-0005146558",
+          "panelId": "CF-007",
+          "baselineAngleDegrees": -0.06865004457633539,
+          "sourceIds": [
+            "CF-007:line-12",
+            "CF-007:line-13"
+          ],
+          "sourceIndexes": [
+            11,
+            12
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-007:line-12",
+              "sourceIndex": 11,
+              "text": "FOR DATE OF MANUFACTURE,",
+              "box": [
+                [
+                  193.08511352539062,
+                  985.48388671875
+                ],
+                [
+                  1027.6595458984375,
+                  998.3870849609375
+                ],
+                [
+                  1026.0638427734375,
+                  1151.6129150390625
+                ],
+                [
+                  191.48936462402344,
+                  1138.709716796875
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-007:line-13",
+              "sourceIndex": 12,
+              "text": "CM/-0005146558",
+              "box": [
+                [
+                  1050,
+                  1074.193603515625
+                ],
+                [
+                  1953.1915283203125,
+                  1058.0645751953125
+                ],
+                [
+                  1957.978759765625,
+                  1293.54833984375
+                ],
+                [
+                  1054.7872314453125,
+                  1309.6773681640625
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "row:CF-007:line-24+CF-007:line-25",
+          "kind": "reconstructed-row",
+          "text": "Enery O Kcal Carbohydrate Og",
+          "panelId": "CF-007",
+          "baselineAngleDegrees": 1.86547899033808,
+          "sourceIds": [
+            "CF-007:line-24",
+            "CF-007:line-25"
+          ],
+          "sourceIndexes": [
+            23,
+            24
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-007:line-24",
+              "sourceIndex": 23,
+              "text": "Enery O Kcal",
+              "box": [
+                [
+                  442.02130126953125,
+                  1788.709716796875
+                ],
+                [
+                  698.9362182617188,
+                  1801.6129150390625
+                ],
+                [
+                  694.1489868164062,
+                  1885.48388671875
+                ],
+                [
+                  437.23406982421875,
+                  1872.5806884765625
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-007:line-25",
+              "sourceIndex": 24,
+              "text": "Carbohydrate Og",
+              "box": [
+                [
+                  837.7659912109375,
+                  1806.45166015625
+                ],
+                [
+                  1161.7021484375,
+                  1811.290283203125
+                ],
+                [
+                  1160.1064453125,
+                  1891.935546875
+                ],
+                [
+                  836.1702270507812,
+                  1887.0968017578125
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "row:CF-007:line-27+CF-007:line-28+CF-007:line-29",
+          "kind": "reconstructed-row",
+          "text": "Sugar 0g Protein 0g Fat Og",
+          "panelId": "CF-007",
+          "baselineAngleDegrees": 2.278372701789142,
+          "sourceIds": [
+            "CF-007:line-27",
+            "CF-007:line-28",
+            "CF-007:line-29"
+          ],
+          "sourceIndexes": [
+            26,
+            27,
+            28
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-007:line-27",
+              "sourceIndex": 26,
+              "text": "Sugar 0g",
+              "box": [
+                [
+                  443.6170349121094,
+                  1848.3870849609375
+                ],
+                [
+                  702.127685546875,
+                  1862.9031982421875
+                ],
+                [
+                  697.3404541015625,
+                  1941.935546875
+                ],
+                [
+                  438.8298034667969,
+                  1927.4193115234375
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-007:line-28",
+              "sourceIndex": 27,
+              "text": "Protein 0g",
+              "box": [
+                [
+                  703.7234497070312,
+                  1859.677490234375
+                ],
+                [
+                  938.2979125976562,
+                  1869.3548583984375
+                ],
+                [
+                  935.1063842773438,
+                  1953.225830078125
+                ],
+                [
+                  700.5319213867188,
+                  1943.5484619140625
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-007:line-29",
+              "sourceIndex": 28,
+              "text": "Fat Og",
+              "box": [
+                [
+                  1011.7021484375,
+                  1869.3548583984375
+                ],
+                [
+                  1158.5106201171875,
+                  1872.5806884765625
+                ],
+                [
+                  1156.9149169921875,
+                  1950
+                ],
+                [
+                  1010.1063842773438,
+                  1946.774169921875
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "row:CF-007:line-31+CF-007:line-32",
+          "kind": "reconstructed-row",
+          "text": "Sodium 0.3 mg Magnesium 0.1 mg",
+          "panelId": "CF-007",
+          "baselineAngleDegrees": 2.5572898522839047,
+          "sourceIds": [
+            "CF-007:line-31",
+            "CF-007:line-32"
+          ],
+          "sourceIndexes": [
+            30,
+            31
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-007:line-31",
+              "sourceIndex": 30,
+              "text": "Sodium 0.3 mg",
+              "box": [
+                [
+                  443.6170349121094,
+                  1908.0645751953125
+                ],
+                [
+                  727.6596069335938,
+                  1927.4193115234375
+                ],
+                [
+                  722.8723754882812,
+                  2004.8387451171875
+                ],
+                [
+                  438.8298034667969,
+                  1985.48388671875
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-007:line-32",
+              "sourceIndex": 31,
+              "text": "Magnesium 0.1 mg",
+              "box": [
+                [
+                  785.1063842773438,
+                  1924.193603515625
+                ],
+                [
+                  1164.8936767578125,
+                  1932.258056640625
+                ],
+                [
+                  1163.2978515625,
+                  2014.51611328125
+                ],
+                [
+                  783.5106811523438,
+                  2006.45166015625
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "row:CF-007:line-39+CF-007:line-40",
+          "kind": "reconstructed-row",
+          "text": "AFTER USE 1l",
+          "panelId": "CF-007",
+          "baselineAngleDegrees": 0.774787625312114,
+          "sourceIds": [
+            "CF-007:line-39",
+            "CF-007:line-40"
+          ],
+          "sourceIndexes": [
+            38,
+            39
+          ],
+          "parts": [
+            {
+              "sourceId": "CF-007:line-39",
+              "sourceIndex": 38,
+              "text": "AFTER USE",
+              "box": [
+                [
+                  450,
+                  2354.838623046875
+                ],
+                [
+                  1105.85107421875,
+                  2372.58056640625
+                ],
+                [
+                  1099.4681396484375,
+                  2596.774169921875
+                ],
+                [
+                  443.6170349121094,
+                  2579.0322265625
+                ]
+              ]
+            },
+            {
+              "sourceId": "CF-007:line-40",
+              "sourceIndex": 39,
+              "text": "1l",
+              "box": [
+                [
+                  1453.723388671875,
+                  2374.193603515625
+                ],
+                [
+                  1696.276611328125,
+                  2374.193603515625
+                ],
+                [
+                  1696.276611328125,
+                  2622.58056640625
+                ],
+                [
+                  1453.723388671875,
+                  2622.58056640625
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "unchangedSourceIds": [
+        "CF-007:line-1",
+        "CF-007:line-2",
+        "CF-007:line-3",
+        "CF-007:line-4",
+        "CF-007:line-5",
+        "CF-007:line-6",
+        "CF-007:line-7",
+        "CF-007:line-14",
+        "CF-007:line-15",
+        "CF-007:line-17",
+        "CF-007:line-20",
+        "CF-007:line-16",
+        "CF-007:line-21",
+        "CF-007:line-22",
+        "CF-007:line-23",
+        "CF-007:line-26",
+        "CF-007:line-18",
+        "CF-007:line-30",
+        "CF-007:line-19",
+        "CF-007:line-34",
+        "CF-007:line-35",
+        "CF-007:line-33",
+        "CF-007:line-37",
+        "CF-007:line-36",
+        "CF-007:line-38"
+      ],
+      "abstentions": [
+        {
+          "sourceIds": [
+            "CF-007:line-16"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-007:line-18"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-007:line-19"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-007:line-30"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-007:line-38"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        }
+      ],
+      "reviewable": {
+        "proposals": [],
+        "rejected": [],
+        "policy": "Exact standalone MRP/net quantity/packing heading plus one mapped value box; strict valid conflict-free corresponding extraction; unresolved or conflicting same-field evidence blocks suggestions. Use-by, serving, manufacturer-BY, ordinary columns and incomplete values are excluded. Officer acceptance is mandatory; no raw transcript is changed."
+      },
+      "fields": {
+        "mrp": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "",
+                "valid": false
+              }
+            ],
+            "correct": null
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": "",
+                "valid": false
+              }
+            ],
+            "correct": null
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "readable",
+          "expected": "1 l",
+          "eligible": true,
+          "raw": {
+            "actual": ":",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ":",
+                "valid": false
+              }
+            ],
+            "correct": false
+          },
+          "derived": {
+            "actual": ":",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [
+              {
+                "value": ":",
+                "valid": false
+              }
+            ],
+            "correct": false
+          }
+        },
+        "packDate": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        }
+      }
+    },
+    {
+      "sampleId": "CF-008",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8902579001360/14.jpg",
+      "sourceSha256": "a7bebcea106e822d878184f0a88a223d4360c0e578366ed3d1c197968bf1bbab",
+      "rawLinesReference": {
+        "artifact": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+        "jsonPointer": "/rows/7/metadata",
+        "arrays": [
+          "texts",
+          "boxes",
+          "confidences"
+        ]
+      },
+      "rawText": "5000\n5.00\nRELIANCE SHARTPOINT\nSINCE 1985\nFROOTI MAN 125ML TPK\nRs/Qly\nBulbe ed o nlan at sapn ou\nTotal Rs\nNon PCR Label\nParlē Agro",
+      "derivedTranscript": "5000\n5.00\nSINCE 1985\nRs/Qly\nTotal Rs\nRELIANCE SHARTPOINT\nFROOTI MAN 125ML TPK\nBulbe ed o nlan at sapn ou\nNon PCR Label\nParlē Agro",
+      "rawTextPreserved": true,
+      "statistics": {
+        "sourceLines": 10,
+        "outputRows": 10,
+        "reconstructedRows": 0,
+        "rejectedGroups": 9,
+        "pairChecks": 45
+      },
+      "reconstructedRows": [],
+      "unchangedSourceIds": [
+        "CF-008:line-1",
+        "CF-008:line-2",
+        "CF-008:line-4",
+        "CF-008:line-6",
+        "CF-008:line-8",
+        "CF-008:line-3",
+        "CF-008:line-5",
+        "CF-008:line-7",
+        "CF-008:line-9",
+        "CF-008:line-10"
+      ],
+      "abstentions": [
+        {
+          "sourceIds": [
+            "CF-008:line-1"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-008:line-2"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-008:line-3"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-008:line-4"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-008:line-5"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-008:line-6"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-008:line-7"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-008:line-8"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        },
+        {
+          "sourceIds": [
+            "CF-008:line-9"
+          ],
+          "reason": "unsupported_rotation_or_skew"
+        }
+      ],
+      "reviewable": {
+        "proposals": [],
+        "rejected": [],
+        "policy": "Exact standalone MRP/net quantity/packing heading plus one mapped value box; strict valid conflict-free corresponding extraction; unresolved or conflicting same-field evidence blocks suggestions. Use-by, serving, manufacturer-BY, ordinary columns and incomplete values are excluded. Officer acceptance is mandatory; no raw transcript is changed."
+      },
+      "fields": {
+        "mrp": {
+          "labelStatus": "ambiguous_field",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        },
+        "netQuantity": {
+          "labelStatus": "ambiguous_field",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        },
+        "packDate": {
+          "labelStatus": "not_visible",
+          "expected": null,
+          "eligible": false,
+          "raw": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          },
+          "derived": {
+            "actual": "",
+            "valid": false,
+            "conflict": false,
+            "candidateValues": [],
+            "correct": null
+          }
+        }
+      }
+    }
+  ]
+}

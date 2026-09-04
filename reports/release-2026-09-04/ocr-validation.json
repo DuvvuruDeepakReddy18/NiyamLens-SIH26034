@@ -1,0 +1,934 @@
+{
+  "generatedAt": "2026-09-04T11:37:42.151Z",
+  "sourceHashes": {
+    "datasets/critical-fields.v1.json": "4f869df89f6246e774189a7522e2798f5ab680b83e887eb8ddeae6c08fd977ad",
+    "reports/recognition-2026-09-04/critical-baseline-raw-passes.jsonl": "21a90308253c7ce57a81c20a917844f108215ae441653d0e121cb623e887a382",
+    "reports/recognition-2026-09-04/rapidocr-default-raw.json": "d5febd520cb6debb1486548879a54e127ce184c7f3ab695d8bfc09340b677030",
+    "reports/recognition-2026-09-04-pass2/english-strategies-raw.json": "5e2ed6853c9d67bb990406e895b334897dc2374d50a84c6620ab083a65ad18e8",
+    "src/lib/labelParser.mjs": "5a14b178b62596cb419d0921e31e87735a4ac921518f618b6e852222385d24d6",
+    "src/lib/extraction.mjs": "93b6d61fc7f8893bed90127bbef2187aa9dafd57fad0b06350c43c54b15e97cd",
+    "src/lib/criticalFieldBenchmark.mjs": "91d92084466bfd23226f29edd473a7ecc04ec794f426cc7b53f1940c4f4dd3a2",
+    "src/lib/vision.mjs": "365e8f73227420d04230858c11702cd939ad68d091c760721558b121d244b482",
+    "src/lib/reportDocument.mjs": "0f1dac6e3710a7462b4e9d167270212d6b49acfa88e6e88e2c2b0fa243a30764"
+  },
+  "rawRowsScored": 64,
+  "sourceImagesVerified": 8,
+  "inferenceRerun": false,
+  "manuallyCorrected": false,
+  "corpusRole": "previously-used-development-corpus",
+  "annotation": {
+    "labeler": "AI visual inspection",
+    "status": "provisional-human-review-required",
+    "humanReviewed": false,
+    "method": "Viewed each original local photograph with view_image. No OCR run, OCR transcript, catalogue quantity, or arithmetic-derived quantity was used to create these labels.",
+    "newOcrOutputsConsultedBeforeFreeze": false,
+    "priorExposureDisclosure": "Earlier task context already disclosed the Amul 8901262260121/6.jpg OCR failure and its 500 mL / INR 22 values. Those readings were checked on the photograph; this sample is not a blinded independent annotation. The other selected photographs were labelled visually without consulting their OCR outputs.",
+    "selection": "Purposefully selected eight photographs across six product codes, including readable declarations and cropped, blurred, rotated, or semantically ambiguous counterexamples. This is not a random or representative accuracy sample.",
+    "sameProductCodeIsNotSamePhysicalPackage": true,
+    "freezeRule": "Any later correction must record the human reviewer, reason, and new dataset version; do not silently relabel to fit OCR results."
+  },
+  "rawModes": [
+    {
+      "mode": "critical-baseline-raw-passes:full-gray:psm6",
+      "photos": 8,
+      "failedPhotos": 0,
+      "completeCorpusRun": true,
+      "correct": 0,
+      "eligible": 10,
+      "perField": {
+        "mrp": {
+          "referenceFields": 3,
+          "attemptedFields": 3,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 3,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 2,
+          "conflictFields": 0,
+          "excludedFields": 5,
+          "excludedAttemptedFields": 5,
+          "excludedWithCandidates": 0
+        },
+        "netQuantity": {
+          "referenceFields": 5,
+          "attemptedFields": 5,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 5,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 0,
+          "conflictFields": 0,
+          "excludedFields": 3,
+          "excludedAttemptedFields": 3,
+          "excludedWithCandidates": 1
+        },
+        "packDate": {
+          "referenceFields": 2,
+          "attemptedFields": 2,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 2,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 1,
+          "invalidCandidateFields": 0,
+          "conflictFields": 0,
+          "excludedFields": 6,
+          "excludedAttemptedFields": 6,
+          "excludedWithCandidates": 0
+        }
+      }
+    },
+    {
+      "mode": "critical-baseline-raw-passes:reverse-sparse:psm11",
+      "photos": 8,
+      "failedPhotos": 0,
+      "completeCorpusRun": true,
+      "correct": 0,
+      "eligible": 10,
+      "perField": {
+        "mrp": {
+          "referenceFields": 3,
+          "attemptedFields": 3,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 3,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 2,
+          "conflictFields": 0,
+          "excludedFields": 5,
+          "excludedAttemptedFields": 5,
+          "excludedWithCandidates": 1
+        },
+        "netQuantity": {
+          "referenceFields": 5,
+          "attemptedFields": 5,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 5,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 0,
+          "conflictFields": 0,
+          "excludedFields": 3,
+          "excludedAttemptedFields": 3,
+          "excludedWithCandidates": 1
+        },
+        "packDate": {
+          "referenceFields": 2,
+          "attemptedFields": 2,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 2,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 1,
+          "conflictFields": 0,
+          "excludedFields": 6,
+          "excludedAttemptedFields": 6,
+          "excludedWithCandidates": 0
+        }
+      }
+    },
+    {
+      "mode": "critical-baseline-raw-passes:standard:psm11",
+      "photos": 8,
+      "failedPhotos": 0,
+      "completeCorpusRun": true,
+      "correct": 0,
+      "eligible": 10,
+      "perField": {
+        "mrp": {
+          "referenceFields": 3,
+          "attemptedFields": 3,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 3,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 0,
+          "conflictFields": 0,
+          "excludedFields": 5,
+          "excludedAttemptedFields": 5,
+          "excludedWithCandidates": 0
+        },
+        "netQuantity": {
+          "referenceFields": 5,
+          "attemptedFields": 5,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 5,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 0,
+          "conflictFields": 0,
+          "excludedFields": 3,
+          "excludedAttemptedFields": 3,
+          "excludedWithCandidates": 0
+        },
+        "packDate": {
+          "referenceFields": 2,
+          "attemptedFields": 2,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 2,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 0,
+          "conflictFields": 0,
+          "excludedFields": 6,
+          "excludedAttemptedFields": 6,
+          "excludedWithCandidates": 0
+        }
+      }
+    },
+    {
+      "mode": "english-strategies-raw:english-grid",
+      "photos": 8,
+      "failedPhotos": 0,
+      "completeCorpusRun": true,
+      "correct": 1,
+      "eligible": 10,
+      "perField": {
+        "mrp": {
+          "referenceFields": 3,
+          "attemptedFields": 3,
+          "exactMatchCorrect": 1,
+          "exactMatchSamples": 3,
+          "exactMatchRate": 0.3333333333333333,
+          "attemptedExactMatchRate": 0.3333333333333333,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 1,
+          "conflictFields": 0,
+          "excludedFields": 5,
+          "excludedAttemptedFields": 5,
+          "excludedWithCandidates": 1
+        },
+        "netQuantity": {
+          "referenceFields": 5,
+          "attemptedFields": 5,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 5,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 3,
+          "conflictFields": 0,
+          "excludedFields": 3,
+          "excludedAttemptedFields": 3,
+          "excludedWithCandidates": 1
+        },
+        "packDate": {
+          "referenceFields": 2,
+          "attemptedFields": 2,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 2,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 2,
+          "conflictFields": 0,
+          "excludedFields": 6,
+          "excludedAttemptedFields": 6,
+          "excludedWithCandidates": 0
+        }
+      }
+    },
+    {
+      "mode": "english-strategies-raw:english-highres",
+      "photos": 8,
+      "failedPhotos": 0,
+      "completeCorpusRun": true,
+      "correct": 1,
+      "eligible": 10,
+      "perField": {
+        "mrp": {
+          "referenceFields": 3,
+          "attemptedFields": 3,
+          "exactMatchCorrect": 1,
+          "exactMatchSamples": 3,
+          "exactMatchRate": 0.3333333333333333,
+          "attemptedExactMatchRate": 0.3333333333333333,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 1,
+          "conflictFields": 0,
+          "excludedFields": 5,
+          "excludedAttemptedFields": 5,
+          "excludedWithCandidates": 1
+        },
+        "netQuantity": {
+          "referenceFields": 5,
+          "attemptedFields": 5,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 5,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 4,
+          "conflictFields": 0,
+          "excludedFields": 3,
+          "excludedAttemptedFields": 3,
+          "excludedWithCandidates": 1
+        },
+        "packDate": {
+          "referenceFields": 2,
+          "attemptedFields": 2,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 2,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 2,
+          "conflictFields": 0,
+          "excludedFields": 6,
+          "excludedAttemptedFields": 6,
+          "excludedWithCandidates": 0
+        }
+      }
+    },
+    {
+      "mode": "english-strategies-raw:english-original",
+      "photos": 8,
+      "failedPhotos": 0,
+      "completeCorpusRun": true,
+      "correct": 1,
+      "eligible": 10,
+      "perField": {
+        "mrp": {
+          "referenceFields": 3,
+          "attemptedFields": 3,
+          "exactMatchCorrect": 1,
+          "exactMatchSamples": 3,
+          "exactMatchRate": 0.3333333333333333,
+          "attemptedExactMatchRate": 0.3333333333333333,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 1,
+          "conflictFields": 0,
+          "excludedFields": 5,
+          "excludedAttemptedFields": 5,
+          "excludedWithCandidates": 1
+        },
+        "netQuantity": {
+          "referenceFields": 5,
+          "attemptedFields": 5,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 5,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 4,
+          "conflictFields": 0,
+          "excludedFields": 3,
+          "excludedAttemptedFields": 3,
+          "excludedWithCandidates": 1
+        },
+        "packDate": {
+          "referenceFields": 2,
+          "attemptedFields": 2,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 2,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 2,
+          "conflictFields": 0,
+          "excludedFields": 6,
+          "excludedAttemptedFields": 6,
+          "excludedWithCandidates": 0
+        }
+      }
+    },
+    {
+      "mode": "english-strategies-raw:english-rotate90",
+      "photos": 8,
+      "failedPhotos": 0,
+      "completeCorpusRun": true,
+      "correct": 1,
+      "eligible": 10,
+      "perField": {
+        "mrp": {
+          "referenceFields": 3,
+          "attemptedFields": 3,
+          "exactMatchCorrect": 1,
+          "exactMatchSamples": 3,
+          "exactMatchRate": 0.3333333333333333,
+          "attemptedExactMatchRate": 0.3333333333333333,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 1,
+          "conflictFields": 0,
+          "excludedFields": 5,
+          "excludedAttemptedFields": 5,
+          "excludedWithCandidates": 0
+        },
+        "netQuantity": {
+          "referenceFields": 5,
+          "attemptedFields": 5,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 5,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 3,
+          "conflictFields": 0,
+          "excludedFields": 3,
+          "excludedAttemptedFields": 3,
+          "excludedWithCandidates": 1
+        },
+        "packDate": {
+          "referenceFields": 2,
+          "attemptedFields": 2,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 2,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 2,
+          "conflictFields": 0,
+          "excludedFields": 6,
+          "excludedAttemptedFields": 6,
+          "excludedWithCandidates": 0
+        }
+      }
+    },
+    {
+      "mode": "rapidocr-default-raw:rapidocr-default-whole-image",
+      "photos": 8,
+      "failedPhotos": 0,
+      "completeCorpusRun": true,
+      "correct": 1,
+      "eligible": 10,
+      "perField": {
+        "mrp": {
+          "referenceFields": 3,
+          "attemptedFields": 3,
+          "exactMatchCorrect": 1,
+          "exactMatchSamples": 3,
+          "exactMatchRate": 0.3333333333333333,
+          "attemptedExactMatchRate": 0.3333333333333333,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 1,
+          "conflictFields": 0,
+          "excludedFields": 5,
+          "excludedAttemptedFields": 5,
+          "excludedWithCandidates": 1
+        },
+        "netQuantity": {
+          "referenceFields": 5,
+          "attemptedFields": 5,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 5,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 4,
+          "conflictFields": 0,
+          "excludedFields": 3,
+          "excludedAttemptedFields": 3,
+          "excludedWithCandidates": 1
+        },
+        "packDate": {
+          "referenceFields": 2,
+          "attemptedFields": 2,
+          "exactMatchCorrect": 0,
+          "exactMatchSamples": 2,
+          "exactMatchRate": 0,
+          "attemptedExactMatchRate": 0,
+          "missingRunFields": 0,
+          "errorFields": 0,
+          "wrongValidValues": 0,
+          "invalidCandidateFields": 2,
+          "conflictFields": 0,
+          "excludedFields": 6,
+          "excludedAttemptedFields": 6,
+          "excludedWithCandidates": 0
+        }
+      }
+    }
+  ],
+  "derivedTesseractMerge": {
+    "photos": 8,
+    "failedPhotos": 0,
+    "correct": 0,
+    "eligible": 10,
+    "perField": [
+      {
+        "field": "mrp",
+        "correct": 0,
+        "eligible": 3
+      },
+      {
+        "field": "netQuantity",
+        "correct": 0,
+        "eligible": 5
+      },
+      {
+        "field": "packDate",
+        "correct": 0,
+        "eligible": 2
+      }
+    ],
+    "samples": [
+      {
+        "sampleId": "CF-001",
+        "transcriptKind": "system-derived-production-pass-merge",
+        "transcript": "601:\n’ fo Own N el Cor | er a 1\n1 Fa\np owen 500 1 ec\nge = MRP :® 22. -\nL (inclusive - Py.\na otal fat, g Fa 5\nil Saturated Fal. g' en b>\nE 2 Keep Undef Refrigera 2.\nLb) A 5s al 3\ny iad A Anas A\ni No. 1001202 LN\nE = Z - gp AAD\n| | FOR BEST RESULTS, STURE\n7 CONTINUOUSLY UNDER REFR GEA\n4 | BELOW 8°C UNTIL “USE -BY UA\nf hi. For Batch No. & “Use-Dy date 3%\n- 386.001 ud {\nEct ws (AN\nwy No #90126212001:\n) § Eo Ge ¢ 4% Prgnt - Gandia ga AD\naR sta WE\nBi 1T SARDAR we Leg\n[ Te BAL ARAM\n500\nm CHANDITALA\n~T12 702\ni JBTYA\nMRP:\nUTR\nnergy, xCa\ntal fat, g\nSaturated +a\nTrans Fat, 9\nwo. 1001202100\nfitted UNDER REFRIG\n“BELOW 8°C UNTIL SE-B)\nFor Batch No. & “Use\nSHE\nNAY\n2621260\nEE LE it",
+        "fields": [
+          {
+            "field": "mrp",
+            "eligible": true,
+            "expected": "22.00",
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": [
+              {
+                "value": "",
+                "evidence": "MRP:",
+                "amount": null,
+                "minorUnits": null,
+                "valid": false,
+                "key": "invalid:",
+                "validation": {
+                  "status": "invalid",
+                  "message": "Missing or invalid price: grouping, sign and precision require correction."
+                }
+              }
+            ]
+          },
+          {
+            "field": "netQuantity",
+            "eligible": true,
+            "expected": "500 ml",
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          },
+          {
+            "field": "packDate",
+            "eligible": false,
+            "expected": null,
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          }
+        ]
+      },
+      {
+        "sampleId": "CF-002",
+        "transcriptKind": "system-derived-production-pass-merge",
+        "transcript": "Tg eee\" C\nEMRARZ\n3105.23\nmi2.36\nHTT\nWRAN\nDIX\nAUN\nSIA- RA)\n{Y KDED CO\nDARY K\nViti WW\nAT AN\nTELA\n84s\nAINA\nRVATE LIMITE\nGE A\n, NUZVID\nCTS, SYNO. 4\nE, HA\nAYATH NAG GAR MAND\n400\nYour feedback\nFh 14\na —— TERT oN\nQUCERS Cos NI ST RRR ~~ STH\nBo oe ev rman oT\nWADA) Las anpiA TRAM 3 2 SRIVINGS Der credo\nIPRS 31 0 8S Frere Cine\noo + [SeningSes —~=\nb : Sal Le Amount a 4; ) ;\ng for: TIVE MILK beth DRT 100 mi §\nTF C0 Aw - 388 001 | Energy Thea — \\\nES one: | Total rat) 3 $\nBW. oATIVE MILK PRODUCERS { Saturated Fat OM\nRO TED, SYNOS: 4218. | Trans Fat (g S\nVILLAGE & POST, aA RL Li\neR ES ii | Cholesterol (mg hs\n. madlee @\ny- D Carbohydrate Wy\nos Ret 05.23 2 Total Sugars (g] Tog\n2 (AND 54 36 s | Added Sugars (g] \"THE\nem 3 [Sodium ng Tel\n| S— 3 Calcium (mg) ul\nERS NON LTD. SABAR DAIRY, g ¢\nTr ~ Net Content. #2\n[ENGA- 015 2 (EP REREAD LENS\n0.2 5 COOL STORE NL\nYE o (FYE Tog\nI a0 tee 5 Marketed by. Gust Wy\n~~ GAR MANDAL, i= Lid Anand - 88.001 |\na x n 1505 2 ol fad\nGea : 4 : a8\na i. coli gr ke. = Pas\n388 x\nSTE a,\n(07 1000\nMRTG\nmn NX Ey y ~\nNutritional ing a\nAM VISAKH\nAPATNAA\n561)\n55 DET Cong\n7004\nAPERATIVE MILK\n100\nUNON\n1D. ANAND - 388 X\n| Ener y (\n000243\n| Total Fat {g\n{ Saturated Fatlo\nQO-OPERA\nMILK PRODUCERS\nAr UMITED, a ns,\n[Trans Fat 9)\n| | Cholesterol (n\nCarbohydr 0\nRyd 05.23\nTotal Sugars (g\nAdded Sugars (g\nProtein (\nSodium (mg)\nCalcium (mg)\nDNLTD., SABAR DAIRY,\n* RDA stands for Recommended Delsy\nHIMATNAGAR - 383 008\nPRY\n** Average values\nDDY MILK PRODUCERS\nNet Content\nRI KUNTLOOR ROAD, HAYATH NAGAR,\nKEEP REFRIGERATED AT UR\nEAT\nD, ONO. 2382.3;\nCOOL, STORE IN\n- 211M\nD, KRISHNA,\nOF YOUR\nMarketed by:\nLid., Anand -\nair bnnrbn\nLic. No. 100",
+        "fields": [
+          {
+            "field": "mrp",
+            "eligible": true,
+            "expected": "27",
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          },
+          {
+            "field": "netQuantity",
+            "eligible": false,
+            "expected": null,
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": true,
+            "candidates": [
+              {
+                "value": "#2",
+                "evidence": "Tr ~ Net Content. #2",
+                "quantity": null,
+                "unit": "",
+                "valid": false,
+                "key": "invalid:#2",
+                "validation": {
+                  "status": "invalid",
+                  "message": "Quantity must be a finite positive value with a supported unit."
+                }
+              },
+              {
+                "value": "",
+                "evidence": "Net Content",
+                "quantity": null,
+                "unit": "",
+                "valid": false,
+                "key": "invalid:",
+                "validation": {
+                  "status": "invalid",
+                  "message": "Quantity must be a finite positive value with a supported unit."
+                }
+              }
+            ]
+          },
+          {
+            "field": "packDate",
+            "eligible": false,
+            "expected": null,
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          }
+        ]
+      },
+      {
+        "sampleId": "CF-003",
+        "transcriptKind": "system-derived-production-pass-merge",
+        "transcript": "dan (1745\nng unit see ni\nA H MED! AB AD\nhy Opp. Century ! Marke\n992512525\nclele 02, Gujarat. Phone: 079 2\nLIC. ND. 107224999 00 nl\nred Users)\n17, 252309\n. 382\n3 Es aleale rsiep \\ 4\nBATCH NGI BF JP 030726650745\nPACKED ON: 02/08/2020\nUSE BY: 01: 082025 A hb se\n| aj 0d USP RS 0.1873\nMRP - USPX: i\nGnctusive of all taxes)\n: For packing unit see first 2 letters of batch no.\nwid by: GULAB OIL AND FOOD (AHMEDABAD) PVT. LTD. (Registared Users\nreliva Milk Compound, Nr. Dargah, Opp. Century Market, O/s. Premdarwaja,\nKalupur, Ahmedabad-380002, Gujarat. Phone: 079 22131151, 9925125251\nfsa’ LC.N0. 107228090012! |\nsd. by: GF: GULAB OIL & FOODS PVT. LTD (Registered Users\nPlot No.161/1, SIDC, Veraval (Shapar) 360024, id\nTa Kotda (Sangani), Dist. Rajkot, Gujarat. Phone: 02827 254247, 252309\nfsa LIC. N0. 1007021002708\nRS No. 268\"Kadi Detroj Road, at Balasar, Ta. Kadi, Kadi,Mehsana, Gujarat - 386\n: fsa IG. N0. 1072439900030! \\\nwe care about your feedback. Contact us - 92760 O51 (Customer Care Exceculivel\nhi@truestoryorganics.com | truestoryorganics.com\nA , a WADE IN :\nRd SL ih INDIA\nBATCH\nGF JP30726650745\n02/08/2026\nPACKED 8 ;\n01/08/2027\nUSE BY:\naf 00 Usp RS 0.183\nMRP ¥-US\nwid by: GULAB OIL AND FOO\nD (AHMEDABAD) PVT. LTD. (Registered Users\nCentury Market, Ofs. Premdarwaia,\nreliva Milk Compound, Nr. Dargah, Opp.\nt. Phone: 079 22131151, 9825125251\nKalupur, Ahmedabad-380002, Gujara\nfsa |IG.N0. 107228890002!\nAB OIL & FOODS PVT. LTD (Registered Users)\npkd. by \"GF: GUL\n) 360024,\nPlot No.1\n61/1, SIDC, Veraval (Shapar\narat. Phone:\n02827 254247,252309\nTa. Kotda (Sangani), Dist. Rajkot, Gu]\nfea’ LIC.ND.10017021002708\nD) PVT. LTD (Reg\nsid by: BL: GULAB OIL & FOO\nDS (AHMEDABA\ndi Mehsana, Guja\nRS No 298\"Kadi Detroj Road, at Balasa\nr, Ta. Kadi, Ka\nret RH\nfsa’ 116. N0.10724999000301\ns - 92760 ON51 (Custo\nmer Care Excecutive)\nwe care about you\nr feedback. Contact u\nanics.com\ntruestoryorganics.com\nhi@truestoryorg\nWADE IN\nINDIA",
+        "fields": [
+          {
+            "field": "mrp",
+            "eligible": true,
+            "expected": "90.00",
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": [
+              {
+                "value": "",
+                "evidence": "MRP ¥-US",
+                "amount": null,
+                "minorUnits": null,
+                "valid": false,
+                "key": "invalid:",
+                "validation": {
+                  "status": "invalid",
+                  "message": "Missing or invalid price: grouping, sign and precision require correction."
+                }
+              }
+            ]
+          },
+          {
+            "field": "netQuantity",
+            "eligible": false,
+            "expected": null,
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          },
+          {
+            "field": "packDate",
+            "eligible": true,
+            "expected": "02/08/2026",
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": true,
+            "candidates": [
+              {
+                "value": "02/08/2020",
+                "evidence": "PACKED ON: 02/08/2020",
+                "year": 2020,
+                "month": 8,
+                "day": 2,
+                "valid": true,
+                "key": "{\"year\":2020,\"month\":8,\"day\":2}",
+                "validation": {
+                  "status": "format_valid",
+                  "message": "Calendar-valid date; product-specific date rules may still require review."
+                }
+              },
+              {
+                "value": "8 ;",
+                "evidence": "PACKED 8 ;",
+                "year": 0,
+                "month": 0,
+                "day": null,
+                "valid": false,
+                "key": "invalid:8 ;",
+                "validation": {
+                  "status": "invalid",
+                  "message": "Date is not a valid calendar date."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "sampleId": "CF-004",
+        "transcriptKind": "system-derived-production-pass-merge",
+        "transcript": "U2LUV0%)\n2 WHO! gaia. com |\nPRODUCT OF INDIA\n8\"906055\"442586\nFROM\nEMONE OIL\nT5230 C: 910\nDO NOT\nT Bay. THE\nPURCHASE\nBOTTLE IF\nEER ELE SE\n0225\nTAMPERED WITH\nKEEP CITY\nIPI\nnl Se 1 ictatta com | A\np> of Lr ' Bu kK\nhove 8 - ~ For interesting knowledge bytes > |\ncORMAT Follow us : 5\n” valves) @organictattva ff! | 2\n5% cop (1009 |\nER he PRODUCT OF INDIA, |\noe o E 89 g < 1 Zd ’\nBL ...529 YS i\npate Ee ak 5\n5 C.....0mg fs. Es\n8906055442586\" BW\ndr op, FREE FROM Tr\nTENTS at 30 ¥. 91 0 g ARGEMONE OIL Zz F.\nATG aa | BEN fi\nTea 31 03-28 ———\nSE BY 30/03/37 pE——\nFORE QEAN _§\nggestio™ ‘+71 1 14U 2£0V0%2\ni WWW, organictattva.com\ncto ddres®\nFor interesting knowledge bytes.\nFollow us\n@organictattva\n(1009)\n89 keal\n5 Ed\n899\n6.20\n1.79\nCoconut Oil\nTeNTSat 30°C: 9109\nPALE fifi\nAXES\n£959. 00sL\nUTS7C000225\n4 1013. i\nUSE BY 30/03 37\nFORE",
+        "fields": [
+          {
+            "field": "mrp",
+            "eligible": false,
+            "expected": null,
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          },
+          {
+            "field": "netQuantity",
+            "eligible": true,
+            "expected": "910 g",
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          },
+          {
+            "field": "packDate",
+            "eligible": false,
+            "expected": null,
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          }
+        ]
+      },
+      {
+        "sampleId": "CF-005",
+        "transcriptKind": "system-derived-production-pass-merge",
+        "transcript": "5 Fo\nITED\nFi 4\n200\nES CONTACT\nEXECUTIVE\n100-419-9000\nTATMED &\nWEED BY ADDRESS\nPi HEE\nand hy gien\nic place &\nKEEP YOUR\nProduct quality\nCITY CLEAN\noon MITED ;\nAa 007, ErOQERTICt, C&O\n* = SA To cu TER : : of\nrrr Z i i SCAN TO J 4 —\na ARESS TL Le\nt g : Vv BRIANA | Zon\n| Moai genic place. fi Whedon we :\norotic quay, ss ECL\nGWA\nTED\n2003\nCARE EXECU\n[OFC 60)\n1800-419-9000\nKNOW MORE\nSCAN TO\nBY ADDRESS\nand hygienic place &\n\"¥ain progyet quality",
+        "fields": [
+          {
+            "field": "mrp",
+            "eligible": false,
+            "expected": null,
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          },
+          {
+            "field": "netQuantity",
+            "eligible": true,
+            "expected": "1 l",
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          },
+          {
+            "field": "packDate",
+            "eligible": true,
+            "expected": "19/10/25",
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          }
+        ]
+      },
+      {
+        "sampleId": "CF-006",
+        "transcriptKind": "system-derived-production-pass-merge",
+        "transcript": "i Noi: tiaras\nASSN\nAN U1)\nURES\n) QF(.5\nv AL\nNDL\nSEmoresssoowmeweeerem\nRES\nGALTS OF C440\nHIME 11=\n’ Hing EEE [| Sed i\n5 23 ESAS # “4 » = = ET 7 u 2\n0. I AVIRVVVRUL nL ¥aValalse) ih oN fi\na IA NARA T NB SERRE 2 =T | 2\nERAT LTD CMI/L- ) { | ; 031 a 4\n| 1% I ! 11 UM AAA =i ot Ali'den Dole Dorrell A “— [m = |\nOFA EP = 4 oD rd i\nThe SR gr = £) i. ETT a ——— { : x= 3 ol 4 &\n§ el A4A0{4 AN AAs E——— nN ive gag?\nCo 1M2NANNNRINN —————— 00 Ehad TN\n+e INIDIDLE TA CANAL AMY Lo nl . Tn\nH' lami = 8 MN W2WWUL MINTY eee ee —\nURRY PLAT REEV IME ee — O J ae a —\nAm lamas 0M NLL i! a Sm gmme gm\nCb nn 2 SINE — TK) ee OO\n3 ’\\ | i i | : { On da Vel p= mn oh\n¥ i ° IATA: R REE Be el ;\nol. Sees 3\n\"Yi i BE ~ “Wo OF WH =\nLRH : EE 7 et\na, Co ayy lS\nALTS\n043\nDIU\nM(04* mg)\nADT\nDAN\nTAGE\nVEN\nN77",
+        "fields": [
+          {
+            "field": "mrp",
+            "eligible": false,
+            "expected": null,
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          },
+          {
+            "field": "netQuantity",
+            "eligible": true,
+            "expected": "1 l",
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          },
+          {
+            "field": "packDate",
+            "eligible": false,
+            "expected": null,
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          }
+        ]
+      },
+      {
+        "sampleId": "CF-007",
+        "transcriptKind": "system-derived-production-pass-merge",
+        "transcript": "ED ORIN; WE\nR 020M\nMANUFACTURED BY\nFONTS: TAEATED WATER, SALTS OF SODIUM ann :7im=\n343, TARATALA ROAD, KOLKATA - 700 088, W.B.\nBEVERAGES PVT, LTD,\nE51 BEFORE TWELVE MONTHS\nLic. No. 1012021000047\nARNE OF MANUFA\n(TURE,\nBATCHNO. SMR\nINC\nLOF cmn-\n000514655\nALLTAXES): SEF CAP/NECK.\nTRADEMARK OWMER: THE COC. - “1 A IMD)\nSTORE i A COOL AND DRY PLACE, nctr THE CONTUNER AWAY\nSUNLIGHT. DO NOT BUY IF CAP/SEAL IS BROKEN\nFOR BIS CERTIFICATION DETAILS SEE WFRSITE www bis.org.in\nValues per 100m!) |\n\" Protein 09\n0.1mg\nFat 0g\nET QUANTITY\nBOTTLE\nER USE\nPACKAGED DRINKI:.G WATER Ade\nEGE WT. LTD., 2\nJRL, HAUT Tt, ad\n*IRATHNO. &M RD OF cm-0005146550 SE.\n| ALTHES) SE Co NECK. ==\nBR THE COCA. * rrssonyy —\nS SROTTLE -\nAGE DRINK] WA\nFONTS, TREATED WATER, SALTS OF SODIUM Aun 2:7\nACTURED BY\nIER 02022\n5.3. TARATALA ROAD, KOLKATA - 700 088, W 3.\nLic. No. 1001203100047\n(TUR\nBATCHNO. MRP.\nNCL OF cmn-000514655\nTRADEMARK OWNER: THE COCs. = * rao)\nFuls Values per 100m)\n\"n, Protein 0",
+        "fields": [
+          {
+            "field": "mrp",
+            "eligible": false,
+            "expected": null,
+            "value": ".",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": [
+              {
+                "value": ".",
+                "evidence": "BATCHNO. MRP.",
+                "amount": null,
+                "minorUnits": null,
+                "valid": false,
+                "key": "invalid:.",
+                "validation": {
+                  "status": "invalid",
+                  "message": "Missing or invalid price: grouping, sign and precision require correction."
+                }
+              }
+            ]
+          },
+          {
+            "field": "netQuantity",
+            "eligible": true,
+            "expected": "1 l",
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          },
+          {
+            "field": "packDate",
+            "eligible": false,
+            "expected": null,
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          }
+        ]
+      },
+      {
+        "sampleId": "CF-008",
+        "transcriptKind": "system-derived-production-pass-merge",
+        "transcript": "CameEeeE 2\nTEED hs\nere menus\nAWA EST\nForty. me\nBr sac nas\n= CRerzmEe.\nBABU) som\nES Pe)\nSa 5\nEL FN\nANN ~ of i\nQa NR 757 ;\nhh avd Oc fe i) \\\nNe SER p wn\nSS Sere cramer -\na. Em : on\n- fo me CO i Fo\n1 lS == smears — LZ (n\n. j= CEssmmEr [7 =\n[Hh aarp] fx\nEERSSana ©.\nBE omens — =\nSg C= ARSE CUBE: f=\ni: ~ raaecaenss |) 1 8\n3 f re] “= momen. - 4 -\n3 o ENED Poa. set\n{ 7. Pr > (TR, Lt\nv7 7 Saree. EER\nA i Perr Te, —~\n. CONES ee\nParle Agro. og ci HE 4\nfois io ;\nCamm 2\nED erg\nRTT maeaus\nSef C5\nBABA smn\nFIRE\nPRR\nEe FAN)",
+        "fields": [
+          {
+            "field": "mrp",
+            "eligible": false,
+            "expected": null,
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          },
+          {
+            "field": "netQuantity",
+            "eligible": false,
+            "expected": null,
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          },
+          {
+            "field": "packDate",
+            "eligible": false,
+            "expected": null,
+            "value": "",
+            "valid": false,
+            "correct": false,
+            "conflict": false,
+            "candidates": []
+          }
+        ]
+      }
+    ]
+  },
+  "limitations": [
+    "Previously seen development photos and provisional AI visual labels are not independent ground truth.",
+    "No actual Chrome Paddle result is part of this frozen historical denominator.",
+    "No inference timing, recognition upgrade, legal validity, or real cloud acceptance is established.",
+    "Tesseract preprocessing is the previously recorded Sharp approximation, not a new browser run."
+  ],
+  "titleRegression": {
+    "productNameDetected": false,
+    "quantity": "500 ml",
+    "mrp": "22.00",
+    "interpretation": "Parser replay only; the incorrect raw tax wording remains unchanged. Not an OCR rerun."
+  },
+  "syntheticDocx": {
+    "path": "reports/release-2026-09-04/synthetic-export-validation.docx",
+    "bytes": 12157,
+    "sha256": "30868df33b415f020f0accd0f3d94ce7f058c33f755fc0b59543462e2751a7f9",
+    "zipEntries": 24,
+    "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "rawAndReviewedTextVerified": true,
+    "escapedTextVerified": true,
+    "manualReviewVerified": true,
+    "independentAuditDisclaimerVerified": true,
+    "nativeDocxStructureVerified": true,
+    "limitations": "Synthetic pure-generator check only; no Word rendering, browser download, real-case export or file-open acceptance is claimed."
+  },
+  "sourceHashesStableDuringValidation": true
+}

@@ -1,5 +1,7 @@
-import { requireMember, quota, failure } from '../server/security.mjs'
+import { adminClient, requireMember, quota, failure, HttpError } from '../server/security.mjs'
+import { validateImageBytes } from '../server/imageValidation.mjs'
 const MAX_BASE64_LENGTH = 4_000_000
+const MAX_RESPONSE_BYTES = 8_000_000
 const GOOGLE_VISION_ENDPOINT = 'https://vision.googleapis.com/v1/images:annotate'
 
 const send = (res, status, payload) => {
@@ -9,9 +11,11 @@ const send = (res, status, payload) => {
 }
 
 export function parseImageDataUrl(value) {
-  const match = String(value || '').match(/^data:image\/(?:jpeg|jpg|png|webp);base64,([A-Za-z0-9+/=]+)$/)
-  if (!match) throw new Error('A JPEG, PNG or WebP data URL is required.')
-  if (match[1].length > MAX_BASE64_LENGTH) throw new Error('The connected-OCR image exceeds the 3 MB transfer limit. Crop the declaration panel first.')
+  if (typeof value !== 'string') throw new HttpError(400, 'A JPEG, PNG or WebP data URL is required.')
+  if (value.length > MAX_BASE64_LENGTH + 40) throw new HttpError(413, 'The connected-OCR image exceeds the 3 MB transfer limit. Crop the declaration panel first.')
+  const match = value.match(/^data:image\/(?:jpeg|jpg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/)
+  if (!match) throw new HttpError(400, 'A JPEG, PNG or WebP data URL is required.')
+  if (match[1].length > MAX_BASE64_LENGTH || match[1].length % 4 !== 0 || Buffer.from(match[1], 'base64').toString('base64') !== match[1]) throw new HttpError(400, 'The image must contain canonical base64 data within the 3 MB transfer limit.')
   return match[1]
 }
 
@@ -34,64 +38,107 @@ const verticesToBox = (vertices = []) => {
   }
 }
 
-const visionWordText = (word) => (word.symbols || []).map((symbol) => symbol.text || '').join('').trim()
+const responseError = () => new HttpError(502, 'The OCR provider returned malformed or oversized data. Local evidence was preserved.')
+const list = (value, max = 20000) => { if (value === undefined) return []; if (!Array.isArray(value) || value.length > max) throw responseError(); return value }
+const visionWordText = (word) => { if (!word || typeof word !== 'object') throw responseError(); return list(word.symbols, 1000).map((symbol) => typeof symbol?.text === 'string' ? symbol.text : '').join('').trim() }
+const confidenceValue = (value) => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1 ? value : null
 
 export function normalizeVisionAnnotation(annotation = {}) {
   const words = []
   const confidences = []
-  for (const page of annotation.fullTextAnnotation?.pages || []) {
-    for (const block of page.blocks || []) {
-      for (const paragraph of block.paragraphs || []) {
-        const paragraphText = (paragraph.words || []).map(visionWordText).filter(Boolean).join(' ')
-        for (const word of paragraph.words || []) {
+  let visited = 0
+  for (const page of list(annotation.fullTextAnnotation?.pages, 4)) {
+    for (const block of list(page?.blocks)) {
+      for (const paragraph of list(block?.paragraphs)) {
+        const paragraphWords = list(paragraph?.words)
+        const paragraphText = paragraphWords.map(visionWordText).filter(Boolean).join(' ')
+        if (paragraphText.length > 100000) throw responseError()
+        for (const word of paragraphWords) {
+          if (++visited > 20000 || !word || typeof word !== 'object') throw responseError()
           const text = visionWordText(word)
           if (!text) continue
-          const confidence = Number(word.confidence || paragraph.confidence || block.confidence || 0) * 100
-          if (confidence > 0) confidences.push(confidence)
+          // Zero is a real provider observation, not permission to substitute a
+          // paragraph/block score. Missing confidence remains explicitly unknown.
+          const score = confidenceValue(word.confidence ?? paragraph.confidence ?? block.confidence)
+          const confidence = score === null ? null : Number((score * 100).toFixed(1))
+          if (score !== null) confidences.push(confidence)
           words.push({
             text,
             lineText: paragraphText,
-            confidence: Number(confidence.toFixed(1)),
-            bbox: verticesToBox(word.boundingBox?.vertices),
-            pageWidth: Number(page.width || 1),
-            pageHeight: Number(page.height || 1),
+            confidence,
+            bbox: verticesToBox(list(word.boundingBox?.vertices, 8)),
+            pageWidth: Number.isFinite(page.width) && page.width > 0 ? page.width : 1,
+            pageHeight: Number.isFinite(page.height) && page.height > 0 ? page.height : 1,
           })
         }
       }
     }
   }
-  const confidence = confidences.length ? confidences.reduce((sum, value) => sum + value, 0) / confidences.length : 0
-  return { text: String(annotation.fullTextAnnotation?.text || annotation.textAnnotations?.[0]?.description || '').trim(), confidence: Number(confidence.toFixed(1)), words }
+  const confidenceAvailable = words.length > 0 && confidences.length === words.length
+  const confidence = confidenceAvailable ? confidences.reduce((sum, value) => sum + value, 0) / confidences.length : 0
+  const text = annotation.fullTextAnnotation?.text ?? annotation.textAnnotations?.[0]?.description ?? ''
+  if (typeof text !== 'string' || text.length > 100000) throw responseError()
+  return { text: text.trim(), confidence: Number(confidence.toFixed(1)), confidenceAvailable, words }
 }
 
-export function createOcrHandler({ authorize = requireMember, limit = quota } = {}) {
+const abortable = (promise, signal) => new Promise((resolve, reject) => {
+  const abort = () => reject(signal.reason || new DOMException('OCR cancelled.', 'AbortError'))
+  Promise.resolve(promise).then(resolve, reject).finally(() => signal.removeEventListener('abort', abort))
+  if (signal.aborted) { abort(); return }
+  signal.addEventListener('abort', abort, { once: true })
+})
+async function readProviderJson(response, signal) {
+  if (Number(response.headers.get('content-length')) > MAX_RESPONSE_BYTES || !response.body?.getReader) throw responseError()
+  const reader = response.body.getReader(); const chunks = []; let size = 0
+  try {
+    while (true) {
+      const { done, value } = await abortable(reader.read(), signal)
+      if (done) break
+      size += value.byteLength; if (size > MAX_RESPONSE_BYTES) throw responseError()
+      chunks.push(Buffer.from(value))
+    }
+    try { return JSON.parse(Buffer.concat(chunks, size).toString('utf8')) } catch { throw responseError() }
+  } finally { void reader.cancel().catch(() => {}); reader.releaseLock() }
+}
+export function createOcrHandler({ authorize = (req) => requireMember(req, [], adminClient({ signal: req.signal, timeoutMs: 27000 })), limit = quota, timeoutMs = 27000 } = {}) {
 return async function handler(req, res) {
   if (req.method === 'GET') return send(res, 200, { configured: Boolean(process.env.GOOGLE_CLOUD_VISION_API_KEY), provider: 'google-vision', mode: 'explicit-opt-in' })
   if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed.' })
   const apiKey = process.env.GOOGLE_CLOUD_VISION_API_KEY
   if (!apiKey) return send(res, 503, { error: 'Connected OCR is not configured. Add GOOGLE_CLOUD_VISION_API_KEY to the server environment.' })
+  const cancellation = new AbortController()
+  const deadline = AbortSignal.timeout(timeoutMs)
+  const signal = AbortSignal.any([deadline, cancellation.signal, ...(req.signal ? [req.signal] : [])])
+  const aborted = () => cancellation.abort(new DOMException('OCR request cancelled.', 'AbortError'))
+  const disconnected = () => { if (!res.writableEnded) aborted() }
+  req.once?.('aborted', aborted); res.once?.('close', disconnected)
   try {
-    const context = await authorize(req)
-    await limit(context, 'connected-ocr', 10, 100)
+    const scopedReq = Object.create(req); Object.defineProperty(scopedReq, 'signal', { value: signal })
+    const context = await abortable(authorize(scopedReq), signal)
+    await abortable(limit(context, 'connected-ocr', 10, 100), signal)
     const content = parseImageDataUrl(req.body?.image)
-    const response = await fetch(GOOGLE_VISION_ENDPOINT, {
+    const mime = req.body.image.slice(5, req.body.image.indexOf(';')).replace('image/jpg', 'image/jpeg')
+    await abortable(validateImageBytes(Buffer.from(content, 'base64'), mime), signal)
+    const response = await abortable(fetch(GOOGLE_VISION_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json; charset=utf-8', 'X-Goog-Api-Key': apiKey },
       body: JSON.stringify({ requests: [{ image: { content }, features: [{ type: 'DOCUMENT_TEXT_DETECTION' }], imageContext: { languageHints: languageHints(req.body?.language) } }] }),
-      signal: AbortSignal.timeout(25_000),
-    })
-    const payload = await response.json()
-    if (!response.ok) return send(res, response.status, { error: payload.error?.message || 'Google Vision rejected the OCR request.' })
+      signal,
+    }), signal)
+    const payload = await readProviderJson(response, signal)
+    if (!response.ok) return send(res, response.status === 429 ? 429 : 502, { error: response.status === 429 ? 'Connected OCR is rate-limited. Retry later; local evidence is preserved.' : 'The OCR provider rejected the request. Check server configuration or retry with a clearer crop.' })
     const annotation = payload.responses?.[0] || {}
-    if (annotation.error) return send(res, 502, { error: annotation.error.message || 'Google Vision could not process the image.' })
+    if (annotation.error) return send(res, 502, { error: 'The OCR provider could not process this image. Local evidence is preserved.' })
     const result = normalizeVisionAnnotation(annotation)
     if (!result.text) return send(res, 422, { error: 'Connected OCR found no readable text. Retake or crop the declaration panel.' })
     return send(res, 200, { ...result, provider: 'google-vision', retention: 'NiyamLens does not persist the transferred image.' })
   } catch (error) {
+    if (res.destroyed || res.writableEnded) return
+    if (signal.aborted) return send(res, deadline.aborted ? 504 : 499, { error: deadline.aborted ? 'Connected OCR timed out. Local evidence was preserved; retry a smaller crop or use browser OCR.' : 'OCR was cancelled. Local evidence was preserved.' })
     if (error.status) return failure(res, error)
     const status = /required|exceeds/i.test(error.message || '') ? 400 : 502
-    return send(res, status, { error: error.message || 'Connected OCR failed.' })
-  }
+    return send(res, status, { error: status === 400 ? error.message : 'Connected OCR is temporarily unavailable. Local evidence was preserved.' })
+  } finally { req.off?.('aborted', aborted); res.off?.('close', disconnected) }
 }
 }
 export default createOcrHandler()

@@ -21,7 +21,7 @@ GENERIC NAME: TEST PRODUCT
 MRP Rs. 40.00 inclusive of all taxes
 NET QTY 100 g
 PACKED 08/2026
-MANUFACTURED BY: EXAMPLE FOODS, CHENNAI
+MANUFACTURED BY: EXAMPLE FOODS, 24 Factory Road, Chennai 600001
 CONSUMER CARE: EXAMPLE FOODS HELPDESK
 12 Market Road, Chennai 600001
 Telephone: 1800 111 2026 · care@example.in
@@ -72,7 +72,7 @@ test('abstains instead of failing missing text when OCR confidence is low', () =
 
 test('applies the Rule 26 exemption to an eligible small package', () => {
   const result = evaluateCompliance({
-    text: completeText.replace('UNIT SALE PRICE Rs. 0.40/g', ''),
+    text: completeText.replace('UNIT SALE PRICE Rs. 0.40/g', '').replace('NET QTY 100 g', 'NET QTY 8 g'),
     meta: { ...baseMeta, quantity: 8, unit: 'g' },
   })
   assert.equal(result.context.exemption.exempt, true)
@@ -83,7 +83,7 @@ test('applies the Rule 26 exemption to an eligible small package', () => {
 
 test('does not apply the small-package exemption to tobacco products', () => {
   const result = evaluateCompliance({
-    text: completeText,
+    text: completeText.replace('NET QTY 100 g', 'NET QTY 8 g').replace('UNIT SALE PRICE Rs. 0.40/g', 'UNIT SALE PRICE Rs. 5.00/g'),
     meta: { ...baseMeta, quantity: 8, unit: 'g', commodityClass: 'tobacco' },
   })
   assert.equal(result.context.exemption.exempt, false)
@@ -119,22 +119,22 @@ test('does not treat a PIN code or batch number as a consumer-care telephone', (
 
 test('does not reuse a manufacturer telephone as consumer-care evidence', () => {
   const manufacturerPhoneOnly = completeText.replace(
-    'MANUFACTURED BY: EXAMPLE FOODS, CHENNAI\nCONSUMER CARE: EXAMPLE FOODS HELPDESK\n12 Market Road, Chennai 600001\nTelephone: 1800 111 2026 · care@example.in',
-    'MANUFACTURED BY: EXAMPLE FOODS, CHENNAI\nTelephone: 044 23456789\n12 Market Road, Chennai 600001\nCONSUMER CARE: EXAMPLE FOODS HELPDESK\ncare@example.in',
+    'MANUFACTURED BY: EXAMPLE FOODS, 24 Factory Road, Chennai 600001\nCONSUMER CARE: EXAMPLE FOODS HELPDESK\n12 Market Road, Chennai 600001\nTelephone: 1800 111 2026 · care@example.in',
+    'MANUFACTURED BY: EXAMPLE FOODS, 24 Factory Road, Chennai 600001\nTelephone: 044 23456789\n12 Market Road, Chennai 600001\nCONSUMER CARE: EXAMPLE FOODS HELPDESK\ncare@example.in',
   )
   const result = evaluateCompliance({ text: manufacturerPhoneOnly, meta: baseMeta })
   assert.equal(result.checks.find((check) => check.id === 'consumerPhone').status, 'fail')
 })
 
-test('food profile keeps the general Legal Metrology declarations in scope', () => {
+test('food profile defers specialist manufacturer and date provisions without inventing LMPC violations', () => {
   const incompleteFood = completeText
     .replace('PACKED 08/2026\n', '')
-    .replace('MANUFACTURED BY: EXAMPLE FOODS, CHENNAI\n', '')
+    .replace('MANUFACTURED BY: EXAMPLE FOODS, 24 Factory Road, Chennai 600001\n', '')
     .replace('UNIT SALE PRICE Rs. 0.40/g\n', '')
   const result = evaluateCompliance({ text: incompleteFood, meta: { ...baseMeta, category: 'food' } })
   assert.equal(result.status, 'non_compliant')
-  assert.equal(result.checks.find((check) => check.id === 'packDate').status, 'fail')
-  assert.equal(result.checks.find((check) => check.id === 'manufacturer').status, 'fail')
+  assert.equal(result.checks.find((check) => check.id === 'packDate').status, 'review')
+  assert.equal(result.checks.find((check) => check.id === 'manufacturer').status, 'review')
   assert.equal(result.checks.find((check) => check.id === 'unitSalePrice').status, 'fail')
 })
 

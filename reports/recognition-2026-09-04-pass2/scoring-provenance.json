@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-09-04T10:57:12.663Z",
+  "sourceHashes": {
+    "src/lib/labelParser.mjs": "b4e4d243023e18ed3fc88429a3ef1abe8c132c899c669113463e37d56f57ec99",
+    "src/lib/extraction.mjs": "a24f6295a1827e3e020eadac572f47ae4998667c41034ea4dc06803dd6fbb3ef",
+    "src/lib/criticalFieldBenchmark.mjs": "91d92084466bfd23226f29edd473a7ecc04ec794f426cc7b53f1940c4f4dd3a2",
+    "tools/score-critical-fields.mjs": "4e06a48543363ae0d8015c873470555bf3ad945aa322c6501a67e1246c87f90c",
+    "datasets/critical-fields.v1.json": "4f869df89f6246e774189a7522e2798f5ab680b83e887eb8ddeae6c08fd977ad"
+  },
+  "parserStableDuringScoring": true,
+  "note": "All four new configurations and the prior RapidOCR default were rescored using exactly the same current extraction implementation. Prior report scores may use an older parser."
+}

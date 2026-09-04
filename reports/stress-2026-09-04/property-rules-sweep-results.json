@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2026-09-04T09:00:43.449Z",
+  "seed": 260342026,
+  "node": "v26.1.0",
+  "harness": "property-rules-sweep.mjs",
+  "scope": "Summary transcribed from the actual local run. No network or cloud writes. Exact-transcription confirmations are synthetic. Hand-selected malformed-input frequencies do not represent real-world label accuracy. Repeated examples expose the same root causes and are not independent bugs. NaN and Infinity include direct pure-function inputs, not just JSON request shapes.",
+  "totals": { "cases": 13080, "expected": 7239, "unexpectedReturnedVerdict": 3841, "uncaughtExceptions": 2000 },
+  "elapsedMs": 1338.418,
+  "groups": [
+    { "name": "invalid-physical-dimensions", "cases": 6000, "expected": 5659, "unexpected": 341, "exceptions": 0, "statuses": { "compliant": 341, "manual_review": 5169, "non_compliant": 490 } },
+    { "name": "invalid-uncertainty-domain", "cases": 2000, "expected": 0, "unexpected": 2000, "exceptions": 0, "statuses": { "compliant": 2000 } },
+    { "name": "nonboolean-confirmations", "cases": 1000, "expected": 0, "unexpected": 1000, "exceptions": 0, "statuses": { "compliant": 1000 } },
+    { "name": "finite-arithmetic-overflow", "cases": 1000, "expected": 0, "unexpected": 0, "exceptions": 1000, "exception": "TypeError: Cannot read properties of null (reading 'minimum')" },
+    { "name": "malformed-review-reason", "cases": 1000, "expected": 0, "unexpected": 0, "exceptions": 1000, "exception": "TypeError: review.reason?.trim is not a function" },
+    { "name": "conflicting-quantity-order", "cases": 1000, "expected": 500, "unexpected": 500, "exceptions": 0, "statuses": { "exempt": 500, "manual_review": 500 }, "detail": "All 500 small-first inputs became exempt; all 500 large-first inputs remained manual review." },
+    { "name": "valid-field-block-order-invariance", "cases": 1000, "expected": 1000, "unexpected": 0, "exceptions": 0, "statuses": { "compliant": 1000 } },
+    { "name": "bounded-large-text-robustness", "cases": 80, "expected": 80, "unexpected": 0, "exceptions": 0, "statuses": { "compliant": 60, "manual_review": 20 }, "detail": "Only crash/latency tested in this group, not truth of verdicts." }
+  ],
+  "latency": [
+    { "profile": "ordinary-ascii", "characters": 1000, "runs": 5, "medianMs": 0.079, "maximumMs": 0.265 },
+    { "profile": "ordinary-ascii", "characters": 10000, "runs": 5, "medianMs": 0.704, "maximumMs": 0.966 },
+    { "profile": "ordinary-ascii", "characters": 50000, "runs": 5, "medianMs": 2.381, "maximumMs": 3.191 },
+    { "profile": "ordinary-ascii", "characters": 99000, "runs": 5, "medianMs": 5.227, "maximumMs": 5.468 },
+    { "profile": "almost-declarations", "characters": 1000, "runs": 5, "medianMs": 0.096, "maximumMs": 0.129 },
+    { "profile": "almost-declarations", "characters": 10000, "runs": 5, "medianMs": 0.768, "maximumMs": 0.957 },
+    { "profile": "almost-declarations", "characters": 50000, "runs": 5, "medianMs": 3.785, "maximumMs": 4.141 },
+    { "profile": "almost-declarations", "characters": 99000, "runs": 5, "medianMs": 7.031, "maximumMs": 7.632 },
+    { "profile": "long-line", "characters": 1000, "runs": 5, "medianMs": 0.082, "maximumMs": 0.157 },
+    { "profile": "long-line", "characters": 10000, "runs": 5, "medianMs": 0.414, "maximumMs": 0.564 },
+    { "profile": "long-line", "characters": 50000, "runs": 5, "medianMs": 2.217, "maximumMs": 2.570 },
+    { "profile": "long-line", "characters": 99000, "runs": 5, "medianMs": 4.249, "maximumMs": 4.554 },
+    { "profile": "indic", "characters": 1000, "runs": 5, "medianMs": 0.268, "maximumMs": 3.025 },
+    { "profile": "indic", "characters": 10000, "runs": 5, "medianMs": 0.599, "maximumMs": 0.700 },
+    { "profile": "indic", "characters": 50000, "runs": 5, "medianMs": 3.031, "maximumMs": 4.293 },
+    { "profile": "indic", "characters": 99000, "runs": 5, "medianMs": 5.391, "maximumMs": 6.088 }
+  ],
+  "interpretation": "The pure text rules are fast on the tested bounded long inputs. The main problem is input-domain correctness rather than throughput. These timings do not include image OCR, network, authentication, object storage, cloud functions, or browser rendering, and cannot be converted to supported concurrent-user capacity. Counts across this sweep and the earlier 43 probes overlap the same defects; do not sum them as independent findings."
+}

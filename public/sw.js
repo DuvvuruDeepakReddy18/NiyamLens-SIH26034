@@ -1,4 +1,4 @@
-const CACHE = 'niyamlens-shell-v8'
+const CACHE = 'niyamlens-shell-v10'
 const OFFLINE_ASSETS = [
   '/',
   '/icon.svg',
@@ -38,25 +38,42 @@ self.addEventListener('activate', (event) => {
   )
 })
 
+async function matchCached(pathname, options) {
+  try {
+    return await caches.match(pathname, options)
+  } catch {
+    // CacheStorage is optional: disabled storage must not prevent network access.
+    return undefined
+  }
+}
+
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
   // Never retain authenticated responses, API records or signed evidence in the shell cache.
   if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/') || event.request.headers.has('authorization')) return
   event.respondWith((async () => {
     const pathname = url.pathname
-    const cached = await caches.match(pathname, { ignoreSearch: true })
+    const cached = await matchCached(pathname, { ignoreSearch: true })
     const immutableAsset = pathname.startsWith('/assets/') || pathname.startsWith('/ocr/')
     if (immutableAsset && cached) return cached
     try {
       const response = await fetch(event.request)
       if (response.ok) {
-        const cache = await caches.open(CACHE)
-        await cache.put(pathname, response.clone())
+        try {
+          const cache = await caches.open(CACHE)
+          await cache.put(pathname, response.clone())
+        } catch {
+          // Quota/storage failures must not turn a valid network response into 503.
+          // Large optional OCR assets remain network-usable without being cached.
+        }
       }
       return response
     } catch {
       if (cached) return cached
-      if (event.request.mode === 'navigate') return caches.match('/')
+      if (event.request.mode === 'navigate') {
+        const shell = await matchCached('/')
+        if (shell) return shell
+      }
       return new Response('Offline asset unavailable', { status: 503, headers: { 'Content-Type': 'text/plain' } })
     }
   })())

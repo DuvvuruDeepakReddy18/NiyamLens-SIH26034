@@ -1,0 +1,197 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "niyamlens-critical-fields-checkset-v1",
+  "createdOn": "2026-09-04",
+  "purpose": "A product-code-disjoint, provisional visual check set for missing-field, incomplete-capture and quantity-role errors. Available local images do not supply readable positive MRP, net-quantity or packed-date labels; this is not a positive-recognition accuracy benchmark.",
+  "corpusRole": "availability-sampled-abstention-checkset",
+  "isHoldout": false,
+  "positiveRecognitionEvaluationReady": false,
+  "annotation": {
+    "labeler": "AI visual inspection",
+    "status": "provisional-human-review-required",
+    "humanReviewed": false,
+    "method": "Inspected the exact local photographs with view_image before running any new OCR on this check set. Used indexes only to route photographs and retain attribution. Did not consult Google Vision annotations, new model OCR transcripts, catalogue quantities or arithmetic-derived quantities when labelling.",
+    "newOcrOutputsConsultedBeforeFreeze": false,
+    "priorExposureDisclosure": "These six product codes are absent from critical-fields.v1.json, but that does not make them an independent holdout. Health Factory, Maggi, NutriChoice and Maska Chaska are already in the older real-label development collection. The annotating agent previously inspected and ran OCR on another Maska Chaska photo (20.jpg). Some chosen photographs were used by earlier token-level development benchmarks, though those OCR outputs were not consulted for these labels. Amul Taaza shares a brand with an excluded product code. Pretrained model training exposure is unknown.",
+    "selection": "Availability sampling: the local collection contains 12 original-size photographs across four non-excluded product codes and 41 candidate thumbnails across six non-excluded codes. Inspected available views seeking critical declarations, then selected one photo per code illustrating the actual coverage/readability limitation. No success-based or model-output-based selection was used. Three selections are original-size photos and three are 400px candidate thumbnails. The set is not random, representative or brand-disjoint.",
+    "sameProductCodeIsNotSamePhysicalPackage": true,
+    "freezeRule": "Do not silently relabel to fit OCR. Any later label correction must record a human reviewer, reason, previous value and new dataset version. A newly acquired photograph must receive a new sample identity and hash."
+  },
+  "split": {
+    "disjointFrom": "datasets/critical-fields.v1.json",
+    "unit": "productCode",
+    "excludedProductCodes": ["8901262260121", "8906014888868", "8906055442586", "8904083301837", "8901764082405", "8902579001360"],
+    "sampleCount": 6,
+    "uniqueProductCount": 6,
+    "overlappingProductCount": 0,
+    "independentGroundTruth": false
+  },
+  "source": {
+    "name": "Existing local Open Food Facts India real-label and candidate collections",
+    "directory": "datasets/openfoodfacts-india",
+    "pathBase": "repository-root",
+    "imageIdentity": "sha256 of the exact local image bytes; no image transforms or OCR were used for the freeze",
+    "catalogUrl": "https://registry.opendata.aws/openfoodfacts-images/",
+    "documentationUrl": "https://openfoodfacts.github.io/openfoodfacts-server/api/aws-images-dataset/",
+    "imageLicense": "CC BY-SA, as recorded in the existing source manifests",
+    "databaseLicense": "ODbL 1.0, as recorded in the existing source manifests",
+    "attribution": "Retain each source URL, product URL and the original collection attribution records when redistributing photographs. These labels neither change the image licences nor establish capture dates or contributor identity. No new image was downloaded for this version."
+  },
+  "scoringPolicy": {
+    "unitOfEvaluation": "individual-photograph",
+    "criticalFields": ["mrp", "netQuantity", "packDate"],
+    "statuses": {
+      "readable": "The full value and requested field identity are visually supported in this exact photograph; provisional positive exact-match label.",
+      "not_visible": "No readable value for the requested declaration appears in this photograph. This is not a claim that the complete package lacks a declaration.",
+      "illegible": "A relevant declaration or partial heading is visible, but its complete value is not readable in this exact image.",
+      "ambiguous_field": "A quantity-like number is readable but its identity or scope as this package's net declaration cannot be established from this photograph."
+    },
+    "denominator": "Only status=readable and metricEligible=true fields enter positive exact-match denominators. Every denominator in this version is zero: report not measurable, never 0% or 100% accuracy. Report predictions on excluded fields separately as unsupported candidates requiring visual review, not automatically false declarations.",
+    "expectedValues": "Readable labels only. All maps are intentionally empty. Missing keys are unlabelled and cannot establish compliant or non-compliant absence.",
+    "normalization": "Preserve digits and date separators. Normalize quantity unit spelling/case only. Do not infer quantity from servings, nutritional per-100g values, promotional counts, catalogue data, adjacent pictured products or unit-price arithmetic.",
+    "surfaces": "surface records only a readable excerpt or a stated partial heading, not a full transcript or exact typography. Null means no accepted excerpt.",
+    "dateMeaning": "Only an explicitly identified packed/manufactured date can receive a readable packDate label. Best-before instructions without a date are not packing dates.",
+    "legalVerdictsLabelled": false,
+    "falseClearRate": null,
+    "falseClearRateReason": "No human/officer-adjudicated legal verdicts or complete-package capture labels are provided.",
+    "claimsAllowed": "Provisional abstention and field-role diagnostic checks only. Positive recognition performance, legal correctness and unseen-product accuracy are not measured.",
+    "expectedReadableDenominators": {"mrp": 0, "netQuantity": 0, "packDate": 0}
+  },
+  "samples": [
+    {
+      "id": "CK-001",
+      "productCode": "8908009059383",
+      "productLabel": "The Health Factory Focaccia Sourdough Bread",
+      "productUrl": "https://world.openfoodfacts.org/product/8908009059383",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8908009059383/3.jpg",
+      "sourceUrl": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/890/800/905/9383/3.jpg",
+      "sha256": "8bbd1c906764c3280dfdc52ed75be264a193efcca37350fdd40ee9f812cb6d25",
+      "imageSize": {"width": 1988, "height": 2385, "bytes": 1081540},
+      "humanReviewRequired": true,
+      "conditions": ["near-flat label on flexible pouch", "nutrition-panel close-up", "mild blur", "several mass values with non-net roles"],
+      "expectedStatus": null,
+      "expectedValues": {},
+      "fields": {
+        "mrp": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Entire photographed nutrition panel", "notes": "No MRP declaration is visible in this view."},
+        "netQuantity": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Top of nutrition panel", "notes": "Per 100g and Serving size: 80g (1 piece), number of servings 2, are nutritional context, not a visible net declaration. Do not derive 160 g."},
+        "packDate": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Entire photographed panel", "notes": "No identified packing/manufacture date is visible."}
+      },
+      "otherVisibleReadings": [
+        {"kind": "nutrition-basis", "surface": "Nutrition Facts - Per 100g (Approx.)", "value": "100 g", "notes": "Not net quantity."},
+        {"kind": "serving-size", "surface": "Serving size: 80g (1 piece)", "value": "80 g", "notes": "Not net quantity."},
+        {"kind": "serving-count", "surface": "No. of servings: 2", "value": "2", "notes": "Do not multiply serving information to manufacture a declaration."}
+      ]
+    },
+    {
+      "id": "CK-002",
+      "productCode": "8901058891430",
+      "productLabel": "Maggi 2-Minute Noodles Family Delight",
+      "productUrl": "https://world.openfoodfacts.org/product/8901058891430",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901058891430/9.jpg",
+      "sourceUrl": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/890/105/889/1430/9.jpg",
+      "sha256": "480336f6670f49312c93fb59833d9569121c40515315c8f64e33057a1e6183e6",
+      "imageSize": {"width": 1018, "height": 892, "bytes": 173148},
+      "humanReviewRequired": true,
+      "conditions": ["sideways text", "wrinkled curved flexible packet", "glare", "tight nutrition-table crop"],
+      "expectedStatus": null,
+      "expectedValues": {},
+      "fields": {
+        "mrp": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Entire nutrition crop", "notes": "No MRP value or heading is visible."},
+        "netQuantity": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Right-side sideways header", "notes": "If a serve is 70 g and Per 100g are clearly serving/nutrition roles. Neither is a visible net-quantity declaration."},
+        "packDate": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Entire nutrition crop", "notes": "No identified packing/manufacture date is visible."}
+      },
+      "otherVisibleReadings": [
+        {"kind": "serving-size", "surface": "If a serve is 70 g", "value": "70 g", "notes": "Not net quantity."},
+        {"kind": "nutrition-basis", "surface": "Per 100g", "value": "100 g", "notes": "Not net quantity."}
+      ]
+    },
+    {
+      "id": "CK-003",
+      "productCode": "8901063142862",
+      "productLabel": "Britannia NutriChoice Digestive Zero",
+      "productUrl": "https://world.openfoodfacts.org/product/8901063142862",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901063142862/4.jpg",
+      "sourceUrl": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/890/106/314/2862/4.jpg",
+      "sha256": "7da0f952cd3fda8fda02f683201de9efc2fa91e30be07f59e4eb48977197f064",
+      "imageSize": {"width": 2250, "height": 3000, "bytes": 871846},
+      "humanReviewRequired": true,
+      "conditions": ["folded curved wrapper", "foreground occlusion", "glare", "consumer-care and licence close-up", "partly occluded pictured-product text"],
+      "expectedStatus": null,
+      "expectedValues": {},
+      "fields": {
+        "mrp": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Visible consumer-care and upper folded region", "notes": "No MRP declaration is readable."},
+        "netQuantity": {"status": "ambiguous_field", "metricEligible": false, "value": null, "surface": "100 g pack", "location": "Upper purple strip beneath a pictured Digestive package", "notes": "The preceding phrase is hidden by a fold. The pictured package and truncated context do not establish this phrase as the photographed target's net declaration; do not assign 100 g."},
+        "packDate": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Visible consumer-care and licence region", "notes": "No packing/manufacture date is visible. The licence number is not a date."}
+      },
+      "otherVisibleReadings": [
+        {"kind": "quantity-with-occluded-scope", "surface": "100 g pack", "value": "100 g", "notes": "Scope unresolved; excluded from net-quantity scoring."},
+        {"kind": "fssai-licence", "surface": "Lic. No. 10015043001129", "value": "10015043001129", "notes": "Not price, quantity or packing date."}
+      ]
+    },
+    {
+      "id": "CK-004",
+      "productCode": "8901063017252",
+      "productLabel": "Britannia 50-50 Maska Chaska",
+      "productUrl": "https://world.openfoodfacts.org/product/8901063017252",
+      "sourcePath": "datasets/openfoodfacts-india/candidates/8901063017252/14.400.jpg",
+      "sourceUrl": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/890/106/301/7252/14.400.jpg",
+      "sha256": "1031b2feb8ad327cb4f3e95819d59494ea9f3efc95b148a1ae6e5ae01353d699",
+      "imageSize": {"width": 400, "height": 230, "bytes": 17621},
+      "humanReviewRequired": true,
+      "conditions": ["400px thumbnail", "curved flexible wrapper", "right-side declaration cropped", "brand numbers next to partial price-like heading"],
+      "expectedStatus": null,
+      "expectedValues": {},
+      "fields": {
+        "mrp": {"status": "illegible", "metricEligible": false, "value": null, "surface": "[cropped] (INC... ALL...)", "location": "Extreme right border", "notes": "Only a fragment consistent with a price/tax declaration is visible; the actual heading and amount are outside the crop. The prominent 50-50 is the brand, not an MRP."},
+        "netQuantity": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Entire cropped wrapper", "notes": "No net declaration is readable; neither the 50-50 logo nor recycling number 7 is a quantity."},
+        "packDate": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Entire cropped wrapper", "notes": "No identified packing/manufacture date is visible."}
+      },
+      "otherVisibleReadings": [
+        {"kind": "brand-mark", "surface": "50 50", "value": "50 50", "notes": "Not a price or quantity."},
+        {"kind": "recycling-mark", "surface": "7 OTHER", "value": "7", "notes": "Not quantity or a date."}
+      ]
+    },
+    {
+      "id": "CK-005",
+      "productCode": "8901262150217",
+      "productLabel": "Amul Taaza milk carton",
+      "productUrl": "https://world.openfoodfacts.org/product/8901262150217",
+      "sourcePath": "datasets/openfoodfacts-india/candidates/8901262150217/1.400.jpg",
+      "sourceUrl": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/890/126/215/0217/1.400.jpg",
+      "sha256": "84c2353817e8a9dd51d84293c53e687d4f9e2cacb0bf6d6ed90b34f8cd5faa92",
+      "imageSize": {"width": 148, "height": 400, "bytes": 12729},
+      "humanReviewRequired": true,
+      "conditions": ["flat carton side", "narrow 148px-wide photo", "very small print", "low contrast"],
+      "expectedStatus": null,
+      "expectedValues": {},
+      "fields": {
+        "mrp": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Carton side", "notes": "No MRP value can be identified in this exact low-resolution view. No whole-package absence claim is made."},
+        "netQuantity": {"status": "illegible", "metricEligible": false, "value": null, "surface": "Net Content:", "location": "Above the nutrition table", "notes": "Heading is discernible, but the complete numeric value and unit are not confidently legible at this image's resolution. Do not supply a familiar carton capacity or catalogue value."},
+        "packDate": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Carton side", "notes": "No identified absolute packing/manufacture date is visible. A shelf-life/best-before instruction is not a date label."}
+      },
+      "otherVisibleReadings": []
+    },
+    {
+      "id": "CK-006",
+      "productCode": "8909081002342",
+      "productLabel": "Sunfeast Dark Fantasy Choco Rolls",
+      "productUrl": "https://world.openfoodfacts.org/product/8909081002342",
+      "sourcePath": "datasets/openfoodfacts-india/candidates/8909081002342/1.400.jpg",
+      "sourceUrl": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/890/908/100/2342/1.400.jpg",
+      "sha256": "32caf11d9ea1c4a1d28cf55b813a1e500ea06212bd8418379c285159a2f366b4",
+      "imageSize": {"width": 225, "height": 400, "bytes": 18410},
+      "humanReviewRequired": true,
+      "conditions": ["flat box front", "handheld perspective", "400px thumbnail", "promotional count only", "not a complete declaration-panel photo"],
+      "expectedStatus": null,
+      "expectedValues": {},
+      "fields": {
+        "mrp": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Front of box", "notes": "No MRP declaration is readable on this front view."},
+        "netQuantity": {"status": "ambiguous_field", "metricEligible": false, "value": null, "surface": "22 ROLLS 2 FREE", "location": "Top-right promotional panel", "notes": "Promotional wording is visible but does not establish whether the 22 includes or excludes the free items, or a separate declared net quantity. Do not add counts or turn this into a labelled net declaration without a complete panel and human review."},
+        "packDate": {"status": "not_visible", "metricEligible": false, "value": null, "surface": null, "location": "Front of box", "notes": "No identified packing/manufacture date is visible."}
+      },
+      "otherVisibleReadings": [
+        {"kind": "promotional-count", "surface": "22 ROLLS 2 FREE", "value": null, "notes": "Do not infer an exact net count from promotional arithmetic."}
+      ]
+    }
+  ]
+}

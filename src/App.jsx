@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { createWorker } from 'tesseract.js'
 import {
   AlertTriangle,
   Archive,
@@ -57,11 +56,21 @@ import { evaluateCompliance, FONT_TIERS, RULE_PACK } from './lib/rules.mjs'
 import { createEvidenceStore } from './lib/storage.mjs'
 import { appendReview, auditPresentation, effectiveStatus, normalizeCase } from './lib/caseRecords.mjs'
 import { evaluateInspection, fieldCandidates } from './lib/inspectionSafety.mjs'
+import { EMPTY_OCR, MAX_EVIDENCE_TEXT, ocrProvenance, restoreEvidencePolicy, invalidateCapturedEvidence, validateSealableEvidence, nextPageOffset } from './lib/inspectionWorkflow.mjs'
+import { runLocalOcr } from './lib/ocrRunner.mjs'
+import { runPaddleOcr, preparePaddleAppend, createPaddleFocusInput } from './lib/paddleOcr.mjs'
+import { reconstructOcrReadingOrder, reviewableDeclarationProposals } from './lib/ocrReadingOrder.mjs'
+import PaddleReview from './PaddleReview.jsx'
+import { abortError, boundedOcr, throwIfAborted } from './lib/ocrLifecycle.mjs'
+import { createFocusedVariants, appendFocusedTranscript } from './lib/focusOcr.mjs'
+import { appendOcrHistory, validateOcrHistory } from './lib/ocrHistory.mjs'
 import { createOperation, createSyncEngine } from './lib/syncEngine.mjs'
 import { mergeCloudRecord } from './lib/workspaceClient.mjs'
 import { WorkspaceGate, SharedOperations } from './Workspace.jsx'
 import FieldVerification from './FieldVerification.jsx'
-import { analyzeImageQuality, calibrateOcrReliability, createOcrInputVariants, createOcrRegionVariant, createOcrTileVariants, detectReferenceCard, flattenOcrWords, matchDeclarationRegions, measureRegion, mergeOcrPassTexts, webXrDepthSupport } from './lib/vision.mjs'
+import PlacementReview from './PlacementReview.jsx'
+import './placement.css'
+import { analyzeImageQuality, detectReferenceCard, matchDeclarationRegions, mergeOcrPassTexts, webXrDepthSupport } from './lib/vision.mjs'
 
 const NAV_ITEMS = [
   { id: 'inspect', label: 'New inspection', icon: ScanLine },
@@ -106,6 +115,8 @@ const CORE_DECLARATIONS = [
 ]
 
 const INITIAL_META = {
+  ...EMPTY_OCR,
+  enforceEvidenceReview: true,
   productName: '',
   category: 'general',
   commodityClass: 'standard',
@@ -130,10 +141,6 @@ const INITIAL_META = {
   glyphWidthPx: '',
   panelMeasurements: {},
   measurementUncertainty: 8,
-  ocrConfidence: 100,
-  ocrEngineConfidence: 100,
-  ocrReliabilityReason: '',
-  ocrSource: 'local',
 }
 
 const formatDate = (value) =>
@@ -273,19 +280,21 @@ function CaptureChecklist({ evidenceItems }) {
   )
 }
 
-function DeclarationCoverage({ extraction, reliability, engineConfidence, reliabilityReason }) {
+function DeclarationCoverage({ extraction, reliability, engineConfidence, reliabilityReason, hasOcrRun = false }) {
   if (!extraction.raw) return null
-  const missing = CORE_DECLARATIONS.filter((item) => !extraction.byId[item.id]?.detected)
-  const needsRetake = Number(reliability) < 55
+  const usable = (field) => Boolean(field?.detected && field.value && !field.conflict && !['invalid', 'conflict'].includes(field.validation?.status))
+  const missing = CORE_DECLARATIONS.filter((item) => !usable(extraction.byId[item.id]))
+  const scored = hasOcrRun && typeof reliability === 'number' && Number.isFinite(reliability) && typeof engineConfidence === 'number' && Number.isFinite(engineConfidence)
+  const needsRetake = hasOcrRun && (!scored || reliability < 55)
   return (
     <div className={`declaration-coverage ${needsRetake ? 'retake' : missing.length ? 'incomplete' : 'complete'}`}>
       <header>
         <div><b>{needsRetake ? 'Retake or deep scan recommended' : missing.length ? 'Declaration coverage incomplete' : 'Core declarations located'}</b><small>{reliabilityReason || 'Verify every extracted value against its highlighted source.'}</small></div>
-        <span>Reliability {Number(reliability || 0).toFixed(0)}% · engine {Number(engineConfidence || 0).toFixed(0)}%</span>
+        <span>{scored ? `Heuristic ${reliability.toFixed(0)}/100 · engine ${engineConfidence.toFixed(0)}/100 · not accuracy` : 'No inspection-wide OCR score · verification required'}</span>
       </header>
       <div>
         {CORE_DECLARATIONS.map((item) => {
-          const detected = extraction.byId[item.id]?.detected
+          const detected = usable(extraction.byId[item.id])
           return <span key={item.id} className={detected ? 'covered' : ''}>{detected ? <Check size={12} /> : <CircleHelp size={12} />}{item.label}</span>
         })}
       </div>
@@ -294,9 +303,9 @@ function DeclarationCoverage({ extraction, reliability, engineConfidence, reliab
   )
 }
 
-function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onActive, onRemove, onTransform, onRectify, onRoleChange, processing, regions = [], activeRegionId, onRegionSelect, onDetectReference, onCheckDepth, depthState }) {
+function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onActive, onRemove, onTransform, onRectify, onRoleChange, processing, locked = false, regions = [], activeRegionId, onRegionSelect, onDetectReference, onCheckDepth, depthState, onFocusSelect }) {
   const [mode, setMode] = useState('')
-  const [points, setPoints] = useState({ reference: [], height: [], width: [], perspective: [] })
+  const [points, setPoints] = useState({ reference: [], height: [], width: [], perspective: [], focus: [] })
   const boardRef = useRef(null)
   const imageRef = useRef(null)
   const imageUrl = activeEvidence?.analysisUrl || ''
@@ -304,7 +313,7 @@ function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onAc
   const measurement = panelMeasurement(meta, activeEvidence?.id)
 
   useEffect(() => {
-    setPoints({ reference: [], height: [], width: [], perspective: [] })
+    setPoints({ reference: [], height: [], width: [], perspective: [], focus: [] })
     setMode('')
   }, [imageUrl])
 
@@ -313,10 +322,11 @@ function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onAc
     height: { field: 'glyphPx', color: '#e0a320', label: 'Glyph height' },
     width: { field: 'glyphWidthPx', color: '#c6493d', label: 'Glyph width' },
     perspective: { field: '', color: '#4f70d6', label: 'Flatten panel', points: 4 },
+    focus: { field: '', color: '#8b5fc7', label: 'Focus OCR' },
   }
 
   const handlePoint = (event) => {
-    if (!mode || !boardRef.current || !imageRef.current || !imageUrl) return
+    if (locked || processing || !mode || !boardRef.current || !imageRef.current || !imageUrl) return
     const rect = boardRef.current.getBoundingClientRect()
     const naturalScale = (imageRef.current.naturalWidth || rect.width) / Math.max(1, rect.width)
     const point = {
@@ -331,6 +341,9 @@ function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onAc
     if (mode === 'perspective' && next.length === 4) {
       onRectify?.(next.map((item) => ({ x: item.pxX, y: item.pxY })))
       setMode('')
+    } else if (mode === 'focus' && next.length === 2) {
+      onFocusSelect?.({ x0: Math.max(0, Math.min(1, next[0].x / 100)), y0: Math.max(0, Math.min(1, next[0].y / 100)), x1: Math.max(0, Math.min(1, next[1].x / 100)), y1: Math.max(0, Math.min(1, next[1].y / 100)) })
+      setMode('')
     } else if (mode !== 'perspective' && next.length === 2) {
       const distance = Math.hypot(next[1].pxX - next[0].pxX, next[1].pxY - next[0].pxY)
       onMeasure(modes[mode].field, Number(distance.toFixed(1)))
@@ -339,7 +352,8 @@ function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onAc
   }
 
   const reset = () => {
-    setPoints({ reference: [], height: [], width: [], perspective: [] })
+    setPoints({ reference: [], height: [], width: [], perspective: [], focus: [] })
+    setMode('')
     onMeasure('referencePx', '')
     onMeasure('glyphPx', '')
     onMeasure('glyphWidthPx', '')
@@ -356,7 +370,7 @@ function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onAc
             <img ref={imageRef} src={imageUrl} alt={fileName ? `Package image ${fileName}` : 'Uploaded package'} />
             <svg className="measure-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="Detected declaration regions">
               {regions.filter((region) => region.panelId === activeEvidence?.id).map((region) => (
-                <g key={region.id} className={`declaration-region ${activeRegionId === region.id ? 'active' : ''}`} onClick={(event) => { event.stopPropagation(); onRegionSelect?.(region.id) }}>
+                <g key={region.id} className={`declaration-region ${activeRegionId === region.id ? 'active' : ''}`} onClick={(event) => { if (locked || processing || mode) return; event.stopPropagation(); onRegionSelect?.(region.id) }}>
                   <rect
                     x={(region.bbox.x0 / region.pageWidth) * 100}
                     y={(region.bbox.y0 / region.pageHeight) * 100}
@@ -371,10 +385,11 @@ function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onAc
                 const style = modes[key]
                 return (
                   <g key={key}>
-                    {key !== 'perspective' && set.length === 2 && (
+                    {key !== 'perspective' && key !== 'focus' && set.length === 2 && (
                       <line x1={set[0].x} y1={set[0].y} x2={set[1].x} y2={set[1].y} stroke={style.color} strokeWidth="0.7" vectorEffect="non-scaling-stroke" />
                     )}
                     {key === 'perspective' && set.length > 1 && <polyline points={set.map((point) => `${point.x},${point.y}`).join(' ')} fill="rgba(79,112,214,.11)" stroke={style.color} strokeWidth="0.7" vectorEffect="non-scaling-stroke" />}
+                    {key === 'focus' && set.length === 2 && <rect x={Math.min(set[0].x, set[1].x)} y={Math.min(set[0].y, set[1].y)} width={Math.abs(set[1].x - set[0].x)} height={Math.abs(set[1].y - set[0].y)} fill="rgba(139,95,199,.1)" stroke={style.color} strokeWidth="1" vectorEffect="non-scaling-stroke" />}
                     {set.map((point, index) => (
                       <circle key={index} cx={point.x} cy={point.y} r="1.15" fill={style.color} vectorEffect="non-scaling-stroke" />
                     ))}
@@ -382,7 +397,7 @@ function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onAc
                 )
               })}
             </svg>
-            {mode && <div className="measurement-prompt"><MousePointer2 size={15} /> {mode === 'perspective' ? `Select corners TL → TR → BR → BL (${points.perspective.length}/4)` : `Select two endpoints for ${modes[mode].label.toLowerCase()}`}</div>}
+            {mode && <div className="measurement-prompt"><MousePointer2 size={15} /> {mode === 'perspective' ? `Select corners TL → TR → BR → BL (${points.perspective.length}/4)` : mode === 'focus' ? 'Select opposite corners around the complete declaration, including its heading' : `Select two endpoints for ${modes[mode].label.toLowerCase()}`}</div>}
           </div>
         ) : (
           <div className="empty-board">
@@ -449,9 +464,9 @@ function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onAc
 
       {activeEvidence?.quality && (
         <div className={`quality-gate ${activeEvidence.quality.status}`}>
-          <strong>Capture quality {activeEvidence.quality.score}/100</strong>
+          <strong>Image heuristic {activeEvidence.quality.score}/100 · not OCR accuracy</strong>
           <span>Sharpness {activeEvidence.quality.sharpness} · Contrast {activeEvidence.quality.contrast} · Glare {activeEvidence.quality.glarePercent}%</span>
-          <small>{activeEvidence.quality.issues[0] || 'Image quality is suitable for OCR.'}</small>
+          <small>{activeEvidence.quality.issues[0] || 'No gross image issue detected. Small, curved or low-contrast print can still be unreadable.'}</small>
         </div>
       )}
 
@@ -461,7 +476,7 @@ function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onAc
             type="button"
             key={key}
             className={mode === key ? 'active' : ''}
-            onClick={() => setMode(mode === key ? '' : key)}
+            onClick={() => { setPoints((current) => ({ ...current, [key]: [] })); setMode(mode === key ? '' : key) }}
             disabled={!imageUrl}
           >
             <span style={{ background: option.color }} />
@@ -511,10 +526,10 @@ function ExtractionWorkbench({ extraction, onApply, barcodeState, regions = [], 
         {visibleFields.map((item) => (
           <button type="button" key={item.id} className={item.detected ? 'detected' : 'missing'} onClick={() => regionMap[item.id] && onSelectRegion?.(item.id)} disabled={!regionMap[item.id]}>
             <span>{item.detected ? <Check size={13} /> : <CircleHelp size={13} />}{item.label}</span>
-            <strong>{item.value || 'Not detected'}</strong>
-            <small>{item.detected ? `${item.confidence}% parser${regionMap[item.id] ? ` · region ${regionMap[item.id].confidence}%` : ''}` : 'Correct OCR text or supply manually'}</small>
+            <strong>{item.conflict ? 'Conflicting values' : item.value || (item.detected ? 'Invalid / incomplete reading' : 'Not detected')}</strong>
+            <small>{item.detected ? `Detected, not certified${regionMap[item.id] ? ' · source region located' : ''}` : 'Correct OCR text or supply manually'}</small>
             {item.validation && <em className={item.validation.status.includes('invalid') ? 'field-invalid' : 'field-valid'}>{item.validation.message}</em>}
-            {regionMap[item.id] && <i>{measureRegion(regionMap[item.id], panelMeasurement(meta, regionMap[item.id].panelId).referencePx, meta.referenceMm, meta.measurementUncertainty)?.valueMm.toFixed(2) || '—'} mm estimated line box</i>}
+            {regionMap[item.id] && <i>OCR region only · measure physical glyphs in the calibration panel</i>}
           </button>
         ))}
       </div>
@@ -546,7 +561,7 @@ function VerdictPanel({ result, onSave, onReport, saved, saving, evidenceCount }
         </p>
         <div className="score-ring" style={{ '--score': `${result.score * 3.6}deg` }}>
           <span>{result.score}</span>
-          <small>evidence score</small>
+          <small>checks passed</small>
         </div>
       </div>
 
@@ -574,7 +589,7 @@ function VerdictPanel({ result, onSave, onReport, saved, saving, evidenceCount }
       </div>
 
       <div className="verdict-actions">
-        <button type="button" className="primary-action" onClick={onSave} disabled={saved || saving}>
+        <button type="button" className="primary-action" onClick={onSave} disabled={saved || saving || !evidenceCount}>
           {saving ? <LoaderCircle className="spin" size={17} /> : saved ? <Check size={17} /> : <Archive size={17} />}
           {saving ? 'Sealing evidence…' : saved ? 'Inspection saved' : 'Finalize inspection'}
         </button>
@@ -583,6 +598,7 @@ function VerdictPanel({ result, onSave, onReport, saved, saving, evidenceCount }
         </button>
       </div>
       <div className="evidence-integrity"><ShieldCheck size={14} />{evidenceCount || 0} captured panel{evidenceCount === 1 ? '' : 's'} · IndexedDB evidence register</div>
+      {!evidenceCount && <p className="legal-caveat">Capture a package photograph before finalizing. A text-only assessment is not image-supported evidence.</p>}
       <p className="legal-caveat">Decision support only. A Legal Metrology officer must verify the applicable rule version and physical evidence.</p>
     </aside>
   )
@@ -622,15 +638,33 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   const [auditChain, setAuditChain] = useState([])
   const auditRef = useRef([])
   const auditQueue = useRef(Promise.resolve())
+  const auditGeneration = useRef(0)
   const [saved, setSaved] = useState(false)
   const [sealedRecord, setSealedRecord] = useState(null)
   const [saving, setSaving] = useState(false)
   const fileInput = useRef(null)
+  const activeJob = useRef(null)
+  const [focusSelection, setFocusSelection] = useState(null)
+  const [focusResult, setFocusResult] = useState(null)
+  const [paddlePreview, setPaddlePreview] = useState(null)
+  useEffect(() => () => { activeJob.current?.abort(); activeJob.current = null; auditGeneration.current += 1 }, [])
+
+  const cancelActiveJob = () => {
+    activeJob.current?.abort()
+    activeJob.current = null
+    setProcessing(false)
+    setOcrState({ running: false, progress: 0, label: 'Cancelled; previous evidence preserved', error: '' })
+    recordAudit('processing_cancelled', { reason: 'Officer cancelled capture or OCR' })
+  }
 
   const activeEvidence = evidenceItems.find((item) => item.id === activeEvidenceId) || evidenceItems[0] || null
+  useEffect(() => { setFocusSelection(null); setFocusResult(null) }, [activeEvidence?.id, activeEvidence?.analysisUrl])
+  const paddleImageIdentity = evidenceItems.map(item => `${item.id}:${item.analysisUrl}`).join('|')
+  useEffect(() => { setPaddlePreview(null) }, [paddleImageIdentity])
   const extraction = useMemo(() => extractDeclarations(text), [text])
   const rawRegions = useMemo(() => matchDeclarationRegions(extraction, ocrWords), [extraction, ocrWords])
-  const evaluationMeta = useMemo(() => ({ ...meta, evidencePanelIds: evidenceItems.map((item) => item.id) }), [meta, evidenceItems])
+  const provenance = useMemo(() => ocrProvenance({ meta, rawOcrText, auditChain }), [meta, rawOcrText, auditChain])
+  const evaluationMeta = useMemo(() => ({ ...restoreEvidencePolicy({ meta, rawOcrText, auditChain }), evidencePanelIds: evidenceItems.map((item) => item.id) }), [meta, rawOcrText, auditChain, evidenceItems])
   const result = useMemo(() => evaluateInspection({ text, meta: evaluationMeta }), [text, evaluationMeta])
   const regions = useMemo(() => {
     const statuses = Object.fromEntries(result.checks.map((check) => [check.id, check.status]))
@@ -650,15 +684,19 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     return () => clearTimeout(timer)
   }, [store, draftReady, draft, saved, inspectionId, startedAt, evidenceItems, activeEvidenceId, text, rawOcrText, meta, ocrWords, auditChain])
   const restoreDraft = () => {
+    if (!draft || activeJob.current || processing || ocrState.running || saving) { setDraftMessage('Finish or cancel the current operation before restoring a draft.'); return }
     if (challenge?.active && draft.challengeId !== challenge.id) { setDraftMessage('This draft predates the blind challenge. It cannot be used as blind-run evidence. Discard it explicitly or exit the challenge to recover it.'); return }
+    auditGeneration.current += 1
+    setFocusResult(null); setFocusSelection(null); setPaddlePreview(null)
     setInspectionId(draft.inspectionId); setStartedAt(draft.startedAt); setEvidenceItems(draft.evidenceItems); setActiveEvidenceId(draft.activeEvidenceId)
-    setText(draft.text); setRawOcrText(draft.rawOcrText || ''); setMeta(draft.meta); setOcrWords(draft.ocrWords || []); auditRef.current = draft.auditChain || []; setAuditChain(auditRef.current); setDraft(null); setDraftMessage('Draft restored; verify before sealing.')
+    setText(draft.text); setRawOcrText(draft.rawOcrText || ''); setMeta({ ...INITIAL_META, ...restoreEvidencePolicy(draft) }); setOcrWords(draft.ocrWords || []); auditRef.current = draft.auditChain || []; setAuditChain(auditRef.current); setDraft(null); setDraftMessage('Draft restored under the current evidence policy; verify before sealing.')
   }
 
   const updateMeta = (key, value) => setMeta((current) => ({ ...current, [key]: value,
-    ...(['pdpArea', 'pdpUncertainty', 'formedText'].includes(key) ? { pdpConfirmed: false } : {}),
+    ...(['pdpArea', 'pdpUncertainty', 'formedText'].includes(key) ? { pdpConfirmed: false, placementPdpConfirmed: false } : {}),
     ...(['referenceMm', 'measurementUncertainty'].includes(key) ? { measurementConfirmed: false, widthCharacterConfirmed: false } : {}),
-    ...(['quantity', 'unit', 'category', 'commodityClass'].includes(key) ? { classificationConfirmed: false } : {}),
+    ...(['quantity', 'unit', 'category', 'commodityClass'].includes(key) ? { classificationConfirmed: false, placementPdpConfirmed: false } : {}),
+    ...(['placementScope', 'measurementSurface'].includes(key) ? { placementPdpConfirmed: false, quantitySpacing: { ...current.quantitySpacing, confirmed: false } } : {}),
   }))
   const updatePanelMeasurement = (key, value) => {
     if (!activeEvidence?.id) return
@@ -675,12 +713,17 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   const invalidatePanelMeasurement = (panelId) => setMeta((current) => {
     const nextMeasurements = { ...(current.panelMeasurements || {}) }
     delete nextMeasurements[panelId]
-    return { ...current, panelMeasurements: nextMeasurements }
+    return { ...invalidateCapturedEvidence(current), panelMeasurements: nextMeasurements }
   })
 
   const recordAudit = (type, payload = {}) => {
+    const generation = auditGeneration.current
+    const controller = activeJob.current
+    const current = () => generation === auditGeneration.current && (!controller || activeJob.current === controller && !controller.signal.aborted)
     const operation = auditQueue.current.then(async () => {
+      if (!current()) throw abortError()
       const next = await appendAuditEvent(auditRef.current, type, payload, actor?.id || 'local-officer')
+      if (!current()) throw abortError()
       auditRef.current = next; setAuditChain(next); return next
     })
     auditQueue.current = operation.catch(() => {})
@@ -689,7 +732,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
 
   const updatePanelDimension = (key, value) => {
     setMeta((current) => {
-      const next = { ...current, [key]: value, pdpConfirmed: false }
+      const next = { ...current, [key]: value, pdpConfirmed: false, placementPdpConfirmed: false }
       const width = Number(key === 'panelWidthCm' ? value : next.panelWidthCm)
       const height = Number(key === 'panelHeightCm' ? value : next.panelHeightCm)
       if (width > 0 && height > 0) next.pdpArea = Number((width * height).toFixed(2))
@@ -699,7 +742,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
 
   const updateCylinderDimension = (key, value) => {
     setMeta((current) => {
-      const next = { ...current, [key]: value, pdpConfirmed: false }
+      const next = { ...current, [key]: value, pdpConfirmed: false, placementPdpConfirmed: false }
       const diameter = Number(key === 'cylinderDiameterCm' ? value : next.cylinderDiameterCm)
       const height = Number(key === 'cylinderHeightCm' ? value : next.cylinderHeightCm)
       const coverage = Number(key === 'cylinderCoverage' ? value : next.cylinderCoverage)
@@ -709,6 +752,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const beginEvidenceRecord = () => {
+    auditGeneration.current += 1
     setInspectionId(createInspectionId())
     setStartedAt(new Date().toISOString())
     setSaved(false)
@@ -719,60 +763,80 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   const applyExtraction = (parsed) => {
     setMeta((current) => ({
       ...current,
+      classificationConfirmed: false,
       productName: parsed.suggestions.productName || current.productName,
       category: parsed.suggestions.category || current.category,
       commodityClass: parsed.suggestions.commodityClass || current.commodityClass,
-      quantity: parsed.suggestions.quantity ?? current.quantity,
+      quantity: parsed.byId.netQuantity?.detected ? (parsed.suggestions.quantity ?? '') : current.quantity,
       unit: parsed.suggestions.unit || current.unit,
       barcode: parsed.suggestions.barcode || current.barcode,
     }))
   }
 
   const handleFiles = async (fileList) => {
+    if (activeJob.current || saved || saving) return
     const files = Array.from(fileList || []).slice(0, Math.max(0, 4 - evidenceItems.length))
     if (!files.length) return
+    const controller = new AbortController()
+    activeJob.current = controller
     const firstPanel = evidenceItems.length === 0
     try {
       if (workspace && files.some((file) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type))) throw new Error('Managed evidence accepts JPEG, PNG or WebP originals. Export other camera formats before capture.')
       setProcessing(true)
       setOcrState({ running: false, progress: 4, label: `Securing ${files.length} evidence panel${files.length > 1 ? 's' : ''}`, error: '' })
-      const capturedItems = await Promise.all(files.map(evidenceFromFile))
+      const capturedItems = await Promise.all(files.map((file) => evidenceFromFile(file, { signal: controller.signal })))
+      throwIfAborted(controller.signal)
       const guidedRoles = CAPTURE_REQUIREMENTS.map((item) => item.id)
       const nextItems = capturedItems.map((item, index) => ({
         ...item,
         panelRole: guidedRoles[evidenceItems.length + index] || 'other',
       }))
+      let preparedChain = firstPanel ? await appendAuditEvent([], 'inspection_started', { challengeId: challenge?.id || null }, actor?.id || 'local-officer') : null
+      for (const item of nextItems) {
+        throwIfAborted(controller.signal)
+        const payload = { id: item.id, name: item.name, panelRole: item.panelRole, sha256: item.sha256, quality: item.quality?.score, capturedAt: item.capturedAt }
+        if (firstPanel) preparedChain = await appendAuditEvent(preparedChain, 'evidence_captured', payload, actor?.id || 'local-officer')
+        else await recordAudit('evidence_captured', payload)
+      }
+      throwIfAborted(controller.signal)
       if (firstPanel) {
         beginEvidenceRecord()
+        auditRef.current = preparedChain; setAuditChain(preparedChain)
         setText('')
         setRawOcrText('')
         setMeta({ ...INITIAL_META, enforceEvidenceReview: true })
         setOcrWords([])
         setBarcodeState({ message: '', error: false, candidate: null })
-        await recordAudit('inspection_started', { challengeId: challenge?.id || null })
+      } else {
+        setMeta((current) => invalidateCapturedEvidence(current))
+        setOcrWords([])
       }
+      throwIfAborted(controller.signal)
       setEvidenceItems((current) => [...current, ...nextItems].slice(0, 4))
       setActiveEvidenceId(nextItems[0].id)
-      for (const item of nextItems) {
-        await recordAudit('evidence_captured', { id: item.id, name: item.name, panelRole: item.panelRole, sha256: item.sha256, quality: item.quality?.score, capturedAt: item.capturedAt })
-      }
-      setOcrState({ running: false, progress: 8, label: `${nextItems.length} panel${nextItems.length > 1 ? 's' : ''} ready for OCR`, error: '' })
+      if (!controller.signal.aborted) setOcrState({ running: false, progress: 8, label: `${nextItems.length} panel${nextItems.length > 1 ? 's' : ''} ready for OCR`, error: '' })
     } catch (error) {
-      setOcrState({ running: false, progress: 0, label: 'Image rejected', error: error.message || 'The selected evidence could not be prepared.' })
+      if (activeJob.current === controller) setOcrState({ running: false, progress: 0, label: 'Image rejected', error: error.message || 'The selected evidence could not be prepared.' })
     } finally {
-      setProcessing(false)
-      if (fileInput.current) fileInput.current.value = ''
+      if (activeJob.current === controller) { activeJob.current = null; setProcessing(false); if (fileInput.current) fileInput.current.value = '' }
     }
   }
 
   const applyDemo = async (demo) => {
-    beginEvidenceRecord()
+    if (activeJob.current || saved || saving) return
+    const controller = new AbortController()
+    activeJob.current = controller
     const id = `test-${Date.now()}`
     try {
       setProcessing(true)
       setOcrState({ running: false, progress: 5, label: 'Preparing controlled evidence for browser OCR', error: '' })
-      const analysisUrl = await processImage(demo.imageUrl)
-      const quality = await analyzeImageQuality(analysisUrl)
+      const analysisUrl = await processImage(demo.imageUrl, { signal: controller.signal })
+      const quality = await boundedOcr(analyzeImageQuality(analysisUrl), { signal: controller.signal, timeoutMs: 20000, label: 'Image quality check' })
+      throwIfAborted(controller.signal)
+      const preparedChain = await appendAuditEvent([], 'controlled_packet_loaded', { fileName: demo.fileName }, actor?.id || 'local-officer')
+      throwIfAborted(controller.signal)
+      beginEvidenceRecord()
+      auditRef.current = preparedChain; setAuditChain(preparedChain)
       setEvidenceItems([{
         id,
         name: demo.fileName,
@@ -793,9 +857,12 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       setActiveEvidenceId(id)
       setOcrWords([])
       setText(demo.text)
+      setRawOcrText('')
       setMeta({
         ...INITIAL_META,
         ...demo.meta,
+        ...EMPTY_OCR,
+        enforceEvidenceReview: true,
         panelMeasurements: {
           [id]: {
             referencePx: demo.meta.referencePx,
@@ -806,46 +873,53 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       })
       setOcrState({ running: false, progress: 100, label: 'Controlled demo evidence loaded', error: '' })
       setBarcodeState({ message: '', error: false, candidate: null })
-      await recordAudit('controlled_packet_loaded', { fileName: demo.fileName })
     } catch (error) {
-      setOcrState({ running: false, progress: 0, label: 'Controlled evidence unavailable', error: error.message || 'The controlled packet could not be prepared.' })
+      if (activeJob.current === controller) setOcrState({ running: false, progress: 0, label: 'Controlled evidence unavailable', error: error.message || 'The controlled packet could not be prepared.' })
     } finally {
-      setProcessing(false)
+      if (activeJob.current === controller) { activeJob.current = null; setProcessing(false) }
     }
   }
 
   const transformActiveEvidence = async (changes) => {
-    if (!activeEvidence || processing || activeEvidence.id.startsWith('test-')) return
+    if (!activeEvidence || activeJob.current || activeEvidence.id.startsWith('test-')) return
+    const controller = new AbortController()
+    activeJob.current = controller
     try {
       setProcessing(true)
-      const updated = await reprocessEvidence(activeEvidence, changes)
+      const updated = await reprocessEvidence(activeEvidence, changes, { signal: controller.signal })
+      throwIfAborted(controller.signal)
+      await recordAudit('image_preprocessing_changed', { evidenceId: updated.id, rotation: updated.rotation, grayscale: updated.grayscale, contrast: updated.contrast })
+      throwIfAborted(controller.signal)
       setEvidenceItems((current) => current.map((item) => item.id === updated.id ? updated : item))
       invalidatePanelMeasurement(updated.id)
       setOcrWords((current) => current.filter((word) => word.panelId !== updated.id))
-      await recordAudit('image_preprocessing_changed', { evidenceId: updated.id, rotation: updated.rotation, grayscale: updated.grayscale, contrast: updated.contrast })
-      setOcrState((current) => ({ ...current, label: 'Image preprocessing updated' }))
+      if (!controller.signal.aborted) setOcrState((current) => ({ ...current, label: 'Image changed — previous text retained for reference; rerun OCR and verification.' }))
     } catch (error) {
-      setOcrState((current) => ({ ...current, error: error.message || 'Image preprocessing failed.' }))
+      if (activeJob.current === controller) setOcrState((current) => ({ ...current, error: error.message || 'Image preprocessing failed.' }))
     } finally {
-      setProcessing(false)
+      if (activeJob.current === controller) { activeJob.current = null; setProcessing(false) }
     }
   }
 
   const rectifyActiveEvidence = async (points) => {
-    if (!activeEvidence || processing || activeEvidence.id.startsWith('test-')) return
+    if (!activeEvidence || activeJob.current || activeEvidence.id.startsWith('test-')) return
+    const controller = new AbortController()
+    activeJob.current = controller
     try {
       setProcessing(true)
       setOcrState((current) => ({ ...current, label: 'Flattening selected panel plane', error: '' }))
-      const updated = await rectifyEvidence(activeEvidence, points)
+      const updated = await rectifyEvidence(activeEvidence, points, { signal: controller.signal })
+      throwIfAborted(controller.signal)
+      await recordAudit('perspective_rectified', { evidenceId: updated.id, method: updated.perspective.method, outputWidth: updated.width, outputHeight: updated.height, sourcePoints: updated.perspective.points })
+      throwIfAborted(controller.signal)
       setEvidenceItems((current) => current.map((item) => item.id === updated.id ? updated : item))
       invalidatePanelMeasurement(updated.id)
       setOcrWords((current) => current.filter((word) => word.panelId !== updated.id))
-      await recordAudit('perspective_rectified', { evidenceId: updated.id, method: updated.perspective.method, outputWidth: updated.width, outputHeight: updated.height, sourcePoints: updated.perspective.points })
-      setOcrState((current) => ({ ...current, label: 'Perspective flattened — rerun OCR for this panel', error: '' }))
+      if (!controller.signal.aborted) setOcrState((current) => ({ ...current, label: 'Perspective flattened — rerun OCR for this panel', error: '' }))
     } catch (error) {
-      setOcrState((current) => ({ ...current, error: error.message || 'Perspective flattening failed.' }))
+      if (activeJob.current === controller) setOcrState((current) => ({ ...current, error: error.message || 'Perspective flattening failed.' }))
     } finally {
-      setProcessing(false)
+      if (activeJob.current === controller) { activeJob.current = null; setProcessing(false) }
     }
   }
 
@@ -853,7 +927,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     const remaining = evidenceItems.filter((item) => item.id !== id)
     setEvidenceItems(remaining)
     if (activeEvidenceId === id) setActiveEvidenceId(remaining[0]?.id || '')
-    setOcrWords((current) => current.filter((word) => word.panelId !== id))
+      setOcrWords((current) => current.filter((word) => word.panelId !== id))
     invalidatePanelMeasurement(id)
     recordAudit('evidence_removed_before_seal', { evidenceId: id })
   }
@@ -864,10 +938,14 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const scanBarcode = async () => {
-    if (!activeEvidence) return
+    if (!activeEvidence || activeJob.current) return
+    const controller = new AbortController()
+    activeJob.current = controller
+    setProcessing(true)
     try {
       setBarcodeState({ message: 'Scanning the active panel…', error: false })
-      const detected = await detectBarcode(activeEvidence.analysisUrl)
+      const detected = await boundedOcr(detectBarcode(activeEvidence.analysisUrl), { signal: controller.signal, timeoutMs: 20000, label: 'Barcode detection' })
+      throwIfAborted(controller.signal)
       if (!detected.supported) {
         setBarcodeState({ message: 'Native barcode scanning is unavailable in this browser; enter GTIN manually.', error: true, candidate: null })
       } else if (!detected.values.length) {
@@ -882,45 +960,56 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
         })
       }
     } catch {
-      setBarcodeState({ message: 'Barcode scan could not read this panel.', error: true, candidate: null })
+      if (activeJob.current === controller) setBarcodeState({ message: 'Barcode scan could not read this panel.', error: true, candidate: null })
+    } finally {
+      if (activeJob.current === controller) { activeJob.current = null; setProcessing(false) }
     }
   }
 
   const rectifyFromBarcode = async () => {
-    if (!activeEvidence || !barcodeState.candidate || barcodeState.candidate.evidenceId !== activeEvidence.id || processing) return
+    if (!activeEvidence || !barcodeState.candidate || barcodeState.candidate.evidenceId !== activeEvidence.id || activeJob.current) return
+    const controller = new AbortController()
+    activeJob.current = controller
     try {
       setProcessing(true)
       setOcrState((current) => ({ ...current, label: 'Flattening package plane from barcode geometry', error: '' }))
-      const updated = await rectifyEvidenceFromBarcode(activeEvidence, barcodeState.candidate)
+      const updated = await rectifyEvidenceFromBarcode(activeEvidence, barcodeState.candidate, { signal: controller.signal })
+      throwIfAborted(controller.signal)
+      await recordAudit('barcode_plane_rectified', { evidenceId: updated.id, format: barcodeState.candidate.format, sourcePoints: updated.perspective.points, absoluteScaleVerified: false })
+      throwIfAborted(controller.signal)
       setEvidenceItems((current) => current.map((item) => item.id === updated.id ? updated : item))
       invalidatePanelMeasurement(updated.id)
       setOcrWords((current) => current.filter((word) => word.panelId !== updated.id))
-      await recordAudit('barcode_plane_rectified', { evidenceId: updated.id, format: barcodeState.candidate.format, sourcePoints: updated.perspective.points, absoluteScaleVerified: false })
+      throwIfAborted(controller.signal)
       setBarcodeState((current) => ({ ...current, candidate: null, message: `${current.message.split(' · ')[0]} · panel flattened; add a physical reference for millimetres` }))
       setOcrState((current) => ({ ...current, label: 'Barcode plane flattened — rerun OCR and calibrate absolute scale', error: '' }))
     } catch (error) {
-      setOcrState((current) => ({ ...current, error: error.message || 'Barcode-plane flattening failed.' }))
+      if (activeJob.current === controller) setOcrState((current) => ({ ...current, error: error.message || 'Barcode-plane flattening failed.' }))
     } finally {
-      setProcessing(false)
+      if (activeJob.current === controller) { activeJob.current = null; setProcessing(false) }
     }
   }
 
   const autoDetectReference = async () => {
-    if (!activeEvidence) return
+    if (!activeEvidence || activeJob.current) return
+    const controller = new AbortController()
+    activeJob.current = controller
     try {
       setProcessing(true)
-      const detected = await detectReferenceCard(activeEvidence.analysisUrl)
+      const detected = await boundedOcr(detectReferenceCard(activeEvidence.analysisUrl), { signal: controller.signal, timeoutMs: 20000, label: 'Reference detection' })
+      throwIfAborted(controller.signal)
       if (!detected.detected) {
         setOcrState((current) => ({ ...current, error: 'No supported high-contrast reference card was detected. Use two-click calibration.' }))
         return
       }
+      await recordAudit('reference_card_detected', { evidenceId: activeEvidence.id, referencePx: detected.pixelWidth, confidence: detected.confidence, referenceMm: meta.referenceMm })
+      throwIfAborted(controller.signal)
       updatePanelMeasurement('referencePx', Number(detected.pixelWidth.toFixed(1)))
       setOcrState((current) => ({ ...current, label: `Reference detected at ${detected.confidence}% confidence`, error: '' }))
-      await recordAudit('reference_card_detected', { evidenceId: activeEvidence.id, referencePx: detected.pixelWidth, confidence: detected.confidence, referenceMm: meta.referenceMm })
     } catch (error) {
-      setOcrState((current) => ({ ...current, error: error.message || 'Reference-card detection failed.' }))
+      if (activeJob.current === controller) setOcrState((current) => ({ ...current, error: error.message || 'Reference-card detection failed.' }))
     } finally {
-      setProcessing(false)
+      if (activeJob.current === controller) { activeJob.current = null; setProcessing(false) }
     }
   }
 
@@ -931,87 +1020,37 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const runOcr = async (scanMode = 'standard') => {
-    if (!evidenceItems.length || ocrState.running) return
-    const deepScan = scanMode === 'deep'
-    let worker
+    if (!evidenceItems.length || ocrState.running || activeJob.current) return
+    const controller = new AbortController()
+    activeJob.current = controller
+    const current = () => activeJob.current === controller && !controller.signal.aborted
     try {
-      setOcrState({ running: true, progress: 2, label: deepScan ? 'Loading deep-scan OCR engine' : 'Loading OCR engine', error: '' })
-      let panelIndex = 0
-      let completedPasses = 0
-      const referenceCandidates = await Promise.all(evidenceItems.map((item) => detectReferenceCard(item.analysisUrl).catch(() => ({ detected: false }))))
-      const totalPasses = evidenceItems.length * (deepScan ? 7 : 3) + referenceCandidates.filter((candidate) => candidate.detected).length
-      worker = await createWorker(meta.ocrLanguage || 'eng', 1, {
-        workerPath: '/ocr/worker.min.js',
-        corePath: '/ocr/core',
-        langPath: '/ocr/lang',
-        logger: (message) => {
-          const passProgress = message.progress || 0
-          const progress = Math.round(((completedPasses + passProgress) / totalPasses) * 100)
-          setOcrState({ running: true, progress, label: `Panel ${panelIndex + 1}/${evidenceItems.length} · ${message.status || 'reading label'}`, error: '' })
-        },
-      })
-      const packets = []
-      const reliabilities = []
-      const engineConfidences = []
-      const collectedWords = []
-      const recognizedItems = []
-      for (panelIndex = 0; panelIndex < evidenceItems.length; panelIndex += 1) {
-        const item = evidenceItems[panelIndex]
-        const variants = await createOcrInputVariants(item.analysisUrl)
-        if (deepScan) variants.push(...await createOcrTileVariants(item.analysisUrl))
-        const referenceCandidate = referenceCandidates[panelIndex]
-        if (referenceCandidate?.detected) variants.push(await createOcrRegionVariant(item.analysisUrl, referenceCandidate.bbox))
-        const passes = []
-        for (const variant of variants) {
-          await worker.setParameters({
-            tessedit_pageseg_mode: variant.pageSegmentationMode,
-            preserve_interword_spaces: '1',
-            user_defined_dpi: '300',
-          })
-          const { data } = await worker.recognize(variant.dataUrl, {}, { text: true, blocks: true, tsv: true })
-          const words = variant.spatial === false ? [] : flattenOcrWords(data.blocks, item.id, variant.width, variant.height)
-          passes.push({ id: variant.id, text: String(data.text || ''), confidence: Number(data.confidence || 0), words, spatial: variant.spatial !== false })
-          collectedWords.push(...words)
-          completedPasses += 1
-        }
-        const mergedText = mergeOcrPassTexts(passes.map((pass) => pass.text))
-        packets.push(`[PANEL ${panelIndex + 1}: ${item.name}]\n${mergedText}`)
-        const fullPanelPasses = passes.filter((pass) => pass.spatial)
-        const reliability = calibrateOcrReliability(fullPanelPasses, item.quality?.score)
-        reliabilities.push(reliability.score)
-        engineConfidences.push(reliability.engineConfidence)
-        recognizedItems.push({ ...item, ocrText: mergedText, ocrConfidence: reliability.engineConfidence, ocrReliability: reliability.score, ocrAgreement: reliability.agreement, ocrWords: passes.flatMap((pass) => pass.words), ocrPasses: passes.map(({ id, text, confidence }) => ({ id: `${item.id}:${id}`, text, confidence: Number(confidence.toFixed(1)) })) })
-      }
-      const combinedText = packets.join('\n\n')
-      const averageReliability = reliabilities.length ? reliabilities.reduce((sum, value) => sum + value, 0) / reliabilities.length : 0
-      const averageEngineConfidence = engineConfidences.length ? engineConfidences.reduce((sum, value) => sum + value, 0) / engineConfidences.length : 0
-      const reliabilityReason = averageReliability >= 75
-        ? 'OCR passes agree and the capture is suitable for field verification.'
-        : averageReliability >= 55
-          ? 'Usable OCR evidence; verify highlighted values against the package.'
-          : 'Low-confidence evidence; retake the panel or use deep scan before deciding.'
-      setText(combinedText)
-      setRawOcrText(combinedText)
-      setOcrWords(collectedWords)
-      setEvidenceItems(recognizedItems)
-      setMeta((current) => ({ ...current, fieldReviews: {}, fieldCandidates: fieldCandidates(recognizedItems.flatMap((item) => item.ocrPasses)), ocrConfidence: Number(averageReliability.toFixed(1)), ocrEngineConfidence: Number(averageEngineConfidence.toFixed(1)), ocrReliabilityReason: reliabilityReason, ocrSource: deepScan ? 'local-deep' : 'local' }))
-      applyExtraction(extractDeclarations(combinedText))
-      await recordAudit('ocr_completed', { panels: evidenceItems.length, reliability: Number(averageReliability.toFixed(1)), engineConfidence: Number(averageEngineConfidence.toFixed(1)), wordBoxes: collectedWords.length, language: meta.ocrLanguage, strategy: deepScan ? 'three-pass-plus-four-detail-tiles' : 'three-pass-adaptive-layout' })
-      setOcrState({ running: false, progress: 100, label: `${deepScan ? 'Deep scan' : 'OCR'} complete across ${evidenceItems.length} panel${evidenceItems.length > 1 ? 's' : ''} — verify evidence`, error: '' })
+      setOcrState({ running: true, progress: 1, label: 'Preparing local OCR', error: '' })
+      await recordAudit('ocr_requested', { panels: evidenceItems.length, language: meta.ocrLanguage, strategy: scanMode })
+      const output = await runLocalOcr({ evidenceItems, language: meta.ocrLanguage || 'eng', mode: scanMode, model: meta.ocrModel || 'fast', signal: controller.signal, onProgress: (state) => { if (current()) setOcrState(state) } })
+      if (!current()) return
+      validateOcrHistory(output.items)
+      await recordAudit('ocr_completed', { panels: evidenceItems.length, reliability: output.reliability, engineConfidence: output.engineConfidence, wordBoxes: output.words.length, language: meta.ocrLanguage, strategy: output.strategy, model: output.model })
+      if (!current()) return
+      setText(output.text)
+      setRawOcrText(output.text)
+      setOcrWords(output.words)
+      setEvidenceItems(output.items)
+      setMeta((previous) => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(output.items.flatMap((item) => item.ocrPasses)), ocrConfidence: output.reliability, ocrEngineConfidence: output.engineConfidence, ocrCompletedAt: new Date().toISOString(), ocrReliabilityReason: 'Unvalidated OCR heuristic. Compare each field with its image; repeated readings can share the same error.', ocrSource: scanMode === 'deep' ? 'local-deep' : 'local' }))
+      applyExtraction(extractDeclarations(output.text))
+      if (current()) setOcrState({ running: false, progress: 100, label: `${scanMode === 'deep' ? 'Deep scan' : 'OCR'} complete across ${evidenceItems.length} panel${evidenceItems.length > 1 ? 's' : ''} — verify evidence`, error: '' })
     } catch (error) {
-      setOcrState({
-        running: false,
-        progress: 0,
-        label: 'OCR unavailable',
-        error: `OCR could not complete from the bundled offline engine: ${error.message || 'unknown OCR error'}. You can still enter verified evidence text manually.`,
-      })
+      if (activeJob.current === controller) setOcrState({ running: false, progress: 0, label: error.name === 'AbortError' ? 'OCR cancelled; previous evidence preserved' : 'OCR unavailable; previous evidence preserved', error: error.name === 'AbortError' ? '' : error.message })
     } finally {
-      if (worker) await worker.terminate()
+      if (activeJob.current === controller) activeJob.current = null
     }
   }
 
   const runConnectedOcr = async () => {
-    if (!evidenceItems.length || ocrState.running) return
+    if (!evidenceItems.length || ocrState.running || activeJob.current) return
+    const controller = new AbortController()
+    activeJob.current = controller
+    const current = () => activeJob.current === controller && !controller.signal.aborted
     try {
       setOcrState({ running: true, progress: 3, label: 'Requesting opt-in connected OCR', error: '' })
       await recordAudit('connected_ocr_requested', { panels: evidenceItems.length, provider: 'google-vision', explicitOptIn: true })
@@ -1020,56 +1059,155 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       const reliabilities = []
       const connectedWords = []
       const recognizedItems = []
+      const connectedRunId = crypto.randomUUID()
       for (let index = 0; index < evidenceItems.length; index += 1) {
+        throwIfAborted(controller.signal)
         const item = evidenceItems[index]
         setOcrState({ running: true, progress: Math.round((index / evidenceItems.length) * 85) + 5, label: `Connected OCR · panel ${index + 1}/${evidenceItems.length}`, error: '' })
-        const response = await fetch('/api/ocr', {
+        const headers = workspace ? await boundedOcr(workspace.api.headers(), { signal: controller.signal, timeoutMs: 15000, label: 'Workspace authorization' }) : { 'Content-Type': 'application/json' }
+        const response = await boundedOcr(fetch('/api/ocr', {
           method: 'POST',
-          headers: workspace ? await workspace.api.headers() : { 'Content-Type': 'application/json' },
+          headers,
+          signal: controller.signal,
           body: JSON.stringify({ image: item.analysisUrl, language: meta.ocrLanguage || 'eng' }),
-        })
-        const payload = await response.json().catch(() => ({}))
+        }), { signal: controller.signal, timeoutMs: 35000, label: 'Connected OCR' })
+        const payload = await boundedOcr(response.json(), { signal: controller.signal, timeoutMs: 10000, label: 'Connected OCR response' }).catch((error) => { if (error instanceof SyntaxError) throw new Error('OCR backend is not configured on this server.'); throw error })
+        throwIfAborted(controller.signal)
         if (!response.ok) throw new Error(payload.error || `Connected OCR returned HTTP ${response.status}.`)
         const connectedText = String(payload.text || '').trim()
+        if (!connectedText || connectedText.length > MAX_EVIDENCE_TEXT || !Array.isArray(payload.words) || payload.words.length > 20000) throw new Error('OCR provider returned empty or oversized evidence.')
         const mergedText = mergeOcrPassTexts([item.ocrText || '', connectedText])
-        const engineConfidence = Math.max(0, Math.min(100, Number(payload.confidence || 0)))
+        const engineConfidence = payload.confidenceAvailable !== false && typeof payload.confidence === 'number' && Number.isFinite(payload.confidence) ? Math.max(0, Math.min(100, payload.confidence)) : null
         const qualityScore = Math.max(0, Math.min(100, Number(item.quality?.score || 0)))
-        const reliability = Number(Math.min(98, engineConfidence * .8 + qualityScore * .2).toFixed(1))
+        const reliability = engineConfidence === null ? null : Number(Math.min(98, engineConfidence * .8 + qualityScore * .2).toFixed(1))
         const words = (payload.words || []).map((word) => ({ ...word, panelId: item.id }))
         packets.push(`[PANEL ${index + 1}: ${item.name}]\n${mergedText}`)
         confidences.push(engineConfidence)
         reliabilities.push(reliability)
         connectedWords.push(...words)
+        const panel = appendOcrHistory(item, { text: mergedText, passes: [{ id: `${item.id}:google-vision:${connectedRunId}`, text: connectedText, confidence: engineConfidence, provider: 'google-vision', strategy: 'connected' }], words })
         recognizedItems.push({
-          ...item,
-          ocrText: mergedText,
+          ...panel,
           connectedOcrText: connectedText,
-          ocrPasses: [...(item.ocrPasses || []), { id: `${item.id}:google-vision`, text: connectedText }],
           ocrProvider: payload.provider || 'google-vision',
           ocrConfidence: engineConfidence,
           ocrReliability: reliability,
-          ocrWords: words,
+          ocrWords: panel.ocrWords,
         })
       }
       const combinedText = packets.join('\n\n')
-      const average = (values) => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0
-      const engineConfidence = Number(average(confidences).toFixed(1))
-      const reliability = Number(average(reliabilities).toFixed(1))
-      const reliabilityReason = reliability >= 75
-        ? 'Connected OCR and capture quality support field verification; compare every decisive value with the highlighted source.'
-        : 'Connected OCR is uncertain on this capture; retake the declaration panel before deciding.'
+      validateOcrHistory(recognizedItems)
+      if (combinedText.length > MAX_EVIDENCE_TEXT) throw new Error('Combined OCR exceeds the evidence text limit.')
+      const average = (values) => values.length && values.every((value) => typeof value === 'number' && Number.isFinite(value)) ? Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1)) : null
+      const engineConfidence = average(confidences)
+      const reliability = average(reliabilities)
+      const reliabilityReason = reliability === null ? 'Provider confidence is unavailable; no inspection-wide OCR score can be established.' : 'Unvalidated provider/capture heuristic, not accuracy. Verify each decisive value against its photograph.'
+      if (!current()) return
+      await recordAudit('connected_ocr_completed', { panels: evidenceItems.length, provider: 'google-vision', reliability, engineConfidence, wordBoxes: connectedWords.length })
+      if (!current()) return
       setText(combinedText)
-      setOcrWords(connectedWords)
+      setOcrWords(recognizedItems.flatMap((item) => item.ocrWords))
       setRawOcrText(combinedText)
       setEvidenceItems(recognizedItems)
-      setMeta((current) => ({ ...current, fieldReviews: {}, fieldCandidates: fieldCandidates(recognizedItems.flatMap((item) => item.ocrPasses)), ocrConfidence: reliability, ocrEngineConfidence: engineConfidence, ocrReliabilityReason: reliabilityReason, ocrSource: 'google-vision' }))
+      setMeta((previous) => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(recognizedItems.flatMap((item) => item.ocrPasses)), ocrConfidence: reliability, ocrEngineConfidence: engineConfidence, ocrCompletedAt: new Date().toISOString(), ocrReliabilityReason: reliabilityReason, ocrSource: 'google-vision' }))
       applyExtraction(extractDeclarations(combinedText))
-      await recordAudit('connected_ocr_completed', { panels: evidenceItems.length, provider: 'google-vision', reliability, engineConfidence, wordBoxes: connectedWords.length })
-      setOcrState({ running: false, progress: 100, label: `Connected OCR complete across ${evidenceItems.length} panel${evidenceItems.length > 1 ? 's' : ''} — verify evidence`, error: '' })
+      if (current()) setOcrState({ running: false, progress: 100, label: `Connected OCR complete across ${evidenceItems.length} panel${evidenceItems.length > 1 ? 's' : ''} — verify evidence`, error: '' })
     } catch (error) {
-      await recordAudit('connected_ocr_failed', { provider: 'google-vision', reason: error.message || 'unknown error' })
-      setOcrState({ running: false, progress: 0, label: 'Connected OCR unavailable; local evidence preserved', error: `${error.message || 'Connected OCR failed.'} Run browser OCR or deep scan to remain fully offline.` })
+      if (current()) {
+        await recordAudit('connected_ocr_failed', { provider: 'google-vision', reason: error.message || 'unknown error' })
+        if (current()) setOcrState({ running: false, progress: 0, label: 'Connected OCR unavailable; local evidence preserved', error: `${error.message || 'Connected OCR failed.'} Run browser OCR or deep scan to remain fully offline.` })
+      }
+    } finally {
+      controller.abort()
+      if (activeJob.current === controller) activeJob.current = null
     }
+  }
+
+  const runFocusedOcr = async () => {
+    if (!activeEvidence || !focusSelection || activeJob.current || focusSelection.imageUrl !== activeEvidence.analysisUrl || focusSelection.panelId !== activeEvidence.id) return
+    const controller = new AbortController()
+    activeJob.current = controller
+    const current = () => activeJob.current === controller && !controller.signal.aborted
+    try {
+      setFocusResult(null)
+      setOcrState({ running: true, progress: 1, label: 'Preparing high-resolution declaration crop', error: '' })
+      await recordAudit('focus_ocr_requested', { evidenceId: activeEvidence.id, crop: focusSelection.rect, originalSha256: activeEvidence.sha256, officerSelected: true })
+      const variants = await boundedOcr(createFocusedVariants(activeEvidence, focusSelection.rect), { signal: controller.signal, timeoutMs: 25000, label: 'Focus crop preparation' })
+      const output = await runLocalOcr({ evidenceItems: [activeEvidence], language: meta.ocrLanguage || 'eng', mode: 'focused', signal: controller.signal, variantFactory: () => variants, onProgress: (state) => { if (current()) setOcrState(state) } })
+      if (!current()) return
+      setFocusResult({ panelId: activeEvidence.id, imageUrl: activeEvidence.analysisUrl, crop: focusSelection.rect, source: variants[0].source, preview: variants[0].dataUrl, output, runId: crypto.randomUUID() })
+      setOcrState({ running: false, progress: 100, label: 'Focus OCR ready for review — transcript not changed', error: '' })
+    } catch (error) {
+      if (current()) setOcrState({ running: false, progress: 0, label: 'Focus OCR unavailable; previous evidence preserved', error: error.message })
+    } finally {
+      if (activeJob.current === controller) activeJob.current = null
+    }
+  }
+
+  const appendFocusResult = async () => {
+    if (!focusResult || activeJob.current || focusResult.panelId !== activeEvidence?.id || focusResult.imageUrl !== activeEvidence?.analysisUrl) return
+    const controller = new AbortController()
+    activeJob.current = controller
+    const current = () => activeJob.current === controller && !controller.signal.aborted
+    try {
+      setProcessing(true)
+      const item = focusResult.output.items[0]
+      const next = appendFocusedTranscript({ text, rawOcrText, focusedText: item.ocrText, panelIndex: evidenceItems.findIndex((panel) => panel.id === item.id) })
+      const passes = item.ocrPasses.map((pass) => ({ ...pass, id: `${pass.id}:${focusResult.runId}` }))
+      const nextItems = evidenceItems.map((panel) => panel.id === item.id ? appendOcrHistory(panel, { text: [panel.ocrText, item.ocrText].filter(Boolean).join('\n\n'), passes, words: item.ocrWords }) : panel)
+      validateOcrHistory(nextItems)
+      await recordAudit('ocr_completed', { strategy: 'officer-selected-focus-append', evidenceId: item.id, crop: focusResult.crop, source: focusResult.source, runId: focusResult.runId, reliability: null, engineConfidence: null, cropEngineConfidence: item.ocrConfidence, previousTranscriptPreserved: true, rawPasses: passes.map(({ id, text }) => ({ id, characters: text.length })) })
+      if (!current()) return
+      setText(next.text); setRawOcrText(next.rawOcrText); setEvidenceItems(nextItems)
+      setOcrWords((words) => [...words, ...item.ocrWords])
+      setMeta((previous) => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(nextItems.flatMap((panel) => panel.ocrPasses || [])), ocrCompletedAt: new Date().toISOString(), ocrSource: 'local-focus', ocrReliabilityReason: 'Focused OCR covers only the selected crop. No full-inspection score is inferred; verify every field against its original panel.' }))
+      setFocusResult(null)
+      setOcrState({ running: false, progress: 100, label: 'Crop OCR appended without rewriting earlier text. Reverify fields and resolve conflicts.', error: '' })
+    } catch (error) { if (current()) setOcrState((state) => ({ ...state, error: error.message })) }
+    finally { if (activeJob.current === controller) { activeJob.current = null; setProcessing(false) } }
+  }
+
+  const runAlternativeOcr = async (focused = false) => {
+    if (!evidenceItems.length || activeJob.current) return
+    if (focused && (!activeEvidence || !focusSelection || focusSelection.panelId !== activeEvidence.id || focusSelection.imageUrl !== activeEvidence.analysisUrl)) return
+    const controller = new AbortController()
+    activeJob.current = controller
+    const current = () => activeJob.current === controller && !controller.signal.aborted
+    try {
+      setPaddlePreview(null)
+      setOcrState({ running: true, progress: 1, label: 'Preparing optional local Paddle OCR', error: '' })
+      await recordAudit('alternative_ocr_requested', { provider: 'paddleocr-js', panels: focused ? 1 : evidenceItems.length, imagesLeaveDevice: false, crop: focused ? focusSelection.rect : null })
+      const output = await runPaddleOcr({ evidenceItems: focused ? [activeEvidence] : evidenceItems, ...(focused ? { inputFactory: item => createPaddleFocusInput(item, focusSelection.rect) } : {}), signal: controller.signal, onProgress: state => { if (current()) setOcrState(state) } })
+      if (!current()) return
+      const proposals = []; const warnings = []
+      for (const item of output.items) {
+        try { proposals.push(...reviewableDeclarationProposals(reconstructOcrReadingOrder(item.lines)).proposals.map(proposal => ({ ...proposal, panelId: item.id }))) }
+        catch (error) { warnings.push(error.message) }
+      }
+      setPaddlePreview({ output, proposals, layoutWarning: warnings.join(' '), runId: crypto.randomUUID() })
+      setOcrState({ running: false, progress: 100, label: 'Paddle preview ready — earlier evidence is unchanged', error: '' })
+    } catch (error) {
+      if (current()) setOcrState({ running: false, progress: 0, label: 'Alternative OCR unavailable; previous evidence preserved', error: error.name === 'AbortError' ? '' : error.message })
+    } finally { if (activeJob.current === controller) activeJob.current = null }
+  }
+
+  const appendAlternativeOcr = async (proposedRows = []) => {
+    if (!paddlePreview || activeJob.current) return
+    const controller = new AbortController()
+    activeJob.current = controller
+    const current = () => activeJob.current === controller && !controller.signal.aborted
+    try {
+      setProcessing(true)
+      const next = preparePaddleAppend({ evidenceItems, text, rawOcrText, output: paddlePreview.output, runId: paddlePreview.runId, proposedRows })
+      await recordAudit('ocr_completed', { provider: 'paddleocr-js', model: paddlePreview.output.model, strategy: 'officer-reviewed-alternative-append', runId: paddlePreview.runId, reliability: null, engineConfidence: null, previousTranscriptPreserved: true, reviewedRows: next.reviewedRows, rawPasses: paddlePreview.output.items.map(item => ({ panelId: item.id, characters: item.text.length, lines: item.lines.length, crop: item.crop, source: item.source })) })
+      if (!current()) return
+      setText(next.text); setRawOcrText(next.rawOcrText); setEvidenceItems(next.evidenceItems); setOcrWords(next.words)
+      setMeta(previous => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(next.evidenceItems.flatMap(item => item.ocrPasses || [])), ocrCompletedAt: new Date().toISOString(), ocrSource: 'local-paddle', ocrReliabilityReason: 'Alternative engine reading appended. Raw transcripts and selected layout derivations remain separate. No validated inspection-wide accuracy score is available.' }))
+      applyExtraction(extractDeclarations(next.text))
+      setPaddlePreview(null)
+      setOcrState({ running: false, progress: 100, label: 'Paddle reading appended. Reverify each field and resolve any conflicts.', error: '' })
+    } catch (error) { if (current()) setOcrState(state => ({ ...state, error: error.message })) }
+    finally { if (activeJob.current === controller) { activeJob.current = null; setProcessing(false) } }
   }
 
   const buildRecord = (chain = auditChain) => ({
@@ -1094,6 +1232,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   const save = async () => {
     if (saved) return
     try {
+      validateSealableEvidence({ evidenceItems, text, processing, ocrRunning: ocrState.running })
       setSaving(true)
       const finalChain = await recordAudit('inspection_sealed', { inspectionId, status: result.status, score: result.score, evidencePanels: evidenceItems.length })
       const record = { ...buildRecord(finalChain), auditVerified: await verifyAuditChain(finalChain) }
@@ -1125,6 +1264,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       </div>
       <ChallengeClock challenge={challenge} />
       <div className="draft-bar" role="status">{draft ? <><span>An unfinished inspection is available.</span><button onClick={restoreDraft}>Restore draft</button><button onClick={async () => { try { await store.remove('drafts', 'active'); setDraft(null) } catch (error) { setDraftMessage(error.message) } }}>Discard unfinished draft</button></> : draftMessage || 'Drafts save automatically on this device after capture.'}{saved && <><button onClick={() => onOpenReport(sealedRecord)}>Open sealed report</button><button onClick={onNewInspection}>Start new inspection</button></>}</div>
+      {(processing || ocrState.running) && <div className="processing-banner" role="status"><LoaderCircle className="spin" size={18} /><span>{ocrState.label}<small>Work is time-limited. Cancellation prevents pending results from replacing evidence.</small></span><button type="button" onClick={cancelActiveJob}>Cancel current operation</button></div>}
       <fieldset className="studio-lock" disabled={saved || saving || processing || ocrState.running || Boolean(draft)}>
       <div className="studio-grid">
         <div className="workflow-column">
@@ -1165,13 +1305,29 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               onRectify={rectifyActiveEvidence}
               onRoleChange={updateEvidenceRole}
               processing={processing}
+              locked={saved || saving || processing || ocrState.running || Boolean(draft)}
               regions={regions}
               activeRegionId={activeRegionId}
               onRegionSelect={setActiveRegionId}
               onDetectReference={autoDetectReference}
               onCheckDepth={checkDepth}
               depthState={depthState}
+              onFocusSelect={(rect) => { setFocusSelection({ panelId: activeEvidence.id, imageUrl: activeEvidence.analysisUrl, rect }); setFocusResult(null) }}
             />
+            {focusSelection && <section className="focus-ocr-card" aria-label="Focused OCR rescan">
+              <h4>Read one declaration at full resolution</h4>
+              <p>Include the heading, value and unit. Three real OCR passes keep conflicting readings visible. This does not replace the original photo or certify the result.</p>
+              <button type="button" className="secondary-action" onClick={runFocusedOcr}>Scan selected region</button>
+              <button type="button" className="secondary-action" onClick={() => runAlternativeOcr(true)}>Try Paddle on selected region</button>
+              {focusResult && <>
+                <img src={focusResult.preview} alt="Selected declaration crop used for OCR" />
+                <small>Source: {focusResult.source} · merged crop reading below; unedited passes in details.</small>
+                <pre>{focusResult.output.items[0].ocrText}</pre>
+                <details><summary>Inspect all three raw OCR passes</summary>{focusResult.output.items[0].ocrPasses.map((pass) => <div key={pass.id}><b>{pass.id.split(':')[1]}</b><pre>{pass.text || '(no text)'}</pre></div>)}</details>
+                <button type="button" className="primary-action" onClick={appendFocusResult}>Append crop OCR to evidence</button>
+                <p>Earlier text and corrections are retained. Field, placement and measurement confirmations are reset. A partial crop cannot establish full-package compliance.</p>
+              </>}
+            </section>}
             {!challenge?.active && !workspace && <details className="test-aids">
               <summary><Sparkles size={14} /> Controlled test packets</summary>
               <div className="demo-actions">
@@ -1198,6 +1354,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               <button type="button" className="deep-ocr-button" onClick={() => runOcr('deep')} disabled={!evidenceItems.length || ocrState.running}>
                 <SearchCheck size={17} /> Deep scan small text
               </button>
+              <button type="button" className="deep-ocr-button" onClick={() => runAlternativeOcr(false)} disabled={!evidenceItems.length || ocrState.running} title="Optional local PP-OCRv6 small model. First use loads additional assets; output is previewed before append. Not a validated accuracy upgrade."><Layers3 size={17} /> Try Paddle OCR · local</button>
               <button type="button" className="connected-ocr-button" onClick={runConnectedOcr} disabled={!evidenceItems.length || ocrState.running} title="Explicitly sends processed panels to the configured Google Vision backend">
                 <WandSparkles size={17} /> Connected OCR
               </button>
@@ -1214,21 +1371,25 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
                 <div><span style={{ width: `${ocrState.progress}%` }} /></div>
                 <small>{ocrState.label}</small>
               </div>
-              <span className="confidence-chip">Reliability {Number(meta.ocrConfidence || 0).toFixed(0)}% · engine {Number(meta.ocrEngineConfidence || 0).toFixed(0)}%</span>
+              <span className="confidence-chip">{provenance.hasRun ? `Reliability ${provenance.reliability?.toFixed(0) ?? '—'}% · engine ${provenance.engineConfidence?.toFixed(0) ?? '—'}%` : 'OCR not run · confidence unavailable'}</span>
             </div>
             <p className="connected-ocr-disclosure"><LockKeyhole size={13} /> Browser OCR is the private default. Connected OCR sends processed panels to Google Vision only when you click it and requires workspace sign-in. Sealing in a managed workspace uploads evidence to private storage. Reliability percentages below are unvalidated heuristics, not accuracy probabilities.</p>
             {ocrState.error && <div className="inline-warning"><AlertTriangle size={17} />{ocrState.error}</div>}
-            <DeclarationCoverage extraction={extraction} reliability={meta.ocrConfidence} engineConfidence={meta.ocrEngineConfidence} reliabilityReason={meta.ocrReliabilityReason} />
+            {paddlePreview && <PaddleReview key={paddlePreview.runId} preview={paddlePreview} onAppend={appendAlternativeOcr} onDismiss={() => setPaddlePreview(null)} />}
+            <DeclarationCoverage extraction={extraction} reliability={provenance.reliability} engineConfidence={provenance.engineConfidence} reliabilityReason={meta.ocrReliabilityReason} hasOcrRun={provenance.hasRun} />
             <textarea
               className="evidence-editor"
               value={text}
               onChange={(event) => setText(event.target.value)}
+              maxLength={MAX_EVIDENCE_TEXT}
+              aria-label="Declaration evidence text"
               placeholder="Extracted label text will appear here. You may paste or correct evidence manually."
               spellCheck="false"
             />
             <ExtractionWorkbench extraction={extraction} onApply={applyExtraction} barcodeState={barcodeState} regions={regions} onSelectRegion={(id) => { const region = regions.find((item) => item.id === id); if (region) setActiveEvidenceId(region.panelId); setActiveRegionId(id) }} meta={meta} />
             {rawOcrText && <details><summary>Original OCR transcript (not edited)</summary><pre className="transcript-original">{rawOcrText}</pre></details>}
-            {meta.enforceEvidenceReview && <FieldVerification extraction={extraction} meta={meta} onChange={updateMeta} />}
+            <FieldVerification extraction={extraction} meta={meta} onChange={updateMeta} />
+            <PlacementReview extraction={extraction} meta={meta} evidenceItems={evidenceItems} onChange={updateMeta} result={result} />
             <div className="translation-panel">
               <header><Languages size={17} /><div><strong>Officer interpretation</strong><small>Original OCR evidence is preserved; this note never replaces it.</small></div></header>
               <div>
@@ -1477,7 +1638,7 @@ function HistoryPage({ history, onOpenReport, onNavigate }) {
             <article key={item.id}>
               <div className="record-id"><code>{item.id}</code><small>{formatDate(item.createdAt)}</small></div>
               <div className="record-product"><strong>{item.meta.productName || 'Unnamed product'}</strong><span>{item.meta.category} · {item.meta.quantity || '?'} {item.meta.unit}</span></div>
-              <div className="record-score"><b>{item.result.score}</b><span>evidence score</span></div>
+              <div className="record-score"><b>{item.result.score}%</b><span>checks passed</span></div>
               <StatusPill status={effectiveStatus(item)} />
               <button type="button" className="open-record" onClick={() => onOpenReport(item)}>Open evidence <ArrowRight size={16} /></button>
             </article>
@@ -1519,20 +1680,21 @@ function BlindChallengePage({ challenge, onStart, onContinue, history }) {
 
 function ValidationLab() {
   const [samples, setSamples] = useState(SEEDED_BENCHMARK)
-  const [message, setMessage] = useState('Synthetic regression fixtures loaded. Import real labelled records to claim field accuracy.')
+  const [message, setMessage] = useState('Synthetic rule/parser fixtures loaded. Field-accuracy claims require independently checked labels and an untouched product-level holdout; importing a file does not prove either.')
   const inputRef = useRef(null)
   const metrics = useMemo(() => runBenchmark(samples), [samples])
-  const percentage = (value) => `${Math.round(value * 100)}%`
+  const percentage = (value) => value == null ? 'N/A' : `${Math.round(value * 100)}%`
 
   const importDataset = async (file) => {
     if (!file) return
     try {
+      if (file.size > 5_000_000) throw new Error('Benchmark upload exceeds the 5 MB file limit.')
       const parsed = parseBenchmarkFile(await file.text(), file.name)
       setSamples(parsed)
-      setMessage(`${parsed.length} imported labelled records loaded. Metrics below are computed from this file.`)
+      setMessage(`${parsed.length} imported records loaded. Only supplied labels contribute to accuracy; their correctness and independence have not been verified.`)
     } catch (error) {
       setMessage(`Import failed: ${error.message}`)
-    }
+    } finally { if (inputRef.current) inputRef.current.value = '' }
   }
 
   const downloadTemplate = () => {
@@ -1546,13 +1708,15 @@ function ValidationLab() {
       <div className="validation-actions"><input ref={inputRef} hidden type="file" accept=".json,.csv" onChange={(event) => importDataset(event.target.files?.[0])} /><button type="button" onClick={() => inputRef.current?.click()}><UploadCloud size={16} /> Import labelled dataset</button><button type="button" onClick={downloadTemplate}><Download size={16} /> Dataset template</button><button type="button" onClick={() => { setSamples(SEEDED_BENCHMARK); setMessage('Synthetic regression fixtures restored. Do not present these as field accuracy.') }}><RotateCcw size={16} /> Reset fixtures</button></div>
       <div className="validation-notice"><AlertTriangle size={17} /><span>{message}</span></div>
       <div className="metrics-grid validation-metrics">
-        <MetricCard icon={SearchCheck} label="Verdict accuracy" value={percentage(metrics.statusAccuracy)} copy={`${metrics.sampleCount} labelled records`} tone="green" />
+        <MetricCard icon={SearchCheck} label="Verdict accuracy" value={percentage(metrics.statusAccuracy)} copy={`${metrics.statusSamples ?? metrics.sampleCount} verdict-labelled records`} tone="green" />
         <MetricCard icon={BadgeCheck} label="Field detection F1" value={percentage(metrics.f1)} copy={`Presence only · P ${percentage(metrics.precision)} · R ${percentage(metrics.recall)}`} />
         <MetricCard icon={ClipboardCheck} label="Extracted-value accuracy" value={metrics.valueAccuracy === null ? 'N/A' : percentage(metrics.valueAccuracy)} copy={metrics.valueSamples ? `${metrics.valueSamples} labelled field values` : 'Add expectedValues labels to compute'} />
-        <MetricCard icon={XCircle} label="False violations" value={percentage(metrics.falseViolationRate)} copy="Highest-risk model failure" tone="red" />
+        <MetricCard icon={XCircle} label="False violations" value={percentage(metrics.falseViolationRate)} copy={`${metrics.falseViolations ?? 0} / ${metrics.falseViolationSamples ?? 0} labelled clear, exempt or review cases`} tone="red" />
+        <MetricCard icon={ShieldAlert} label="False clearances" value={percentage(metrics.falseClearRate)} copy={`${metrics.falseClears ?? 0} / ${metrics.falseClearSamples ?? 0} labelled flag or review cases`} tone="red" />
         <MetricCard icon={TriangleAlert} label="Abstention rate" value={percentage(metrics.abstentionRate)} copy={`${metrics.elapsedMs.toFixed(1)} ms parser runtime`} tone="amber" />
       </div>
-      <article className="failure-panel"><header><div><span className="eyebrow">FAILURE ANALYSIS</span><h3>{metrics.failures.length ? `${metrics.failures.length} mismatched verdicts` : 'All expected verdicts matched'}</h3></div><ClipboardCheck size={22} /></header>{metrics.failures.length ? metrics.failures.map((failure) => <div key={failure.id}><code>{failure.id}</code><span>{failure.condition}</span><b>{failure.expected}</b><ArrowRight size={14} /><strong>{failure.actual}</strong></div>) : <p>No status mismatch in the active dataset. Field-level precision and recall still determine extraction quality.</p>}</article>
+      <article className="failure-panel"><header><div><span className="eyebrow">FAILURE ANALYSIS</span><h3>{!metrics.statusSamples ? 'No verdict ground truth supplied' : metrics.failures.length ? `${metrics.failures.length} mismatched verdicts` : 'All labelled verdicts matched'}</h3></div><ClipboardCheck size={22} /></header>{metrics.failures.length ? metrics.failures.map((failure) => <div key={failure.id}><code>{failure.id}</code><span>{failure.condition}</span><b>{failure.expected}</b><ArrowRight size={14} /><strong>{failure.actual}</strong></div>) : <p>{metrics.statusSamples ? 'No mismatch among verdict-labelled records. This is not proof of OCR accuracy or legal validity.' : 'Add expectedStatus labels before interpreting verdict accuracy. Unlabelled records are excluded.'}</p>}</article>
+      <article className="failure-panel"><header><div><span className="eyebrow">FIELD VALUE EVIDENCE</span><h3>Exact readings, explicit denominators</h3></div></header><p>Supplied transcripts only; this view does not run OCR. Matching normalizes case and whitespace, not numeric values. Imported labels are not independently verified or a proven held-out dataset.</p><div className="benchmark-field-table"><table><thead><tr><th>Field</th><th>Exact matches</th><th>Labelled values</th><th>Rate</th></tr></thead><tbody>{Object.entries(metrics.perField || {}).map(([id, field]) => <tr key={id}><td>{field.label || id}</td><td>{field.exactMatchCorrect}</td><td>{field.exactMatchSamples}</td><td>{percentage(field.exactMatchRate)}</td></tr>)}</tbody></table></div></article>
     </section>
   )
 }
@@ -1625,7 +1789,7 @@ function RulesLibrary() {
         <article><FileCheck2 size={22} /><span>RULE 6 PROFILE</span><h3>Mandatory declarations</h3><p>MRP, net quantity, responsible entity, pack date, consumer contact, origin and unit price are selected by package profile.</p></article>
         <article><Ruler size={22} /><span>RULE 7 PROFILE</span><h3>Physical typography</h3><p>Panel-area tiers determine minimum text height. Measurement and area uncertainty can force an abstention.</p></article>
         <article><ShieldCheck size={22} /><span>RULE 26 PROFILE</span><h3>Explicit exemptions</h3><p>Eligible packages of 10 g / 10 ml or less are evaluated with the current tobacco applicability and 2025 pan masala carve-out.</p></article>
-        <article><CircleHelp size={22} /><span>TRUST POLICY</span><h3>Calibrated abstention</h3><p>Low OCR confidence, incomplete geometry and tier-boundary uncertainty become MANUAL REVIEW—not guessed compliance.</p></article>
+        <article><CircleHelp size={22} /><span>TRUST POLICY</span><h3>Explicit uncertainty</h3><p>Low OCR confidence, incomplete geometry and tier-boundary uncertainty become MANUAL REVIEW. Reliability scores are not statistically calibrated.</p></article>
       </div>
 
       <article className="threshold-panel">
@@ -1663,8 +1827,16 @@ function RulesLibrary() {
 }
 
 function ReportModal({ record, onClose }) {
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState('')
+  const [wordReport, setWordReport] = useState(null)
+  const currentReportId = useRef(record?.id)
+  currentReportId.current = record?.id
+  useEffect(() => { setWordReport(null); setExportError(''); setExporting(false) }, [record?.id])
+  useEffect(() => () => { if (wordReport?.url) URL.revokeObjectURL(wordReport.url) }, [wordReport])
   if (!record) return null
   const audit = auditPresentation(record)
+  const provenance = ocrProvenance(record)
   const reportImages = record.evidenceItems?.length
     ? record.evidenceItems
     : record.imageUrl ? [{ id: 'legacy', name: record.fileName || 'Package evidence', analysisUrl: record.imageUrl, sha256: '' }] : []
@@ -1677,6 +1849,18 @@ function ReportModal({ record, onClose }) {
     anchor.click()
     URL.revokeObjectURL(anchor.href)
   }
+  const downloadWord = async () => {
+    setExporting(true); setExportError('')
+    try {
+      const { buildInspectionDocx } = await import('./lib/reportDocument.mjs')
+      const blob = await buildInspectionDocx(record)
+      if (currentReportId.current !== record.id) return
+      const url = URL.createObjectURL(blob)
+      // A visible, fresh user gesture avoids browsers blocking asynchronous automatic downloads.
+      setWordReport({ url, id: record.id, name: `${record.id}-inspection.docx`, size: blob.size })
+    } catch (error) { setExportError(`Word report could not be generated: ${error.message}`) }
+    finally { setExporting(false) }
+  }
 
   return (
     <div className="report-modal" role="dialog" aria-modal="true" aria-label="Evidence report">
@@ -1684,10 +1868,13 @@ function ReportModal({ record, onClose }) {
         <BrandMark compact />
         <div>
           <button type="button" onClick={download}><FileJson size={16} /> Export JSON</button>
+          <button type="button" onClick={downloadWord} disabled={exporting}><Download size={16} /> {exporting ? 'Preparing Word report…' : 'Export Word (.docx)'}</button>
           <button type="button" onClick={() => window.print()}><Printer size={16} /> Print / PDF</button>
           <button type="button" className="close-report" onClick={onClose}><X size={18} /> Close</button>
         </div>
       </div>
+      {exportError && <p className="inline-warning no-print" role="alert">{exportError}</p>}
+      {wordReport?.id === record.id && <p className="word-ready no-print" role="status">Word report generated ({Math.ceil(wordReport.size / 1024)} KB). <a href={wordReport.url} download={wordReport.name}>Save generated Word report</a></p>}
       <article className="evidence-report">
         <header>
           <BrandMark />
@@ -1702,11 +1889,13 @@ function ReportModal({ record, onClose }) {
           <StatusPill status={record.result.status} />
         </div>
         <div className="report-summary">
-          <div><span>Evidence score</span><strong>{record.result.score}/100</strong></div>
+          <div><span>Checks passed (not accuracy)</span><strong>{record.result.score}%</strong></div>
           <div><span>Passed</span><strong>{record.result.counts.pass}</strong></div>
           <div><span>Flagged</span><strong>{record.result.counts.fail}</strong></div>
           <div><span>Manual review</span><strong>{record.result.counts.review}</strong></div>
         </div>
+        {(!reportImages.length || record.result.context.rulePack !== RULE_PACK.id) && <section className="report-text"><h2>Reassessment required</h2><p>This is a historical or incomplete record. Its original verdict is retained for audit history, not endorsed under the current evidence policy. Create a new inspection with current photographs and rule checks.</p></section>}
+        <section className="report-text"><h2>Text provenance</h2><p>{provenance.description} A recorded client timeline is not independent certification of image authenticity.</p></section>
         {record.supervisorReview && (
           <section className="report-supervisor">
             <div><span>SUPERVISOR DISPOSITION</span><strong><StatusPill status={record.supervisorReview.status} compact /></strong></div>
@@ -1728,7 +1917,7 @@ function ReportModal({ record, onClose }) {
               <div><dt>Profile</dt><dd>{record.meta.category}</dd></div>
               <div><dt>Net quantity</dt><dd>{record.meta.quantity || '—'} {record.meta.unit}</dd></div>
               <div><dt>Panel area</dt><dd>{record.meta.pdpArea || '—'} cm² ± {record.meta.pdpUncertainty}%</dd></div>
-              <div><dt>OCR confidence</dt><dd>{Number(record.meta.ocrConfidence || 0).toFixed(1)}%</dd></div>
+              <div><dt>OCR reliability heuristic</dt><dd>{provenance.hasRun && provenance.reliability !== null ? `${provenance.reliability.toFixed(1)}% (not accuracy)` : 'Unavailable — no verified run score'}</dd></div>
               <div><dt>Captured panels</dt><dd>{reportImages.length}</dd></div>
               <div><dt>Barcode / GTIN</dt><dd>{record.meta.barcode || '—'}</dd></div>
               <div><dt>Commodity class</dt><dd>{record.meta.commodityClass || 'standard'}</dd></div>
@@ -1752,7 +1941,7 @@ function ReportModal({ record, onClose }) {
             <h2>Structured declarations</h2>
             <div>
               {record.extraction.fields.filter((item) => item.detected).map((item) => (
-                <article key={item.id}><span>{item.label}</span><strong>{item.value}</strong><small>{item.evidence}</small></article>
+                <article key={item.id}><span>{item.label}</span><strong>{item.conflict ? 'Conflicting values' : item.value || 'Invalid / incomplete reading'}</strong><small>{item.validation?.message || item.evidence}</small></article>
               ))}
             </div>
           </section>
@@ -1774,7 +1963,7 @@ function ReportModal({ record, onClose }) {
           </table>
         </section>
         <section className="report-text">
-          <h2>Officer-reviewed evidence text</h2>
+          <h2>Working declaration text (corrections, if any)</h2>
           <pre>{record.text || 'No extracted text supplied.'}</pre>
         </section>
         <section className="report-text"><h2>Original OCR transcript before manual corrections</h2><pre>{record.rawOcrText || 'No original OCR transcript recorded; this may be manually entered or legacy evidence.'}</pre></section>
@@ -1879,14 +2068,15 @@ function InspectionApp({ workspace }) {
     try {
       await syncEngine.run(force)
       await workspace.api.ensureCurrent(signal)
-      let offset = 0
+      let offset = 0; let pageNumber = 0
       do {
         const page = await workspace.api.request(`cases?offset=${offset}`, { signal })
         for (const record of page.records) {
           await workspace.api.ensureCurrent(signal)
           await store.mergeRemote(record, mergeCloudRecord)
         }
-        offset = page.nextOffset
+        if (page.paginationLimited) setSyncError('History reached the server page limit. These results are partial; narrow the search or contact your administrator.')
+        offset = nextPageOffset(offset, page.nextOffset, pageNumber++)
       } while (offset !== null)
       await refreshLocal(signal)
     } catch (error) { if (!signal.aborted) setSyncError(error.message) } finally { if (!signal.aborted) setSyncing(false) }

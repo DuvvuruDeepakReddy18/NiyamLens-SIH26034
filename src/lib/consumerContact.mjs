@@ -7,6 +7,7 @@ const POSTAL_CODE = /\b[1-9]\d{5}\b/
 const ADDRESS_TERM = /\b(?:ROAD|RD\.?|STREET|ST\.?|LANE|NAGAR|COLONY|BUILDING|BLDG|FLOOR|PLOT|SECTOR|VILLAGE|TALUK|TEHSIL|POST|PO\.?|CITY|DISTRICT|STATE|INDIA)\b/i
 
 const cleanLines = (text) => String(text || '')
+  .slice(0, 100000)
   .replace(/\r/g, '')
   .split('\n')
   .map((line) => line.replace(/\s+/g, ' ').trim())
@@ -26,6 +27,8 @@ export function findConsumerPhone(text) {
   for (const careIndex of careIndexes) {
     const nearby = lines.slice(careIndex, careIndex + 5)
     for (const line of nearby) {
+      if (line !== lines[careIndex] && /^(?:(?:MANUFACTURED|MFD|PACKED|IMPORTED)\s+BY|MANUFACTURER|PACKER|IMPORTER)\b/i.test(line)) break
+      if (line.length > 2000) continue
       const contextual = matchPhone(line, PHONE_LABEL.test(line))
       if (contextual) return contextual
     }
@@ -43,6 +46,7 @@ export function findConsumerAddress(text) {
   for (const careIndex of careIndexes) {
     const nearby = lines.slice(Math.max(0, careIndex - 3), careIndex + 5)
     const candidate = nearby.find((line) => {
+      if (line.length > 2000 || /^(?:(?:MANUFACTURED|MFD|PACKED|IMPORTED)\s+BY|MANUFACTURER|PACKER|IMPORTER)\b/i.test(line)) return false
       const hasPostalCode = POSTAL_CODE.test(line)
       const hasAddressTerm = ADDRESS_TERM.test(line)
       const hasHouseOrPlotNumber = /\b(?:PLOT|HOUSE|DOOR|NO\.?)?\s*\d+[A-Z\/-]?\b/i.test(line)

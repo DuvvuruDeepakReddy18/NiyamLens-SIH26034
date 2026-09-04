@@ -4,6 +4,12 @@ NiyamLens is a local-first inspection system for packaged-commodity declarations
 
 The product is designed around the question a judge will ask: **can it survive a random packet in real time?** The Blind Challenge route disables controlled fixtures, starts a sealed timer and records every material action.
 
+## Current readiness — 4 September 2026
+
+Version 0.4.2 / rule pack RC5 adds optional local Paddle OCR (whole panels and officer-selected crops), reviewable layout suggestions, literal label-format parsing fixes, atomic OCR appends, draft-race protection and resilient optional-asset caching. Local release validation passes 318 automated tests, the production build, source/build OCR asset hashes and 14 exact-photo identity checks. See the [release validation record](reports/release-2026-09-04/RELEASE-VALIDATION.md) and the branch's GitHub checks for push/CI status. These checks do not certify production cloud configuration or general OCR accuracy.
+
+Actual Chrome Paddle recognition of an untouched Amul photograph recovered `MRP:22.00`; an officer-selected crop also read `Net Content:` followed by `500ml`, without typing corrected OCR text. This is a known-photo, officer-assisted acceptance check—not a blind accuracy result. Earlier bad readings remain preserved and may require explicit conflict resolution. Strict whole-image experiments on eight provisional development photos still show poor end-to-end critical-field extraction. See [this pass's handoff](reports/recognition-2026-09-04-pass2/IMPLEMENTATION-STATUS.md) and [measured experiments](reports/recognition-2026-09-04-pass2/RESULTS.md). Do not present this as general real-label accuracy or guaranteed SIH success.
+
 ## Run
 
 ```powershell
@@ -15,6 +21,8 @@ Open `http://127.0.0.1:5173`.
 
 English, Hindi, Telugu and Tamil OCR assets are bundled under `public/ocr`, so the engine does not depend on a public CDN. Saved inspections and evidence remain in the browser's local IndexedDB.
 
+The optional Paddle model uses an additional approximately 68 MB of local assets. It is lazy-loaded, not required for app startup, and runs in a separately terminable Web Worker. The Tesseract language selector does not change Paddle's fixed model. To reproduce/verify the pinned assets after installation, run `node tools/prepare-paddle-assets.mjs`; it verifies hashes and never uploads photographs. First-time offline Paddle use is not guaranteed until its assets have successfully cached.
+
 ## What is implemented
 
 - Real camera/file intake for up to four label panels, with guided roles for identity, price/date, responsible entity/consumer care and quantity/barcode evidence.
@@ -22,7 +30,8 @@ English, Hindi, Telugu and Tamil OCR assets are bundled under `public/ocr`, so t
 - Image-quality gates for sharpness, brightness, contrast and glare.
 - Rotation, grayscale and contrast preprocessing without replacing the original.
 - Three-pass local Tesseract OCR in English, Hindi, Telugu or Tamil combinations, plus an optional seven-pass deep scan using four overlapping detail tiles.
-- Calibrated OCR reliability based on engine confidence, pass agreement, capture quality and evidence volume, with explicit retake guidance.
+- Optional PP-OCRv6 small local recognition with a preview-before-append workflow. Exact raw text and engine/model/run identities stay separate from officer-selected geometric row suggestions. The same engine can scan a selected original-resolution crop.
+- Unvalidated OCR reliability heuristic based on engine confidence, pass agreement, capture quality and evidence volume, with explicit retake guidance. Manual input has no OCR-confidence score.
 - Explicit opt-in connected OCR through a serverless Google Vision boundary; browser OCR remains the offline/private default and failed connected requests preserve local evidence.
 - OCR word boxes mapped to clickable declaration evidence regions.
 - Deterministic extraction of MRP, quantity, dates, responsible entity, consumer care, origin, unit price, FSSAI licence text and barcode text, including GTIN check-digit validation.
@@ -30,16 +39,17 @@ English, Hindi, Telugu and Tamil OCR assets are bundled under `public/ocr`, so t
 - Four-corner projective homography to flatten skewed label panels.
 - Reference-card detection, two-point manual calibration and WebXR depth-capability check.
 - Flat-panel and cylindrical-panel area calculators with uncertainty propagation.
-- Per-panel calibration, per-region physical line-box estimates and text-width evaluation. Transforming a panel invalidates its calibration instead of silently reusing stale pixels.
+- Per-panel physical glyph calibration and text-width evaluation. OCR regions are not physical glyph measurements; their cards deliberately show no millimetre estimate. Transforming a panel invalidates its calibration instead of silently reusing stale pixels.
 - Versioned rules-as-code with confidence-aware abstention.
 - Rule 7 / Table I area tiers and boundary uncertainty.
+- Officer-assisted Rule 8 declaration placement and net-quantity clear-space ratios with uncertainty; this does not automatically identify a legal PDP.
 - Rule 26 small-package, tobacco, pan masala, fast-food, formulation and medical-device profiles.
 - Blind Challenge mode with controlled-packet lockout and elapsed timer.
-- Hash-linked audit events and tamper verification.
+- Hash-linked local audit events and internal consistency verification, not independent proof of image authenticity.
 - Local officer/supervisor separation, assignments and reason-required overrides.
 - PBKDF2-SHA256 (600,000 iterations) + AES-256-GCM encrypted evidence export/import, including large image-bearing records and legacy-v1 import.
-- IndexedDB evidence register, dashboard, history, JSON export and print/PDF packet.
-- Validation Lab for quoted JSON/CSV datasets with verdict accuracy, field-detection precision/recall/F1, extracted-value accuracy, false-violation rate and abstention rate.
+- IndexedDB evidence register, dashboard, history, JSON export, editable DOCX and print/PDF packet. Word generation supplies a visible save link; visual/download acceptance remains pending.
+- Validation Lab for bounded JSON/CSV datasets with labelled denominators, per-field exact matches, false-clear and false-violation rates, abstention, and explicit unavailable metrics when ground truth is missing. This runs on supplied transcripts, not live OCR.
 - A visible approval register that never presents a prototype interpretation as department-approved law.
 - Installable PWA shell.
 
@@ -71,17 +81,9 @@ npm run qa:ocr:google-baseline
 npm run qa:pwa
 ```
 
-Current verified baseline:
+Current local verified baseline: 318 automated regression tests and a production Vite build pass. [Clean-checkout instructions](docs/RELEASE_REPRODUCIBILITY.md) explain the independent CI, pinned-asset and exact-photo gates. Actual Chrome verification and exact frozen-corpus denominators are documented in the linked reports; read their limitations before making a claim. Earlier fixture/token-recovery reports remain historical artifacts, not current end-to-end field accuracy. The new optional browser engine has not been tested on an independent held-out corpus or every target phone. Cloud identity/storage/provider integration requires a configured, separately verified deployment.
 
-- 54 automated tests passing.
-- Production Vite build passing.
-- Full browser workflow passing with zero recorded console/page errors.
-- Production service-worker reload and OCR passing with the browser fully offline.
-- Exact sample-label OCR regression passing: all 12 expected lines recovered with no manual correction, 91% calibrated reliability, 92% engine confidence, 10 structured signals and 10 mapped evidence regions.
-- Connected-OCR browser contract passing: explicit image transfer, normalized result display, FSSAI extraction and evidence preservation during a simulated provider outage.
-- Real-label pilot: standard local OCR recovered 61.1% of expected tokens; local deep scan recovered 67.5% on the same 17 untouched declaration-panel photos from ten Indian-market products. No manual correction was used. The source dataset's precomputed Google Vision annotations score 93.7% on the same tokens and remain a reference baseline, not a result from the deployed app.
-
-The OCR QA loads the bundled engine assets. The UI separates calibrated **reliability** from provider **engine confidence**; neither is accuracy. Neither the exact-text fixture nor the small real-label pilot establishes field or compliance accuracy. The real pilot intentionally preserves failed tokens and a curved-label stress case; see the [Open Food Facts pilot protocol](datasets/openfoodfacts-india/README.md), the [Legal Metrology field-dataset schema](datasets/legal-metrology-field/README.md) and the committed reports in `reports/`.
+The UI distinguishes engine scores from unvalidated reliability heuristics. Neither is an accuracy probability. The Validation Lab scores supplied transcripts; it does not automatically execute browser OCR. See the [Open Food Facts pilot protocol](datasets/openfoodfacts-india/README.md), [field-dataset schema](datasets/legal-metrology-field/README.md) and raw reports in `reports/`.
 
 ## Deployment
 
@@ -91,7 +93,7 @@ The repository includes `vercel.json`; Vercel can build it as a static Vite appl
 npx vercel@latest --prod
 ```
 
-Deployment does not create a central database: inspection history, assignments and evidence remain local to each browser through IndexedDB/local storage. Production departmental identity, shared case synchronization and externally anchored audit storage remain future server-side work.
+Deployment alone does not create or configure a central database. Supabase workspace/Auth/Storage adapters and migrations are implemented, but the current local acceptance environment is not configured for cloud access. Local history remains in each browser; live cross-account permissions, uploads and synchronization need a separately configured Supabase deployment and acceptance check. Local audit verification is not independently anchored authenticity.
 
 Connected OCR is intentionally disabled unless `GOOGLE_CLOUD_VISION_API_KEY` is configured as a server-side Vercel environment variable. Never use a `VITE_` prefix for this secret. The static application and local/deep OCR work without it. Use `vercel dev` rather than the Vite dev server when manually exercising the serverless route locally.
 

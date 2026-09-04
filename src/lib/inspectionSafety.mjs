@@ -1,5 +1,7 @@
 import { extractDeclarations } from './extraction.mjs'
 import { evaluateCompliance } from './rules.mjs'
+import { evaluatePlacement } from './placement.mjs'
+export { validateInspectionMetadata } from './inspectionMetadata.mjs'
 export const FIELD_RULES = { productName: ['genericName'], mrp: ['mrp', 'mrpFormat'], netQuantity: ['netQuantity'], packDate: ['packDate'], responsibleEntity: ['manufacturer'], consumerCare: ['consumerCare'], consumerAddress: ['consumerAddress'], phone: ['consumerPhone'], email: ['consumerEmail'], countryOrigin: ['countryOrigin'], unitSalePrice: ['unitSalePrice'], bestBefore: ['bestBefore'] }
 export const REVIEW_STATES = ['unreviewed', 'confirmed', 'absent', 'unreadable', 'not_captured']
 const normalized = (value) => String(value || '').toLowerCase().replace(/\s+/g, ' ').trim()
@@ -8,23 +10,27 @@ export function fieldCandidates(passes = []) {
   for (const pass of passes) {
     for (const field of extractDeclarations(pass.text || '').fields.filter((item) => item.detected && FIELD_RULES[item.id])) {
       const list = candidates[field.id] ||= []
-      const key = normalized(field.value)
-      const match = list.find((item) => item.key === key)
-      if (match) match.sources.push(pass.id)
-      else list.push({ key, value: field.value, evidence: field.evidence, sources: [pass.id] })
+      for (const choice of field.candidates?.length ? field.candidates : [field]) {
+        const key = choice.key || normalized(choice.value)
+        const match = list.find((item) => item.key === key)
+        if (match) { if (!match.sources.includes(pass.id)) match.sources.push(pass.id) }
+        else list.push({ key, value: choice.value, evidence: choice.evidence, valid: choice.valid !== false, sources: [pass.id] })
+      }
     }
   }
   return candidates
 }
 export function evaluateInspection({ text = '', meta = {} }) {
   const result = evaluateCompliance({ text, meta })
+  if (result.checks.some(check => check.id.startsWith('invalidInput:'))) return result
   if (!meta.enforceEvidenceReview) return result
   const checks = result.checks.map((check) => ({ ...check }))
   const extraction = extractDeclarations(text)
+  if (meta.classificationConfirmed !== true) checks.push({ id: 'profileConfirmation', label: 'Package classification', rule: 'Evidence safety policy', status: 'review', reason: 'Confirm category, commodity class and package scope against the physical label before a decisive verdict.', evidence: 'Package profile not confirmed' })
   for (const [fieldId, ruleIds] of Object.entries(FIELD_RULES)) {
     const review = meta.fieldReviews?.[fieldId]
     const field = extraction.byId[fieldId]
-    const validConfirmation = review?.state === 'confirmed' && normalized(review.value) === normalized(field?.value) && Boolean(review.value) && Boolean(review.reason?.trim())
+    const validConfirmation = review?.state === 'confirmed' && !['invalid', 'conflict'].includes(field?.validation?.status) && normalized(review.value) === normalized(field?.value) && Boolean(review.value) && typeof review.reason === 'string' && Boolean(review.reason.trim())
     const validAbsence = review?.state === 'absent' && meta.allPanelsCaptured === true && String(review.reason || '').trim().length >= 12
     for (const check of checks.filter((item) => ruleIds.includes(item.id))) {
       if (validConfirmation && check.status === 'pass') continue
@@ -40,12 +46,12 @@ export function evaluateInspection({ text = '', meta = {} }) {
     }
   }
   for (const check of checks.filter((item) => /fontHeight|fontWidth|panelArea/.test(item.id))) {
-    if ((!meta.pdpConfirmed || !meta.measurementConfirmed || meta.measurementSurface !== 'flat') && ['pass', 'fail'].includes(check.status)) {
+    if ((meta.pdpConfirmed !== true || meta.measurementConfirmed !== true || meta.measurementSurface !== 'flat') && ['pass', 'fail'].includes(check.status)) {
       check.status = 'review'; check.reason = 'Confirm the physical PDP and same-plane reference/glyph measurement. Unvalidated curved-surface and OCR line-box measurements cannot decide typography.'
     }
   }
   for (const check of checks.filter((item) => item.id.startsWith('fontWidth'))) {
-    if (!meta.widthCharacterConfirmed && ['pass', 'fail'].includes(check.status)) {
+    if (meta.widthCharacterConfirmed !== true && ['pass', 'fail'].includes(check.status)) {
       check.status = 'review'; check.reason = 'Confirm that the measured character is subject to the width requirement; do not flag an excepted narrow character.'
     }
   }
@@ -53,6 +59,8 @@ export function evaluateInspection({ text = '', meta = {} }) {
   if (result.context.exemption?.exempt && (!meta.classificationConfirmed || quantityReview?.state !== 'confirmed' || !quantityReview.reason?.trim() || normalized(quantityReview.value) !== normalized(extraction.byId.netQuantity?.value) || Number(meta.quantity) !== extraction.suggestions.quantity || normalized(meta.unit) !== normalized(extraction.suggestions.unit))) {
     checks.push({ id: 'exemptionEvidence', label: 'Exemption evidence confirmation', rule: 'Evidence safety policy', status: 'review', reason: 'Confirm package classification and quantity against the physical label before applying an exemption.', evidence: 'Unconfirmed exemption inputs' })
   }
+  if (Array.isArray(meta.evidencePanelIds) && meta.evidencePanelIds.length === 0) checks.push({ id: 'captureEvidence', label: 'Captured package panels', rule: 'Evidence safety policy', status: 'review', reason: 'No package photograph is linked. A text-only draft cannot establish physical label compliance.', evidence: 'No captured panels' })
+  checks.push(...evaluatePlacement({ meta, extraction, exempt: result.context.exemption?.exempt === true, ruleChecks: result.checks }))
   const counts = { pass: 0, fail: 0, review: 0 }
   checks.forEach((check) => { if (check.status in counts) counts[check.status] += 1 })
   const count = counts.pass + counts.fail + counts.review
