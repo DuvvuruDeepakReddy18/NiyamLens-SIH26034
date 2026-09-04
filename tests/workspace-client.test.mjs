@@ -206,8 +206,9 @@ test('a report-specific cancellation does not cancel the workspace or allow a la
   await assert.rejects(api.openRecord(record(), { source: 'typo' }), { status: 422 })
 })
 
-test('managed seal transmits exact OCR passes but excludes image word boxes', async () => {
+test('managed seal transmits exact OCR passes and bounded source regions but excludes image word boxes', async () => {
   const { api } = setup(); const source = record()
+  source.regions = [{ id: 'mrp', label: 'MRP', panelId: source.evidenceItems[0].id, bbox: { x0: 1, y0: 2, x1: 30, y1: 12 }, pageWidth: 40, pageHeight: 20 }]
   Object.assign(source.evidenceItems[0], { originalUrl: `data:image/png;base64,${png.toString('base64')}`, analysisUrl: `data:image/png;base64,${png.toString('base64')}`, ocrProvider: 'tesseract.js', ocrPasses: [{ id: 'raw:1', text: ' MRP:22.00\r\n', provider: 'tesseract.js' }], ocrWords: [] })
   let submitted
   await withFetch(async (url, options) => {
@@ -219,6 +220,7 @@ test('managed seal transmits exact OCR passes but excludes image word boxes', as
   }, async () => { await api.transport({ kind: 'seal', payload: source }) })
   assert.deepEqual(submitted.evidenceItems[0].ocrPasses, source.evidenceItems[0].ocrPasses)
   assert.equal(submitted.evidenceItems[0].ocrWords, undefined)
+  assert.deepEqual(submitted.regions, source.regions)
 })
 
 test('invalid OCR history fails before any private image upload', async () => {

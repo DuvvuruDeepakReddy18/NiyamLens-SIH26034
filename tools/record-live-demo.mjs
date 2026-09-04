@@ -89,7 +89,7 @@ async function visibleClick(locator) {
 }
 
 await page.goto(baseUrl, { waitUntil: 'networkidle' })
-await page.getByText('Turn a label image into an inspectable decision.').waitFor()
+await page.getByRole('heading', { name: 'From package image to defensible evidence.', exact: true }).waitFor()
 await installPresentationLayer()
 
 await cue('NiyamLens is a working local-first inspection console for SIH26034—not a slideshow or a pre-rendered dashboard.', 6500)
@@ -100,6 +100,13 @@ await pointTo(uploadButton)
 await page.locator('input[type="file"]').setInputFiles(realPanels)
 await page.getByText(/2 panels ready for OCR/i).waitFor()
 await cue('Both originals are now registered as evidence. NiyamLens hashes each original before preprocessing and keeps the panels separate for auditability.', 7000)
+let cautionsRecorded = 0
+for (const panel of await page.locator('.evidence-strip > button').all()) {
+  await panel.click()
+  const caution = page.getByRole('button', { name: 'Continue with caution', exact: true })
+  if (await caution.count()) { await visibleClick(caution); cautionsRecorded += 1 }
+}
+if (cautionsRecorded) await cue(`The image heuristic requested review on ${cautionsRecorded} panel${cautionsRecorded === 1 ? '' : 's'}. The officer explicitly recorded “continue with caution,” so that limitation becomes audit evidence instead of being bypassed.`, 7000)
 
 const ocrButton = page.getByRole('button', { name: /Run browser OCR/i })
 await visibleClick(ocrButton)

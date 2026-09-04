@@ -65,6 +65,18 @@ test('server derives physical panel scope and permits unverified OCR provenance 
   assert.equal(record.result.status, 'manual_review')
 })
 
+test('server retains only bounded source regions tied to extracted fields and attached panels', () => {
+  const region = { id: 'mrp', label: 'Client-controlled fake label', panelId, bbox: { x0: 10, y0: 20, x1: 110, y1: 48 }, pageWidth: 640, pageHeight: 480, confidence: 82, matchScore: .78, text: 'MRP Rs. 40' }
+  const record = validateCase({ ...base(), text: 'MRP Rs. 40 inclusive of all taxes', regions: [region] }, context)
+  assert.deepEqual(record.regions, [{ ...region, label: 'Maximum Retail Price' }])
+  for (const invalid of [
+    { ...region, panelId: '40000000-0000-4000-8000-000000000001' },
+    { ...region, id: 'packDate' },
+    { ...region, bbox: { ...region.bbox, x1: 700 } },
+    { ...region, matchScore: 2 },
+  ]) assert.throws(() => validateCase({ ...base(), text: 'MRP Rs. 40 inclusive of all taxes', regions: [invalid] }, context), { status: 400 })
+})
+
 test('server and UI reject default OCR confidence without both a recorded completed run and raw transcript', async () => {
   const completed = await appendAuditEvent([], 'ocr_completed', { confidence: 95 }, user.id)
   const sealedOnly = await appendAuditEvent([], 'inspection_sealed', {}, user.id)

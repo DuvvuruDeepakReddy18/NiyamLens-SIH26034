@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { createWorkspaceClient } from './lib/workspaceClient.mjs'
 import { nextPageOffset } from './lib/inspectionWorkflow.mjs'
+import { Camera, Check, FileSearch, LockKeyhole, Ruler, ScanLine, ShieldCheck } from 'lucide-react'
 import './workspace.css'
 const url = import.meta.env.VITE_SUPABASE_URL
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -63,13 +64,25 @@ export function WorkspaceGate({ children }) {
   if (!client) return <><div className="workspace-strip"><b>Local workspace</b><span>Cloud not configured · evidence stays in this browser. Local roles are training controls, not authentication.</span></div>{children(null)}</>
   const action = async (task) => { setBusy(true); setError(''); try { const result = await task(); if (result?.error) throw result.error } catch (issue) { setError(issue.message) } finally { setBusy(false) } }
   if (loading) return <main className="auth-card"><h1>Opening workspace…</h1></main>
-  if (!session || recovery) return <main className="auth-card"><span className="eyebrow">NIYAMLENS · SECURE WORKSPACE</span><h1>{recovery ? 'Set your password' : 'Sign in'}</h1><p>Accounts and roles are provisioned by your workspace administrator. No self-assigned supervisor access.</p><form onSubmit={(event) => { event.preventDefault(); action(async () => { const result = recovery ? await client.auth.updateUser({ password }) : await client.auth.signInWithPassword({ email, password }); if (!result.error) { setRecovery(false); setPassword('') } return result }) }}>
-    {!recovery && <label>Email<input type="email" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} /></label>}
-    <label>Password<input type="password" autoComplete={recovery ? 'new-password' : 'current-password'} minLength={12} required value={password} onChange={(event) => setPassword(event.target.value)} /></label>
-    <button disabled={busy}>{busy ? 'Please wait…' : recovery ? 'Save password' : 'Sign in'}</button>
-    {!recovery && <button type="button" disabled={busy || !email} onClick={() => action(async () => { const result = await client.auth.resetPasswordForEmail(email, { redirectTo: location.origin }); if (!result.error) setError('If this account exists, check its email for a recovery link.'); return result })}>Send password reset</button>}
-    <p role="status">{error}</p>
-  </form></main>
+  if (!session || recovery) return <main className="auth-shell">
+    <section className="auth-context" aria-labelledby="auth-product-title">
+      <div className="auth-brand"><span aria-hidden="true"><FileSearch size={26} /></span><div><strong>NiyamLens</strong><small>Inspection intelligence</small></div></div>
+      <span className="eyebrow">SIH26034 · LEGAL METROLOGY</span>
+      <h1 id="auth-product-title">From package image to defensible evidence.</h1>
+      <p>Evidence-grade packaged-commodity inspection that keeps OCR, encoded rules and human judgment in their proper roles.</p>
+      <ol className="auth-flow" aria-label="NiyamLens inspection chain">
+        {[[Camera, 'Capture'], [ScanLine, 'Recognize'], [FileSearch, 'Verify'], [Ruler, 'Measure'], [ShieldCheck, 'Evaluate'], [LockKeyhole, 'Seal']].map(([Icon, label]) => <li key={label}><span><Icon size={16} /></span><b>{label}</b></li>)}
+      </ol>
+      <div className="auth-boundary"><Check size={18} /><span><b>OCR proposes evidence. Rules evaluate supplied facts. Officers decide.</b><small>No self-assigned roles · no automatic statutory determination</small></span></div>
+    </section>
+    <article className="auth-card"><span className="eyebrow">SECURE WORKSPACE</span><h2>{recovery ? 'Set your password' : 'Officer sign in'}</h2><p>Accounts and roles are provisioned by your workspace administrator. No self-assigned supervisor access.</p><form onSubmit={(event) => { event.preventDefault(); action(async () => { const result = recovery ? await client.auth.updateUser({ password }) : await client.auth.signInWithPassword({ email, password }); if (!result.error) { setRecovery(false); setPassword('') } return result }) }}>
+      {!recovery && <label>Email<input type="email" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} /></label>}
+      <label>Password<input type="password" autoComplete={recovery ? 'new-password' : 'current-password'} minLength={12} required value={password} onChange={(event) => setPassword(event.target.value)} /></label>
+      <button disabled={busy}>{busy ? 'Please wait…' : recovery ? 'Save password' : 'Sign in securely'}</button>
+      {!recovery && <button className="auth-secondary" type="button" disabled={busy || !email} onClick={() => action(async () => { const result = await client.auth.resetPasswordForEmail(email, { redirectTo: location.origin }); if (!result.error) setError('If this account exists, check its email for a recovery link.'); return result })}>Send password reset</button>}
+      <p role="status">{error}</p>
+    </form></article>
+  </main>
   if (!workspace) return <main className="auth-card"><h1>No workspace membership</h1><p>Your administrator must add this account to an active workspace.</p><p role="alert">{error}</p><button onClick={() => action(() => client.auth.signOut())}>Sign out</button></main>
   return <><div className="workspace-strip"><b>{workspace.actor.name} · {workspace.actor.role}</b>{memberships.length > 1 && <select aria-label="Workspace" value={org} onChange={(event) => setOrg(event.target.value)}>{memberships.map((item) => <option key={item.org_id}>{item.org_id}</option>)}</select>}<span>{offlineIdentity ? 'Offline identity cache — all server permissions rechecked on reconnect.' : 'Authenticated workspace · server-verified permissions'}<br />Offline evidence remains on this device after sign-out; use a trusted device.</span><button onClick={() => setRecovery(true)}>Change password</button><button onClick={() => action(() => client.auth.signOut())}>Sign out</button></div>{error && <p className="workspace-error" role="alert">{error}</p>}{children(workspace)}</>
 }

@@ -4,6 +4,7 @@ import {
   TableRow, TextRun, WidthType,
 } from 'docx'
 import { auditPresentation } from './caseRecords.mjs'
+import { FIELD_RULES } from './inspectionSafety.mjs'
 import { ocrProvenance } from './inspectionWorkflow.mjs'
 
 export const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -81,10 +82,10 @@ function decodeImage(url, budget) {
   return { data, type: type === 'jpeg' ? 'jpg' : 'png', width: Math.round(width * scale), height: Math.round(height * scale) }
 }
 
-function validateRecordSize(record, panels, fields, checks, reviews, events) {
+function validateRecordSize(record, panels, fields, checks, reviews, events, regions) {
   if (panels.length > REPORT_LIMITS.panels) throw new Error('DOCX export supports up to four captured evidence panels; no panels were silently dropped.')
-  if (fields.length > 128 || checks.length > 256 || reviews.length > 500 || events.length > 1000) throw new Error('This record exceeds the bounded DOCX export size. Export smaller records or the complete JSON instead.')
-  const selected = [record.id, record.text, record.rawOcrText, record.meta, fields, checks, reviews, events.map(({ payload, ...event }) => event)]
+  if (fields.length > 128 || regions.length > 128 || checks.length > 256 || reviews.length > 500 || events.length > 1000) throw new Error('This record exceeds the bounded DOCX export size. Export smaller records or the complete JSON instead.')
+  const selected = [record.id, record.text, record.rawOcrText, record.meta, fields, regions, checks, reviews, events.map(({ payload, ...event }) => event)]
   let length
   try { length = JSON.stringify(selected).length } catch { throw new Error('The report contains cyclic or unsupported metadata.') }
   if (length > REPORT_LIMITS.textCharacters) throw new Error('Report text exceeds the 500,000-character DOCX safety limit. Nothing was truncated.')
@@ -99,10 +100,11 @@ export async function buildInspectionDocx(record) {
   const result = record.automatedResult || record.result || {}
   const panels = array(record.evidenceItems).length ? record.evidenceItems : record.imageUrl ? [{ id: 'legacy', name: record.fileName, analysisUrl: record.imageUrl }] : []
   const fields = array(record.extraction?.fields)
+  const regions = array(record.regions)
   const checks = array(result.checks)
   const reviews = array(record.reviewHistory).length ? record.reviewHistory : record.supervisorReview ? [record.supervisorReview] : []
   const audit = auditPresentation(record)
-  validateRecordSize(record, panels, fields, checks, reviews, audit.events)
+  validateRecordSize(record, panels, fields, checks, reviews, audit.events, regions)
   const provenance = ocrProvenance(record)
   const recordedRun = provenance.hasRun
   const latestReview = reviews.at(-1)
@@ -143,6 +145,23 @@ export async function buildInspectionDocx(record) {
     return [plain(field.label || field.id), field.detected ? plain(field.value, '(detected without an extracted value)') : 'Not detected', `${status(review?.state || 'unreviewed')}\n${plain(review?.reason, 'No review reason recorded.')}\nConfirmed text: ${plain(review?.value, 'Not supplied')}`, [plain(field.evidence, 'No source region text recorded.'), `Validation: ${plain(field.validation?.status, 'Not recorded')} — ${plain(field.validation?.message, 'No semantic validation statement recorded.')}`, ...conflict.map((candidate, index) => `Candidate ${index + 1}: ${plain(candidate.value)}; source passes: ${array(candidate.sources).join(', ') || 'not recorded'}`)].join('\n')]
   }), [1500, 1800, 2150, CONTENT_WIDTH - 5450]))
   else children.push(note('No structured declaration fields were stored. This export does not silently rerun OCR or regenerate a historical result.'))
+
+  children.push(heading('Source-region traceability'))
+  children.push(note('Every row below is client-reported OCR geometry linked to a captured panel. Coordinates and source text support human replay; they are not independent proof that the printed declaration is correct.'))
+  if (regions.length) children.push(table(['Field / panel', 'OCR source and working value', 'Pixel geometry', 'Rule, assessment and officer state'], regions.map((region) => {
+    const field = record.extraction?.byId?.[region.id] || fields.find((candidate) => candidate.id === region.id)
+    const panelIndex = panels.findIndex((panel) => panel.id === region.panelId)
+    const panel = panelIndex >= 0 ? panels[panelIndex] : null
+    const bbox = region.bbox || {}
+    const regionChecks = checks.filter((check) => (FIELD_RULES[region.id] || []).includes(check.id))
+    return [
+      `${plain(region.label || region.id)}\n${panelIndex >= 0 ? `Panel ${panelIndex + 1}` : 'Panel unavailable'} — ${plain(panel?.name || region.panelId)}\nDigest: ${plain(panel?.sha256, 'No panel digest available')}`,
+      `OCR source: ${plain(region.text, 'No OCR line retained')}\nWorking value: ${field?.conflict ? 'Conflicting values' : plain(field?.value, 'Not detected')}`,
+      `x ${plain(bbox.x0)}–${plain(bbox.x1)}; y ${plain(bbox.y0)}–${plain(bbox.y1)} px\nFrame ${plain(region.pageWidth)} × ${plain(region.pageHeight)} px`,
+      `${regionChecks.length ? [...new Set(regionChecks.map((check) => plain(check.rule)))].join(' · ') : 'No applicable check emitted'}\n${regionChecks.length ? regionChecks.map((check) => `${plain(check.label)}: ${status(check.status)}`).join(' · ') : 'Not evaluated'}\nOfficer: ${status(meta.fieldReviews?.[region.id]?.state || 'verification pending')}`,
+    ]
+  }), [1800, 2600, 1900, CONTENT_WIDTH - 6300]))
+  else children.push(note('No bounded OCR source regions were stored with this record. The report does not invent coordinates.'))
 
   children.push(heading('Rule-by-rule automated findings'))
   if (checks.length) children.push(table(['Finding', 'Check and authority', 'Reason and recorded evidence'], checks.map((check) => [status(check.status), `${plain(check.label || check.id)}\n${plain(check.rule, 'Authority not recorded')}`, `${plain(check.reason)}\nEvidence: ${plain(check.evidence)}${check.measured !== undefined ? `\nMeasured: ${plain(check.measured)}; minimum: ${plain(check.minimum)}` : ''}`]), [1500, 2950, CONTENT_WIDTH - 4450]))

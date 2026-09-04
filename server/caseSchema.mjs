@@ -72,6 +72,37 @@ export function validatePanels(panels) {
   try { validateOcrHistory(validated) } catch (error) { throw new HttpError(400, error.message) }
   return validated
 }
+
+export function validateRegions(regions, panelIds, allowedFieldIds = new Set()) {
+  if (regions === undefined) return []
+  if (!Array.isArray(regions) || regions.length > 30) throw new HttpError(400, 'Source regions must be an array of at most 30 items.')
+  const panels = new Set(panelIds)
+  const ids = new Set()
+  return regions.map((region) => {
+    if (!isObject(region)) throw new HttpError(400, 'Invalid source region.')
+    string(region.id, 'source-region field', 80, true)
+    string(region.label, 'source-region label', 200, true)
+    string(region.panelId, 'source-region panel', 200, true)
+    string(region.text, 'source-region text', 4000)
+    if (ids.has(region.id) || !allowedFieldIds.has(region.id)) throw new HttpError(400, 'Source regions must uniquely reference extracted fields.')
+    if (!panels.has(region.panelId)) throw new HttpError(400, 'Source regions must reference an attached evidence panel.')
+    ids.add(region.id)
+    const box = region.bbox
+    const width = region.pageWidth
+    const height = region.pageHeight
+    if (!isObject(box) || ![box.x0, box.y0, box.x1, box.y1, width, height].every(Number.isFinite)
+      || width <= 0 || height <= 0 || width > 10000 || height > 10000
+      || box.x0 < 0 || box.y0 < 0 || box.x1 <= box.x0 || box.y1 <= box.y0 || box.x1 > width || box.y1 > height) throw new HttpError(400, 'Invalid source-region geometry.')
+    for (const [key, max] of [['confidence', 100], ['matchScore', 1]]) {
+      if (region[key] !== undefined && (!Number.isFinite(region[key]) || region[key] < 0 || region[key] > max)) throw new HttpError(400, `Invalid source-region ${key}.`)
+    }
+    const retained = { id: region.id, label: region.label, panelId: region.panelId, bbox: { x0: box.x0, y0: box.y0, x1: box.x1, y1: box.y1 }, pageWidth: width, pageHeight: height }
+    for (const key of ['confidence', 'matchScore']) if (region[key] !== undefined) retained[key] = region[key]
+    if (region.text !== undefined) retained.text = region.text
+    if (Number.isFinite(region.pixelHeight) && region.pixelHeight >= 0 && region.pixelHeight <= height) retained.pixelHeight = region.pixelHeight
+    return retained
+  })
+}
 export function validateAudit(chain) {
   if (chain === undefined) return []
   if (!Array.isArray(chain) || chain.length > 1000) throw new HttpError(400, 'Client audit must be an array of at most 1,000 events.')

@@ -41,6 +41,17 @@ export function validateInspectionMetadata(meta) {
       for (const key of ['referencePx', 'glyphPx', 'glyphWidthPx']) number(measurement, key, 0, INSPECTION_LIMITS.dimension, `panelMeasurements.${id}.`)
     }
   }
+  if (meta.qualityAcknowledgements !== undefined) {
+    if (!plain(meta.qualityAcknowledgements) || Object.keys(meta.qualityAcknowledgements).length > 4) add('qualityAcknowledgements', 'Expected at most four image-quality acknowledgements.')
+    else for (const [id, acknowledgement] of Object.entries(meta.qualityAcknowledgements)) {
+      if (!id || id.length > 200 || !plain(acknowledgement)) { add(`qualityAcknowledgements.${id}`, 'Invalid image-quality acknowledgement.'); continue }
+      if (Array.isArray(meta.evidencePanelIds) && !meta.evidencePanelIds.includes(id)) add(`qualityAcknowledgements.${id}`, 'Quality acknowledgement must reference captured evidence.')
+      if (typeof acknowledgement.identity !== 'string' || !acknowledgement.identity || acknowledgement.identity.length > 400) add(`qualityAcknowledgements.${id}.identity`, 'Expected a bounded evidence identity.')
+      if (!['review', 'poor'].includes(acknowledgement.status) || acknowledgement.action !== 'continue_with_caution') add(`qualityAcknowledgements.${id}`, 'Unsupported image-quality decision.')
+      if (!Number.isFinite(acknowledgement.score) || acknowledgement.score < 0 || acknowledgement.score > 100) add(`qualityAcknowledgements.${id}.score`, 'Expected a score from 0 to 100.')
+      if (typeof acknowledgement.at !== 'string' || acknowledgement.at.length > 40 || !Number.isFinite(Date.parse(acknowledgement.at))) add(`qualityAcknowledgements.${id}.at`, 'Expected a valid acknowledgement timestamp.')
+    }
+  }
   if (meta.fieldReviews !== undefined) {
     if (!plain(meta.fieldReviews) || Object.keys(meta.fieldReviews).length > 30) add('fieldReviews', 'Expected a bounded field-review map.')
     else for (const [key, review] of Object.entries(meta.fieldReviews)) {

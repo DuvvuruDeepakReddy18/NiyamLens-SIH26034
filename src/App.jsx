@@ -54,7 +54,7 @@ import { decryptBundle, encryptBundle } from './lib/secureBundle.mjs'
 import { evaluateCompliance, FONT_TIERS, RULE_PACK } from './lib/rules.mjs'
 import { createEvidenceStore } from './lib/storage.mjs'
 import { appendReview, auditPresentation, effectiveStatus, normalizeCase } from './lib/caseRecords.mjs'
-import { evaluateInspection, fieldCandidates } from './lib/inspectionSafety.mjs'
+import { evaluateInspection, fieldCandidates, FIELD_RULES } from './lib/inspectionSafety.mjs'
 import { EMPTY_OCR, MAX_EVIDENCE_TEXT, ocrProvenance, restoreEvidencePolicy, invalidateCapturedEvidence, validateSealableEvidence, nextPageOffset } from './lib/inspectionWorkflow.mjs'
 import { runLocalOcr } from './lib/ocrRunner.mjs'
 import { runPaddleOcr, preparePaddleAppend, createPaddleFocusInput } from './lib/paddleOcr.mjs'
@@ -73,6 +73,10 @@ import { WorkspaceGate, SharedOperations } from './Workspace.jsx'
 import FieldVerification from './FieldVerification.jsx'
 import PlacementReview from './PlacementReview.jsx'
 import ReportDownloads from './ReportDownloads.jsx'
+import PackageEvidenceViewer from './PackageEvidenceViewer.jsx'
+import { EvidenceTracePanel, InspectionProgress } from './InspectionClarity.jsx'
+import SystemTrust from './SystemTrust.jsx'
+import { qualityDecisionRequired, qualityIdentity } from './lib/inspectionPresentation.mjs'
 import './placement.css'
 import { analyzeImageQuality, detectReferenceCard, matchDeclarationRegions, mergeOcrPassTexts, webXrDepthSupport } from './lib/vision.mjs'
 
@@ -84,6 +88,7 @@ const NAV_ITEMS = [
   { id: 'benchmark', label: 'Validation lab', icon: Database },
   { id: 'operations', label: 'Officer operations', icon: Users },
   { id: 'rules', label: 'Rule library', icon: Library },
+  { id: 'system', label: 'System & trust', icon: ShieldCheck },
 ]
 
 const STATUS = {
@@ -144,6 +149,7 @@ const INITIAL_META = {
   glyphPx: '',
   glyphWidthPx: '',
   panelMeasurements: {},
+  qualityAcknowledgements: {},
   measurementUncertainty: 8,
 }
 
@@ -194,7 +200,144 @@ function BrandMark({ compact = false }) {
   )
 }
 
-function Shell({ route, setRoute, children, historyCount, actor }) {
+function useOnlineStatus() {
+  const [online, setOnline] = useState(() => navigator.onLine)
+  useEffect(() => {
+    const connected = () => setOnline(true)
+    const disconnected = () => setOnline(false)
+    window.addEventListener('online', connected)
+    window.addEventListener('offline', disconnected)
+    return () => { window.removeEventListener('online', connected); window.removeEventListener('offline', disconnected) }
+  }, [])
+  return online
+}
+
+const OFFLINE_WORKER_PROTOCOL = 2
+
+function requestOfflineVerification(worker, timeoutMs = 2000) {
+  return new Promise((resolve, reject) => {
+    const channel = new MessageChannel()
+    const finish = (callback, value) => {
+      clearTimeout(timeout)
+      channel.port1.close()
+      callback(value)
+    }
+    const timeout = setTimeout(() => finish(reject, new Error('The current service worker did not answer the offline-readiness check.')), timeoutMs)
+    channel.port1.onmessage = ({ data }) => {
+      if (data?.type !== 'verification') return
+      finish(resolve, data)
+    }
+    try { worker.postMessage({ type: 'NIYAMLENS_VERIFY_OFFLINE' }, [channel.port2]) }
+    catch (error) { finish(reject, error) }
+  })
+}
+
+async function compatibleOfflineWorker(waitMs = 12000) {
+  const registration = await Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Service worker readiness timed out.')), 10000)),
+  ])
+  const deadline = Date.now() + waitMs
+  do {
+    const candidates = [...new Set([navigator.serviceWorker.controller, registration.active].filter(Boolean))]
+    for (const worker of candidates) {
+      try {
+        const status = await requestOfflineVerification(worker)
+        if (status.protocol === OFFLINE_WORKER_PROTOCOL) return { worker, status }
+      } catch {
+        // During an update the controlling worker can be one release behind.
+      }
+    }
+    if (Date.now() >= deadline) break
+    await new Promise((resolve) => setTimeout(resolve, 250))
+  } while (Date.now() < deadline)
+  throw new Error('The updated offline worker is not controlling this page yet. Reload and try again.')
+}
+
+function usePwaInstall() {
+  const standalone = () => window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true
+  const [promptEvent, setPromptEvent] = useState(null)
+  const [installed, setInstalled] = useState(standalone)
+  const [shell, setShell] = useState(import.meta.env.PROD ? 'checking' : 'unavailable')
+  const [shellProgress, setShellProgress] = useState({ completed: 0, total: 0, error: '' })
+  const [workerReady, setWorkerReady] = useState(false)
+  useEffect(() => {
+    const available = (event) => { event.preventDefault(); setPromptEvent(event) }
+    const complete = () => { setInstalled(true); setPromptEvent(null) }
+    let active = true
+    const verifyShell = async () => {
+      if (!import.meta.env.PROD || !('serviceWorker' in navigator) || !('caches' in window)) { if (active) setShell('unavailable'); return }
+      try {
+        const { status } = await compatibleOfflineWorker()
+        if (active) {
+          setWorkerReady(true)
+          setShellProgress({ completed: status.completed, total: status.total, error: '' })
+          setShell(!status.shellReady ? 'unavailable' : status.ocrReady ? 'ready' : 'incomplete')
+        }
+      } catch { if (active) { setWorkerReady(false); setShell('unavailable') } }
+    }
+    window.addEventListener('beforeinstallprompt', available)
+    window.addEventListener('appinstalled', complete)
+    navigator.serviceWorker?.addEventListener('controllerchange', verifyShell)
+    verifyShell()
+    return () => { active = false; window.removeEventListener('beforeinstallprompt', available); window.removeEventListener('appinstalled', complete); navigator.serviceWorker?.removeEventListener('controllerchange', verifyShell) }
+  }, [])
+  return {
+    installed,
+    shell,
+    shellProgress,
+    canDownload: import.meta.env.PROD && workerReady,
+    available: Boolean(promptEvent) && !installed,
+    downloadOfflinePack: async () => {
+      if (!navigator.onLine || !('serviceWorker' in navigator)) { setShellProgress((current) => ({ ...current, error: 'Reconnect before downloading the offline OCR pack.' })); return }
+      setShell('downloading'); setShellProgress({ completed: 0, total: 0, error: '' })
+      try {
+        const { worker: target } = await compatibleOfflineWorker()
+        setWorkerReady(true)
+        await new Promise((resolve, reject) => {
+          const channel = new MessageChannel()
+          let inactivityTimeout
+          let settled = false
+          const overallTimeout = setTimeout(() => finish(reject, new Error('Offline OCR download exceeded 15 minutes. Keep this page open, then verify or retry.')), 900000)
+          const finish = (callback, value) => {
+            if (settled) return
+            settled = true
+            clearTimeout(inactivityTimeout)
+            clearTimeout(overallTimeout)
+            channel.port1.close()
+            callback(value)
+          }
+          const resetInactivity = () => {
+            clearTimeout(inactivityTimeout)
+            inactivityTimeout = setTimeout(() => finish(reject, new Error('Offline OCR download made no progress for two minutes. Check the connection and retry.')), 120000)
+          }
+          resetInactivity()
+          channel.port1.onmessage = ({ data }) => {
+            if (data?.type === 'progress') { resetInactivity(); setShellProgress({ completed: data.completed, total: data.total, error: '' }) }
+            if (data?.type === 'complete') { setShellProgress({ completed: data.completed, total: data.total, error: '' }); finish(resolve) }
+            if (data?.type === 'error') finish(reject, new Error(data.message))
+          }
+          try { target.postMessage({ type: 'NIYAMLENS_CACHE_OCR_PACK' }, [channel.port2]) }
+          catch (error) { finish(reject, error) }
+        })
+        const verified = await requestOfflineVerification(target, 5000)
+        if (!verified.shellReady || !verified.ocrReady) throw new Error('Downloaded assets could not be fully verified in Cache Storage.')
+        setShellProgress({ completed: verified.completed, total: verified.total, error: '' })
+        setShell('ready')
+      } catch (error) { setShell('incomplete'); setShellProgress((current) => ({ ...current, error: error.message || 'Offline OCR pack could not be cached.' })) }
+    },
+    prompt: async () => {
+      if (!promptEvent || installed) return
+      const current = promptEvent
+      setPromptEvent(null)
+      await current.prompt()
+      const choice = await current.userChoice
+      if (choice?.outcome === 'accepted') setInstalled(true)
+    },
+  }
+}
+
+function Shell({ route, setRoute, children, historyCount, actor, online }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const current = NAV_ITEMS.find((item) => item.id === route)
 
@@ -225,7 +368,7 @@ function Shell({ route, setRoute, children, historyCount, actor }) {
         </nav>
         <div className="rule-pack-card">
           <div className="signal-dot" />
-          <span>Rule pack online</span>
+          <span>Rule pack active</span>
           <strong>{RULE_PACK.id}</strong>
           <small>Prototype interpretation</small>
         </div>
@@ -246,12 +389,19 @@ function Shell({ route, setRoute, children, historyCount, actor }) {
           </div>
           <div className="topbar-status">
             {actor && <span><Users size={13} />{actor.name} · {actor.role}</span>}
-            <span><span className="live-dot" />Local-first</span>
-            <span>Evidence mode</span>
+            <span className={online ? 'online-state' : 'offline-state'}><span className="live-dot" />{online ? 'Browser online' : 'Browser offline'}</span>
+            <span>Decision support</span>
           </div>
         </header>
         <main>{children}</main>
       </div>
+      <nav className="mobile-bottom-nav" aria-label="Mobile primary navigation">
+        {NAV_ITEMS.filter((item) => ['inspect', 'history', 'dashboard', 'system'].includes(item.id)).map((item) => {
+          const Icon = item.icon
+          return <button type="button" key={item.id} className={route === item.id ? 'active' : ''} onClick={() => { setRoute(item.id); setMenuOpen(false) }}><Icon size={19} /><span>{item.label.replace('New ', '')}</span></button>
+        })}
+        <button type="button" aria-expanded={menuOpen} onClick={() => setMenuOpen((value) => !value)}><Menu size={19} /><span>More</span></button>
+      </nav>
       {menuOpen && <button type="button" className="menu-scrim" aria-label="Close menu" onClick={() => setMenuOpen(false)} />}
     </div>
   )
@@ -307,7 +457,7 @@ function DeclarationCoverage({ extraction, reliability, engineConfidence, reliab
   )
 }
 
-function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onActive, onRemove, onTransform, onRectify, onRoleChange, processing, locked = false, regions = [], activeRegionId, onRegionSelect, onDetectReference, onCheckDepth, depthState, onFocusSelect }) {
+function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onActive, onRemove, onRetake, onQualityAcknowledge, qualityAcknowledged = false, onTransform, onRectify, onRoleChange, processing, locked = false, regions = [], activeRegionId, onRegionSelect, onDetectReference, onCheckDepth, depthState, onFocusSelect }) {
   const [mode, setMode] = useState('')
   const [points, setPoints] = useState({ reference: [], height: [], width: [], perspective: [], focus: [] })
   const boardRef = useRef(null)
@@ -471,6 +621,10 @@ function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onAc
           <strong>Image heuristic {activeEvidence.quality.score}/100 · not OCR accuracy</strong>
           <span>Sharpness {activeEvidence.quality.sharpness} · Contrast {activeEvidence.quality.contrast} · Glare {activeEvidence.quality.glarePercent}%</span>
           <small>{activeEvidence.quality.issues[0] || 'No gross image issue detected. Small, curved or low-contrast print can still be unreadable.'}</small>
+          {['review', 'poor'].includes(activeEvidence.quality.status) && <div className="quality-actions">
+            <button type="button" onClick={() => onRetake?.(activeEvidence.id)}><Camera size={14} /> Replace with new capture</button>
+            {qualityAcknowledged ? <span><Check size={14} /> Continue-with-caution recorded</span> : <button type="button" onClick={() => onQualityAcknowledge?.(activeEvidence)}><ShieldAlert size={14} /> Continue with caution</button>}
+          </div>}
         </div>
       )}
 
@@ -511,7 +665,7 @@ function Field({ label, hint, children, wide = false }) {
   )
 }
 
-function ExtractionWorkbench({ extraction, onApply, barcodeState, regions = [], onSelectRegion, meta }) {
+function ExtractionWorkbench({ extraction, onApply, barcodeState, regions = [], evidenceItems = [], activeFieldId = '', onSelectRegion, meta }) {
   const visibleFields = extraction.fields.filter((item) => !['barcode'].includes(item.id))
   const found = visibleFields.filter((item) => item.detected).length
   const regionMap = Object.fromEntries(regions.map((region) => [region.id, region]))
@@ -527,15 +681,18 @@ function ExtractionWorkbench({ extraction, onApply, barcodeState, regions = [], 
         </button>
       </header>
       <div className="extraction-grid">
-        {visibleFields.map((item) => (
-          <button type="button" key={item.id} className={item.detected ? 'detected' : 'missing'} onClick={() => regionMap[item.id] && onSelectRegion?.(item.id)} disabled={!regionMap[item.id]}>
+        {visibleFields.map((item) => {
+          const region = regionMap[item.id]
+          const panelIndex = region ? evidenceItems.findIndex((panel) => panel.id === region.panelId) : -1
+          return (
+          <button type="button" key={item.id} className={`${item.detected ? 'detected' : 'missing'} ${activeFieldId === item.id ? 'active' : ''}`} onClick={() => region && onSelectRegion?.(item.id)} disabled={!region}>
             <span>{item.detected ? <Check size={13} /> : <CircleHelp size={13} />}{item.label}</span>
             <strong>{item.conflict ? 'Conflicting values' : item.value || (item.detected ? 'Invalid / incomplete reading' : 'Not detected')}</strong>
             <small>{item.detected ? `Detected, not certified${regionMap[item.id] ? ' · source region located' : ''}` : 'Correct OCR text or supply manually'}</small>
             {item.validation && <em className={item.validation.status.includes('invalid') ? 'field-invalid' : 'field-valid'}>{item.validation.message}</em>}
-            {regionMap[item.id] && <i>OCR region only · measure physical glyphs in the calibration panel</i>}
+            {region && <i>View source · Panel {panelIndex + 1} · OCR geometry only</i>}
           </button>
-        ))}
+        )})}
       </div>
       {barcodeState.message && (
         <div className={`barcode-state ${barcodeState.error ? 'error' : ''}`}>
@@ -647,6 +804,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   const [sealedRecord, setSealedRecord] = useState(null)
   const [saving, setSaving] = useState(false)
   const fileInput = useRef(null)
+  const pendingRetakeId = useRef('')
   const activeJob = useRef(null)
   const [focusSelection, setFocusSelection] = useState(null)
   const [focusResult, setFocusResult] = useState(null)
@@ -675,6 +833,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     const statuses = Object.fromEntries(result.checks.map((check) => [check.id, check.status]))
     return rawRegions.map((region) => ({ ...region, status: statuses[region.id] || 'info' }))
   }, [rawRegions, result])
+  const qualityBlocked = qualityDecisionRequired(evidenceItems, meta.qualityAcknowledgements)
 
   useEffect(() => {
     let active = true
@@ -717,8 +876,10 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
   const invalidatePanelMeasurement = (panelId) => setMeta((current) => {
     const nextMeasurements = { ...(current.panelMeasurements || {}) }
+    const nextQuality = { ...(current.qualityAcknowledgements || {}) }
     delete nextMeasurements[panelId]
-    return { ...invalidateCapturedEvidence(current), panelMeasurements: nextMeasurements }
+    delete nextQuality[panelId]
+    return { ...invalidateCapturedEvidence(current), panelMeasurements: nextMeasurements, qualityAcknowledgements: nextQuality }
   })
 
   const recordAudit = (type, payload = {}) => {
@@ -778,9 +939,17 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     }))
   }
 
-  const handleFiles = async (fileList) => {
+  const openEvidencePicker = (replaceId = '') => {
+    pendingRetakeId.current = replaceId
+    if (fileInput.current) fileInput.current.value = ''
+    fileInput.current?.click()
+  }
+
+  const handleFiles = async (fileList, { replaceId = '' } = {}) => {
     if (activeJob.current || saved || saving) return
-    const files = Array.from(fileList || []).slice(0, Math.max(0, 4 - evidenceItems.length))
+    const replaced = replaceId ? evidenceItems.find((item) => item.id === replaceId) : null
+    if (replaceId && !replaced) { setOcrState((current) => ({ ...current, error: 'The panel selected for replacement is no longer available.' })); return }
+    const files = Array.from(fileList || []).slice(0, replaceId ? 1 : Math.max(0, 4 - evidenceItems.length))
     if (!files.length) return
     const controller = new AbortController()
     activeJob.current = controller
@@ -794,13 +963,14 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       const guidedRoles = CAPTURE_REQUIREMENTS.map((item) => item.id)
       const nextItems = capturedItems.map((item, index) => ({
         ...item,
-        panelRole: guidedRoles[evidenceItems.length + index] || 'other',
+        panelRole: replaced?.panelRole || guidedRoles[evidenceItems.length + index] || 'other',
       }))
       let preparedChain = firstPanel ? await appendAuditEvent([], 'inspection_started', { challengeId: challenge?.id || null }, actor?.id || 'local-officer') : null
       for (const item of nextItems) {
         throwIfAborted(controller.signal)
         const payload = { id: item.id, name: item.name, panelRole: item.panelRole, sha256: item.sha256, quality: item.quality?.score, capturedAt: item.capturedAt }
         if (firstPanel) preparedChain = await appendAuditEvent(preparedChain, 'evidence_captured', payload, actor?.id || 'local-officer')
+        else if (replaced) await recordAudit('evidence_replaced_before_seal', { previousEvidenceId: replaced.id, previousSha256: replaced.sha256, replacement: payload })
         else await recordAudit('evidence_captured', payload)
       }
       throwIfAborted(controller.signal)
@@ -813,13 +983,23 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
         setOcrWords([])
         setBarcodeState({ message: '', error: false, candidate: null })
       } else {
-        setMeta((current) => invalidateCapturedEvidence(current))
+        setMeta((current) => {
+          const next = invalidateCapturedEvidence(current)
+          if (!replaced) return next
+          const panelMeasurements = { ...(next.panelMeasurements || {}) }
+          const qualityAcknowledgements = { ...(next.qualityAcknowledgements || {}) }
+          delete panelMeasurements[replaced.id]
+          delete qualityAcknowledgements[replaced.id]
+          return { ...next, panelMeasurements, qualityAcknowledgements }
+        })
         setOcrWords([])
       }
       throwIfAborted(controller.signal)
-      setEvidenceItems((current) => [...current, ...nextItems].slice(0, 4))
+      setEvidenceItems((current) => replaced
+        ? current.map((item) => item.id === replaced.id ? nextItems[0] : item)
+        : [...current, ...nextItems].slice(0, 4))
       setActiveEvidenceId(nextItems[0].id)
-      if (!controller.signal.aborted) setOcrState({ running: false, progress: 8, label: `${nextItems.length} panel${nextItems.length > 1 ? 's' : ''} ready for OCR`, error: '' })
+      if (!controller.signal.aborted) setOcrState({ running: false, progress: 8, label: replaced ? 'Replacement panel validated and ready for OCR' : `${nextItems.length} panel${nextItems.length > 1 ? 's' : ''} ready for OCR`, error: '' })
     } catch (error) {
       if (activeJob.current === controller) setOcrState({ running: false, progress: 0, label: 'Image rejected', error: error.message || 'The selected evidence could not be prepared.' })
     } finally {
@@ -937,6 +1117,17 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     recordAudit('evidence_removed_before_seal', { evidenceId: id })
   }
 
+  const acknowledgeImageQuality = async (item) => {
+    if (!item || !['review', 'poor'].includes(item.quality?.status)) return
+    try {
+      const identity = qualityIdentity(item)
+      const at = new Date().toISOString()
+      await recordAudit('image_quality_acknowledged', { evidenceId: item.id, originalSha256: item.sha256, qualityStatus: item.quality.status, qualityScore: item.quality.score, action: 'continue_with_caution', identity })
+      setMeta((current) => ({ ...current, qualityAcknowledgements: { ...(current.qualityAcknowledgements || {}), [item.id]: { identity, status: item.quality.status, score: item.quality.score, action: 'continue_with_caution', at } } }))
+      setOcrState((current) => ({ ...current, label: 'Image-quality caution recorded · OCR remains evidence for officer verification', error: '' }))
+    } catch (error) { setOcrState((current) => ({ ...current, error: error.message || 'The quality acknowledgement could not be recorded.' })) }
+  }
+
   const updateEvidenceRole = (id, panelRole) => {
     setEvidenceItems((current) => current.map((item) => item.id === id ? { ...item, panelRole } : item))
     recordAudit('evidence_role_changed', { evidenceId: id, panelRole })
@@ -1025,7 +1216,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const runOcr = async (scanMode = 'standard') => {
-    if (!evidenceItems.length || ocrState.running || activeJob.current) return
+    if (!evidenceItems.length || qualityBlocked || ocrState.running || activeJob.current) return
     const controller = new AbortController()
     activeJob.current = controller
     const current = () => activeJob.current === controller && !controller.signal.aborted
@@ -1052,7 +1243,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const runConnectedOcr = async () => {
-    if (!evidenceItems.length || ocrState.running || activeJob.current) return
+    if (!evidenceItems.length || qualityBlocked || ocrState.running || activeJob.current) return
     const controller = new AbortController()
     activeJob.current = controller
     const current = () => activeJob.current === controller && !controller.signal.aborted
@@ -1129,7 +1320,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const runFocusedOcr = async () => {
-    if (!activeEvidence || !focusSelection || activeJob.current || focusSelection.imageUrl !== activeEvidence.analysisUrl || focusSelection.panelId !== activeEvidence.id) return
+    if (qualityBlocked || !activeEvidence || !focusSelection || activeJob.current || focusSelection.imageUrl !== activeEvidence.analysisUrl || focusSelection.panelId !== activeEvidence.id) return
     const controller = new AbortController()
     activeJob.current = controller
     const current = () => activeJob.current === controller && !controller.signal.aborted
@@ -1173,7 +1364,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const runAlternativeOcr = async (focused = false, suggestion = null) => {
-    if (!evidenceItems.length || activeJob.current) return
+    if (!evidenceItems.length || qualityBlocked || activeJob.current) return
     if (suggestion && (!focused || paddlePreview)) return
     if (focused && !suggestion && (!activeEvidence || !focusSelection || focusSelection.panelId !== activeEvidence.id || focusSelection.imageUrl !== activeEvidence.analysisUrl)) return
     const controller = new AbortController()
@@ -1286,17 +1477,18 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     <section className="inspection-page page-enter">
       <div className="page-intro">
         <div>
-          <span className="eyebrow">UNSEEN-PACKAGE TEST</span>
-          <h2>Turn a label image into an inspectable decision.</h2>
-          <p>Capture every package panel, extract real declarations, calibrate physical typography and seal the evidence locally.</p>
+          <span className="eyebrow">EVIDENCE-GRADE INSPECTION</span>
+          <h2>From package image to defensible evidence.</h2>
+          <p>Capture real panels, preserve OCR alternatives, verify every decisive field, measure physical typography and seal a reviewable record.</p>
         </div>
         <div className="intro-stamp">
           <SearchCheck size={24} />
-          <span>Evidence before verdict</span>
+          <span>OCR proposes<br />Officer decides</span>
         </div>
       </div>
       <ChallengeClock challenge={challenge} />
       <div className="draft-bar" role="status">{draft ? <><span>An unfinished inspection is available.</span><button onClick={restoreDraft}>Restore draft</button><button onClick={async () => { try { await store.remove('drafts', 'active'); setDraft(null) } catch (error) { setDraftMessage(error.message) } }}>Discard unfinished draft</button></> : draftMessage || 'Drafts save automatically on this device after capture.'}{saved && <><button onClick={() => onOpenReport(sealedRecord)}>Open sealed report</button><button onClick={onNewInspection}>Start new inspection</button></>}</div>
+      <InspectionProgress evidenceItems={evidenceItems} extraction={extraction} provenance={provenance} meta={meta} result={result} saved={saved} />
       {(processing || ocrState.running) && <div className="processing-banner" role="status"><LoaderCircle className="spin" size={18} /><span>{ocrState.label}<small>Work is time-limited. Cancellation prevents pending results from replacing evidence.</small></span><button type="button" onClick={cancelActiveJob}>Cancel current operation</button></div>}
       <fieldset className="studio-lock" disabled={saved || saving || processing || ocrState.running || Boolean(draft)}>
       <div className="studio-grid">
@@ -1317,9 +1509,13 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
                 capture="environment"
                 multiple
                 hidden
-                onChange={(event) => handleFiles(event.target.files)}
+                onChange={(event) => {
+                  const replaceId = pendingRetakeId.current
+                  pendingRetakeId.current = ''
+                  handleFiles(event.target.files, { replaceId })
+                }}
               />
-              <button type="button" className="upload-button" onClick={() => fileInput.current?.click()} disabled={evidenceItems.length >= 4 || processing}>
+              <button type="button" className="upload-button" onClick={() => openEvidencePicker()} disabled={evidenceItems.length >= 4 || processing}>
                 {processing ? <LoaderCircle className="spin" size={18} /> : <Upload size={18} />}
                 {evidenceItems.length ? `Add package panel (${evidenceItems.length}/4)` : 'Capture / upload package'}
               </button>
@@ -1327,6 +1523,14 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               {barcodeState.candidate?.evidenceId === activeEvidence?.id && barcodeState.candidate?.cornerPoints?.length === 4 && <button type="button" className="barcode-button" onClick={rectifyFromBarcode} disabled={processing}><Layers3 size={16} /> Flatten from barcode</button>}
             </div>
             <CaptureChecklist evidenceItems={evidenceItems} />
+            <PackageEvidenceViewer
+              evidenceItems={evidenceItems}
+              activeEvidenceId={activeEvidence?.id || ''}
+              processing={processing || ocrState.running}
+              sealed={saved}
+              onSelectEvidence={setActiveEvidenceId}
+              onCapture={() => openEvidencePicker()}
+            />
             <CalibrationBoard
               evidenceItems={evidenceItems}
               activeEvidence={activeEvidence}
@@ -1334,6 +1538,9 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               onMeasure={updatePanelMeasurement}
               onActive={setActiveEvidenceId}
               onRemove={removeEvidence}
+              onRetake={(id) => openEvidencePicker(id)}
+              onQualityAcknowledge={acknowledgeImageQuality}
+              qualityAcknowledged={Boolean(activeEvidence && meta.qualityAcknowledgements?.[activeEvidence.id]?.identity === qualityIdentity(activeEvidence))}
               onTransform={transformActiveEvidence}
               onRectify={rectifyActiveEvidence}
               onRoleChange={updateEvidenceRole}
@@ -1350,8 +1557,8 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
             {focusSelection && <section className="focus-ocr-card" aria-label="Focused OCR rescan">
               <h4>Read one declaration at full resolution</h4>
               <p>Include the heading, value and unit. Three real OCR passes keep conflicting readings visible. This does not replace the original photo or certify the result.</p>
-              <button type="button" className="secondary-action" onClick={runFocusedOcr}>Scan selected region</button>
-              <button type="button" className="secondary-action" onClick={() => runAlternativeOcr(true)}>Try Paddle on selected region</button>
+              <button type="button" className="secondary-action" onClick={runFocusedOcr} disabled={qualityBlocked}>Scan selected region</button>
+              <button type="button" className="secondary-action" onClick={() => runAlternativeOcr(true)} disabled={qualityBlocked}>Try Paddle on selected region</button>
               {focusResult && <>
                 <img src={focusResult.preview} alt="Selected declaration crop used for OCR" />
                 <small>Source: {focusResult.source} · merged crop reading below; unedited passes in details.</small>
@@ -1364,9 +1571,9 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
             {!challenge?.active && !workspace && <details className="test-aids">
               <summary><Sparkles size={14} /> Controlled test packets</summary>
               <div className="demo-actions">
-                <button type="button" onClick={() => applyDemo(DEMOS.risky)}>Violation packet</button>
-                <button type="button" onClick={() => applyDemo(DEMOS.compliant)}>Compliant packet</button>
-                <button type="button" onClick={() => applyDemo(DEMOS.exempt)}>Rule 26 exemption packet</button>
+                <button type="button" onClick={() => applyDemo(DEMOS.risky)} disabled={processing || ocrState.running}>Violation packet</button>
+                <button type="button" onClick={() => applyDemo(DEMOS.compliant)} disabled={processing || ocrState.running}>Compliant packet</button>
+                <button type="button" onClick={() => applyDemo(DEMOS.exempt)} disabled={processing || ocrState.running}>Rule 26 exemption packet</button>
               </div>
             </details>}
           </section>
@@ -1380,15 +1587,15 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               complete={Boolean(text.trim())}
             />
             <div className="ocr-toolbar">
-              <button type="button" className="ocr-button" onClick={() => runOcr('standard')} disabled={!evidenceItems.length || ocrState.running}>
+              <button type="button" className="ocr-button" onClick={() => runOcr('standard')} disabled={!evidenceItems.length || qualityBlocked || ocrState.running}>
                 {ocrState.running ? <LoaderCircle className="spin" size={17} /> : <ScanLine size={17} />}
                 {ocrState.running ? 'Reading label…' : 'Run browser OCR'}
               </button>
-              <button type="button" className="deep-ocr-button" onClick={() => runOcr('deep')} disabled={!evidenceItems.length || ocrState.running}>
+              <button type="button" className="deep-ocr-button" onClick={() => runOcr('deep')} disabled={!evidenceItems.length || qualityBlocked || ocrState.running}>
                 <SearchCheck size={17} /> Deep scan small text
               </button>
-              <button type="button" className="deep-ocr-button" onClick={() => runAlternativeOcr(false)} disabled={!evidenceItems.length || ocrState.running} title="Optional local PP-OCRv6 small model. First use loads additional assets; output is previewed before append. Not a validated accuracy upgrade."><Layers3 size={17} /> Try Paddle OCR · local</button>
-              <button type="button" className="connected-ocr-button" onClick={runConnectedOcr} disabled={!evidenceItems.length || ocrState.running} title="Explicitly sends processed panels to the configured Google Vision backend">
+              <button type="button" className="deep-ocr-button" onClick={() => runAlternativeOcr(false)} disabled={!evidenceItems.length || qualityBlocked || ocrState.running} title="Optional local PP-OCRv6 small model. First use loads additional assets; output is previewed before append. Not a validated accuracy upgrade."><Layers3 size={17} /> Try Paddle OCR · local</button>
+              <button type="button" className="connected-ocr-button" onClick={runConnectedOcr} disabled={!evidenceItems.length || qualityBlocked || ocrState.running} title="Explicitly sends processed panels to the configured Google Vision backend">
                 <WandSparkles size={17} /> Connected OCR
               </button>
               <label className="ocr-language">
@@ -1406,6 +1613,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               </div>
               <span className="confidence-chip">{provenance.hasRun ? `Reliability ${provenance.reliability?.toFixed(0) ?? '—'}% · engine ${provenance.engineConfidence?.toFixed(0) ?? '—'}%` : 'OCR not run · confidence unavailable'}</span>
             </div>
+            {qualityBlocked && <div className="inline-warning quality-blocked"><ShieldAlert size={17} /><span>OCR is paused because one or more panels need an explicit image-quality decision. Retake the panel or record “Continue with caution”; the choice becomes part of the audit trail.</span></div>}
             <p className="connected-ocr-disclosure"><LockKeyhole size={13} /> Browser OCR is the private default. Connected OCR sends processed panels to Google Vision only when you click it and requires workspace sign-in. Sealing in a managed workspace uploads evidence to private storage. Reliability percentages below are unvalidated heuristics, not accuracy probabilities.</p>
             {ocrState.error && <div className="inline-warning"><AlertTriangle size={17} />{ocrState.error}</div>}
             {paddlePreview && <PaddleReview key={paddlePreview.runId} preview={paddlePreview} onAppend={appendAlternativeOcr} onDismiss={() => setPaddlePreview(null)} />}
@@ -1420,7 +1628,8 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               placeholder="Extracted label text will appear here. You may paste or correct evidence manually."
               spellCheck="false"
             />
-            <ExtractionWorkbench extraction={extraction} onApply={applyExtraction} barcodeState={barcodeState} regions={regions} onSelectRegion={(id) => { const region = regions.find((item) => item.id === id); if (region) setActiveEvidenceId(region.panelId); setActiveRegionId(id) }} meta={meta} />
+            <ExtractionWorkbench extraction={extraction} onApply={applyExtraction} barcodeState={barcodeState} regions={regions} evidenceItems={evidenceItems} activeFieldId={activeRegionId} onSelectRegion={(id) => { const region = regions.find((item) => item.id === id); if (region) setActiveEvidenceId(region.panelId); setActiveRegionId(id) }} meta={meta} />
+            <EvidenceTracePanel fieldId={activeRegionId} extraction={extraction} regions={regions} evidenceItems={evidenceItems} result={result} meta={meta} onLocate={(id) => { const region = regions.find((item) => item.id === id); if (region) setActiveEvidenceId(region.panelId); setActiveRegionId(id) }} />
             {rawOcrText && <details><summary>Original OCR transcript (not edited)</summary><pre className="transcript-original">{rawOcrText}</pre></details>}
             <OcrPassSelection evidenceItems={evidenceItems} onApply={applyRawPassSelection} disabled={Boolean(paddlePreview) || saved || saving || processing || ocrState.running} />
             <FieldVerification extraction={extraction} meta={meta} onChange={updateMeta} />
@@ -1555,7 +1764,7 @@ function Dashboard({ history, onNavigate, onOpenReport }) {
     { compliant: 0, exempt: 0, non_compliant: 0, manual_review: 0, unknown: 0 },
   )
   const total = history.length
-  const passRate = total ? Math.round(((totals.compliant + totals.exempt) / total) * 100) : 0
+  const passRate = total ? `${Math.round(((totals.compliant + totals.exempt) / total) * 100)}%` : '—'
 
   return (
     <section className="dashboard page-enter">
@@ -1572,7 +1781,7 @@ function Dashboard({ history, onNavigate, onOpenReport }) {
 
       <div className="metrics-grid">
         <MetricCard icon={Archive} label="Saved inspections" value={total} copy="Local evidence records" />
-        <MetricCard icon={BadgeCheck} label="Cleared / exempt" value={`${passRate}%`} copy="Across evaluated local records" tone="green" />
+        <MetricCard icon={BadgeCheck} label="Cleared / exempt" value={passRate} copy={total ? 'Across evaluated local records' : 'Unavailable · no recorded denominator'} tone="green" />
         <MetricCard icon={XCircle} label="Flagged" value={totals.non_compliant} copy="Evidence outside rule bounds" tone="red" />
         <MetricCard icon={TriangleAlert} label="Manual review" value={totals.manual_review} copy="Abstentions and threshold cases" tone="amber" />
       </div>
@@ -1600,7 +1809,7 @@ function Dashboard({ history, onNavigate, onOpenReport }) {
         </article>
 
         <article className="dashboard-panel readiness-panel">
-          <header><div><span className="eyebrow">SAH DEMO READINESS</span><h3>Prototype capabilities</h3></div><ShieldCheck size={23} /></header>
+          <header><div><span className="eyebrow">SYSTEM CAPABILITIES</span><h3>Implemented prototype scope</h3></div><ShieldCheck size={23} /></header>
           {[
             ['Multi-panel capture + SHA-256 integrity', 'ready'],
             ['OCR + structured declaration extraction', 'ready'],
@@ -1865,6 +2074,89 @@ function RulesLibrary() {
   )
 }
 
+function ReportSourceReplay({ record, reportImages }) {
+  const regions = Array.isArray(record.regions) ? record.regions : []
+  const [selectedId, setSelectedId] = useState(regions[0]?.id || '')
+  useEffect(() => { setSelectedId(regions[0]?.id || '') }, [record.id])
+  if (!regions.length) return null
+  const selected = regions.find((region) => region.id === selectedId) || regions[0]
+  const imageIndex = reportImages.findIndex((item) => item.id === selected.panelId)
+  const panel = imageIndex >= 0 ? reportImages[imageIndex] : null
+  const field = record.extraction?.byId?.[selected.id] || record.extraction?.fields?.find((item) => item.id === selected.id)
+  const checkIds = FIELD_RULES[selected.id] || []
+  const checks = record.result?.checks?.filter((check) => checkIds.includes(check.id)) || []
+  const sourceRows = regions.map((region) => {
+    const item = record.extraction?.byId?.[region.id] || record.extraction?.fields?.find((candidate) => candidate.id === region.id)
+    const regionPanelIndex = reportImages.findIndex((image) => image.id === region.panelId)
+    const regionPanel = regionPanelIndex >= 0 ? reportImages[regionPanelIndex] : null
+    const regionChecks = record.result?.checks?.filter((check) => (FIELD_RULES[region.id] || []).includes(check.id)) || []
+    return { region, item, regionPanelIndex, regionPanel, regionChecks }
+  })
+  return <section className="report-source-replay">
+    <header><div><span className="eyebrow">SEALED SOURCE REPLAY</span><h2>Trace a parsed value to its captured pixels.</h2><p>Client-reported OCR geometry is preserved for review. It is not independent proof that the printed declaration is correct.</p></div><span>{regions.length} located field{regions.length === 1 ? '' : 's'}</span></header>
+    <div className="source-replay-layout">
+      <ul className="source-replay-fields" aria-label="Located declaration fields">
+        {regions.map((region) => {
+          const item = record.extraction?.byId?.[region.id] || record.extraction?.fields?.find((candidate) => candidate.id === region.id)
+          return <li key={region.id}><button type="button" className={selected.id === region.id ? 'active' : ''} onClick={() => setSelectedId(region.id)}><span>{region.label}</span><strong>{item?.conflict ? 'Conflicting working values' : item?.value || 'No working value'}</strong><small>Panel {Math.max(0, reportImages.findIndex((image) => image.id === region.panelId)) + 1} · candidate source geometry</small></button></li>
+        })}
+      </ul>
+      <div className="source-replay-evidence">
+        {panel?.analysisUrl ? <figure><div><img src={panel.analysisUrl} alt={`Captured evidence panel ${imageIndex + 1} with source highlight`} /><svg viewBox={`0 0 ${selected.pageWidth} ${selected.pageHeight}`} preserveAspectRatio="none" aria-label={`Highlighted source region for ${selected.label}`}><rect x={selected.bbox.x0} y={selected.bbox.y0} width={selected.bbox.x1 - selected.bbox.x0} height={selected.bbox.y1 - selected.bbox.y0} vectorEffect="non-scaling-stroke" /></svg></div><figcaption>Panel {imageIndex + 1} · {panel.name || panel.panelRole}<code>{panel.sha256 ? `${panel.sha256.slice(0, 18)}…` : 'No digest available'}</code></figcaption></figure> : <div className="missing-image">Source image unavailable in this opened record</div>}
+        <div className="source-reading-comparison"><span><b>OCR SOURCE LINE</b>{selected.text || 'No OCR line retained'}</span><span><b>WORKING PARSED VALUE</b>{field?.value || 'not detected'}</span><small>Candidate link only. Manual edits can differ from the OCR line; verify the highlighted pixels before relying on the working value.</small></div>
+        <div className="source-replay-chain"><span><b>FIELD</b>{field?.label}: {field?.value || 'not detected'}</span><ChevronRight size={15} /><span><b>RULE</b>{checks.length ? [...new Set(checks.map((check) => check.rule))].join(' · ') : 'No applicable check emitted'}</span><ChevronRight size={15} /><span><b>RESULT</b>{checks.length ? checks.map((check) => statusLabel(check.status)).join(' · ') : 'Not evaluated'}</span><ChevronRight size={15} /><span><b>OFFICER</b>{record.meta.fieldReviews?.[selected.id]?.state?.replaceAll('_', ' ') || 'verification pending'}</span></div>
+      </div>
+    </div>
+    <table className="source-replay-print">
+      <caption>Complete sealed source-region index · client-reported OCR geometry</caption>
+      <thead><tr><th>Field / panel</th><th>OCR source / working value</th><th>Pixel geometry</th><th>Rule / assessment / officer</th></tr></thead>
+      <tbody>{sourceRows.map(({ region, item, regionPanelIndex, regionPanel, regionChecks }) => <tr key={`print-${region.id}`}>
+        <td><b>{region.label}</b><br />{regionPanelIndex >= 0 ? `Panel ${regionPanelIndex + 1}` : 'Panel unavailable'} · {regionPanel?.name || region.panelId}<br /><code>{regionPanel?.sha256 || 'No panel digest available'}</code></td>
+        <td><b>OCR:</b> {region.text || 'No OCR line retained'}<br /><b>Working:</b> {item?.conflict ? 'Conflicting values' : item?.value || 'Not detected'}</td>
+        <td>x {Math.round(region.bbox.x0)}–{Math.round(region.bbox.x1)} · y {Math.round(region.bbox.y0)}–{Math.round(region.bbox.y1)} px<br />Frame {Math.round(region.pageWidth)} × {Math.round(region.pageHeight)} px</td>
+        <td><b>{regionChecks.length ? [...new Set(regionChecks.map((check) => check.rule))].join(' · ') : 'No applicable check emitted'}</b><br />{regionChecks.length ? regionChecks.map((check) => `${check.label}: ${statusLabel(check.status)}`).join(' · ') : 'Not evaluated'}<br />Officer: {record.meta.fieldReviews?.[region.id]?.state?.replaceAll('_', ' ') || 'verification pending'}</td>
+      </tr>)}</tbody>
+    </table>
+  </section>
+}
+
+function ReportOfficerObservations({ record }) {
+  const fields = Object.entries(record.meta.fieldReviews || {}).filter(([, review]) => review?.state && review.state !== 'unreviewed')
+  const placements = Object.entries(record.meta.placementReviews || {}).filter(([, review]) => review?.state && review.state !== 'unreviewed')
+  const qualityDecisions = Object.entries(record.meta.qualityAcknowledgements || {})
+  const spacing = record.meta.quantitySpacing || {}
+  const confirmations = [
+    ['Classification checked', record.meta.classificationConfirmed],
+    ['All relevant panels checked', record.meta.allPanelsCaptured],
+    ['Physical PDP checked', record.meta.pdpConfirmed],
+    ['Same-plane measurement checked', record.meta.measurementConfirmed],
+    ['Width-character applicability checked', record.meta.widthCharacterConfirmed],
+  ].filter(([, value]) => value === true)
+  if (!fields.length && !placements.length && !qualityDecisions.length && !spacing.reason && !confirmations.length) return null
+  const fieldLabel = (id) => record.extraction?.byId?.[id]?.label || record.extraction?.fields?.find((field) => field.id === id)?.label || id
+  return <section className="report-officer-observations">
+    <h2>Officer-supplied observations</h2>
+    <p>These statements are recorded human observations—not image-model certifications. The original automated finding and source evidence remain separate.</p>
+    {confirmations.length > 0 && <div className="observation-confirmations">{confirmations.map(([label]) => <span key={label}><Check size={13} />{label}</span>)}</div>}
+    <div className="observation-grid">
+      {fields.map(([id, review]) => <article key={`field-${id}`}><span>FIELD VERIFICATION · {review.state.replaceAll('_', ' ')}</span><strong>{fieldLabel(id)} · {review.value || 'No value'}</strong><p>{review.reason || 'No source note recorded.'}</p></article>)}
+      {placements.map(([id, review]) => <article key={`placement-${id}`}><span>PLACEMENT · {review.state.replaceAll('_', ' ')}</span><strong>{fieldLabel(id)} · {review.panelId ? `panel ${review.panelId.slice(0, 8)}…` : 'panel not recorded'}</strong><p>{review.reason || 'No placement note recorded.'}</p></article>)}
+      {qualityDecisions.map(([id, decision]) => <article key={`quality-${id}`}><span>IMAGE QUALITY · CONTINUE WITH CAUTION</span><strong>Panel {id.slice(0, 8)}… · {decision.status} ({decision.score}/100)</strong><p>Officer accepted the recorded image-quality limitation at {formatDate(decision.at)}. OCR still required source inspection and field verification.</p></article>)}
+      {spacing.reason && <article><span>RULE 8 CLEAR SPACE · {spacing.confirmed ? 'confirmed' : 'unconfirmed'}</span><strong>Height {spacing.numeralHeightPx || '—'} px · gaps {['abovePx', 'belowPx', 'leftPx', 'rightPx'].map((key) => spacing[key] || '—').join(' / ')} px</strong><p>{spacing.reason}</p></article>}
+    </div>
+  </section>
+}
+
+function ReportMeasurementIntervals({ record }) {
+  const checks = (record.result?.checks || []).filter((check) => Number.isFinite(check.measured) && Number.isFinite(check.minimum))
+  if (!checks.length) return null
+  const uncertainty = Math.max(0, Number(record.meta.measurementUncertainty) || 0) / 100
+  return <section className="report-measurements"><h2>Rule 7 measurement intervals</h2><p>Bars show the officer-supplied measurement interval against the encoded minimum. They do not validate the selected reference or glyph.</p>{checks.map((check) => {
+    const lower = Math.max(0, check.measured * (1 - uncertainty)); const upper = check.measured * (1 + uncertainty); const scale = Math.max(upper, check.minimum) * 1.25
+    return <article key={check.id} className={check.status}><header><span>{check.label}</span><StatusPill status={check.status} compact /></header><div className="measurement-axis"><span className="measurement-requirement" style={{ left: `${check.minimum / scale * 100}%` }} /><span className="measurement-interval" style={{ left: `${lower / scale * 100}%`, width: `${Math.max(.8, (upper - lower) / scale * 100)}%` }} /><i style={{ left: `${check.measured / scale * 100}%` }} /></div><footer><span>{lower.toFixed(2)}–{upper.toFixed(2)} mm observed</span><b>{check.minimum.toFixed(2)} mm minimum</b></footer></article>
+  })}</section>
+}
+
 function ReportModal({ record, cloudCheck, onClose }) {
   if (!record) return null
   const audit = auditPresentation(record)
@@ -1945,6 +2237,7 @@ function ReportModal({ record, cloudCheck, onClose }) {
             </div>
           ) : <div className="missing-image">Image omitted from local record</div>}
         </section>
+        <ReportSourceReplay record={record} reportImages={reportImages} />
         {record.extraction?.fields?.length > 0 && (
           <section className="report-extraction">
             <h2>Structured declarations</h2>
@@ -1955,6 +2248,8 @@ function ReportModal({ record, cloudCheck, onClose }) {
             </div>
           </section>
         )}
+        <ReportOfficerObservations record={record} />
+        <ReportMeasurementIntervals record={record} />
         <section className="report-checks">
           <h2>Rule-by-rule findings</h2>
           <table>
@@ -2012,6 +2307,8 @@ function OverrideModal({ record, onClose, onApply }) {
 
 function InspectionApp({ workspace }) {
   const [route, setRoute] = useState('inspect')
+  const online = useOnlineStatus()
+  const install = usePwaInstall()
   const [history, setHistory] = useState([])
   const [report, setReport] = useState(null)
   const [reportLoading, setReportLoading] = useState(null)
@@ -2020,6 +2317,7 @@ function InspectionApp({ workspace }) {
   const [overrideRecord, setOverrideRecord] = useState(null)
   const [studioKey, setStudioKey] = useState(0)
   const [syncError, setSyncError] = useState('')
+  const [lastSyncAt, setLastSyncAt] = useState('')
   const [operations, setOperations] = useState([])
   const [syncing, setSyncing] = useState(false)
   const store = useMemo(() => createEvidenceStore(workspace?.scope || 'local'), [workspace?.scope])
@@ -2092,6 +2390,7 @@ function InspectionApp({ workspace }) {
         offset = nextPageOffset(offset, page.nextOffset, pageNumber++)
       } while (offset !== null)
       await refreshLocal(signal)
+      setLastSyncAt(new Date().toISOString())
     } catch (error) { if (!signal.aborted) setSyncError(error.message) } finally { if (!signal.aborted) setSyncing(false) }
   }
   useEffect(() => {
@@ -2175,7 +2474,7 @@ function InspectionApp({ workspace }) {
 
   return (
     <>
-      <Shell route={route} setRoute={setRoute} historyCount={history.length} actor={actor}>
+      <Shell route={route} setRoute={setRoute} historyCount={history.length} actor={actor} online={online}>
         {reportLoading && <div className="processing-banner" role="status"><LoaderCircle size={20} /><span><b>{reportLoading.source === 'cloud' ? 'Checking fresh cloud evidence…' : 'Opening evidence…'}</b><small>{reportLoading.source === 'cloud' ? 'Fetching server metadata and hash-checking original/analysis images. No cached image fallback.' : 'Checking image bytes before opening the report.'}</small></span><button type="button" onClick={() => { reportRequest.current?.abort(); reportRequest.current = null; setReportLoading(null) }}>Cancel evidence check</button></div>}
         {(workspace || syncError) && <div className="sync-status" role="status"><b>{syncing ? 'Synchronizing…' : `${operations.length} queued change(s)`}</b><span>{syncError || 'Local evidence is retained until the server acknowledges it.'}</span>{workspace && <button disabled={syncing} onClick={() => synchronize(true)}>Sync / retry</button>}{operations.map((operation) => <details key={operation.id}><summary>{operation.kind} · {operation.recordId} · {operation.state}</summary><p>{operation.lastError || 'Waiting for upload and server verification.'}</p>{operation.kind === 'review' && operation.state === 'conflict' && <><p>Your proposed disposition: {operation.payload.status}. {operation.payload.reason}</p><button onClick={() => archiveConflictingReview(operation)}>Keep server version; archive my unsent review locally</button><p>Then reopen Evidence and submit a new review against the latest version.</p></>}</details>)}</div>}
         {route === 'inspect' && <InspectionStudio key={studioKey} store={store} workspace={workspace} onNewInspection={() => setStudioKey((value) => value + 1)} onSaveRecord={saveRecord} onOpenReport={openReport} challenge={challenge?.active ? challenge : null} onChallengeComplete={completeChallenge} actor={actor} />}
@@ -2185,6 +2484,7 @@ function InspectionApp({ workspace }) {
         {route === 'benchmark' && <ValidationLab />}
         {route === 'operations' && (workspace ? <SharedOperations workspace={workspace} history={history} onOpenReport={openReport} onOverride={setOverrideRecord} /> : <OfficerOperations history={history} actor={actor} onActorChange={setActor} onOpenReport={openReport} onOverride={setOverrideRecord} onImportRecord={importRecord} />)}
         {route === 'rules' && <RulesLibrary />}
+        {route === 'system' && <SystemTrust workspace={workspace} online={online} install={install} historyCount={history.length} lastSyncAt={lastSyncAt} onNavigate={setRoute} />}
       </Shell>
       <ReportModal record={report} cloudCheck={reportCloudCheck} onClose={() => { setReport(null); setReportCloudCheck(null) }} />
       <OverrideModal record={overrideRecord} onClose={() => setOverrideRecord(null)} onApply={applyOverride} />

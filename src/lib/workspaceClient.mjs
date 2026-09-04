@@ -109,7 +109,7 @@ export function createWorkspaceClient(client, org, expectedUserId) {
         const { originalUrl, analysisUrl, perspectiveBaseUrl, ocrWords, ...metadata } = panel
         panels.push({ ...metadata, originalPath, analysisPath })
       }
-      const { imageUrl, regions, ...metadata } = record
+      const { imageUrl, ...metadata } = record
       const result = await request('cases', { method: 'POST', body: JSON.stringify({ record: { ...metadata, evidenceItems: panels, rulePack: RULE_PACK.id } }), signal })
       return { record: mergeCloudRecord(record, result.record) }
     },

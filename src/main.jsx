@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './styles.css'
+import './transformation.css'
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
@@ -38,5 +39,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 )
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'))
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch((error) => {
+    console.warn('NiyamLens offline shell registration failed; online use remains available.', error)
+  }))
 }

@@ -7,8 +7,10 @@ const errors = []
 page.on('pageerror', (error) => errors.push(error.message))
 try {
   await page.goto(process.env.NIYAMLENS_BASE_URL || 'http://127.0.0.1:5173/', { waitUntil: 'networkidle' })
-  await page.locator('input[type=file]').setInputFiles(path.join(process.cwd(), 'public/sample-real-label.svg'))
+  await page.locator('input[type=file]').setInputFiles(path.join(process.cwd(), 'public/sample-real-label.png'))
   await page.getByText(/panel ready for OCR/i).waitFor()
+  const qualityCaution = page.getByRole('button', { name: 'Continue with caution', exact: true })
+  if (await qualityCaution.count()) await qualityCaution.click()
   await page.getByRole('button', { name: 'Run browser OCR', exact: true }).click()
   await page.getByText(/OCR complete across/i).waitFor({ timeout: 120000 })
   const raw = await page.locator('.evidence-editor').inputValue()

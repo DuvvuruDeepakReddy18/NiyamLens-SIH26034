@@ -60,7 +60,7 @@ async function harness({ pauseType = '', failType = '', pauseRunner = false, fai
   const initial = clone(state); const entered = deferred(); const release = deferred()
   const runnerEntered = deferred(); const runnerRelease = deferred(); const calls = []
   const context = {
-    ...state, challenge: null, activeEvidence: state.evidenceItems[0], actor: { id: 'officer' },
+    ...state, challenge: null, activeEvidence: state.evidenceItems[0], actor: { id: 'officer' }, qualityBlocked: false,
     activeJob: { current: null }, auditRef: { current: oldChain }, auditQueue: { current: Promise.resolve() }, auditGeneration: { current: 0 },
     AbortController, crypto, abortError, INITIAL_META: {}, invalidateCapturedEvidence, restoreEvidencePolicy,
     appendFocusedTranscript, appendOcrHistory, validateOcrHistory, preparePaddleAppend, fieldCandidates, extractDeclarations,

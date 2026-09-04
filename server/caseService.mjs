@@ -4,7 +4,7 @@ import { evaluateInspection } from '../src/lib/inspectionSafety.mjs'
 import { extractDeclarations } from '../src/lib/extraction.mjs'
 import { RULE_PACK } from '../src/lib/rules.mjs'
 import { validateInspectionMetadata } from '../src/lib/inspectionMetadata.mjs'
-import { isObject, validateJsonShape, validatePanels, validateAudit } from './caseSchema.mjs'
+import { isObject, validateJsonShape, validatePanels, validateAudit, validateRegions } from './caseSchema.mjs'
 import { ocrProvenance, restoreEvidencePolicy } from '../src/lib/inspectionWorkflow.mjs'
 export const canonical = (value) => Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonical(value[key])])) : value
 export const hashPayload = (value) => createHash('sha256').update(JSON.stringify(canonical(value))).digest('hex')
@@ -25,6 +25,10 @@ export function validateCase(input, context) {
   const issues = validateInspectionMetadata(input.meta)
   if (issues.length) throw new HttpError(400, `Invalid inspection metadata: ${issues.slice(0, 4).map((issue) => `${issue.field}: ${issue.reason}`).join('; ')}`)
   const evidencePanelIds = evidenceItems.map((panel) => panel.id)
+  const extraction = extractDeclarations(input.text)
+  const extractedFields = new Map(extraction.fields.filter((field) => field.detected).map((field) => [field.id, field]))
+  const regions = validateRegions(input.regions, evidencePanelIds, new Set(extractedFields.keys()))
+    .map((region) => ({ ...region, label: extractedFields.get(region.id).label }))
   if (Object.keys(input.meta.panelMeasurements || {}).some((id) => !evidencePanelIds.includes(id))) throw new HttpError(400, 'Measurements must refer to an attached evidence panel.')
   const sourceRecord = { meta: input.meta, rawOcrText: input.rawOcrText || '', clientAuditChain }
   const provenance = ocrProvenance(sourceRecord)
@@ -39,7 +43,7 @@ export function validateCase(input, context) {
   return {
     schemaVersion: 2, id: input.id, createdAt: input.createdAt, sealedAt: input.sealedAt,
     actor: { id: context.user.id, name: context.member.display_name || context.user.email, role: context.member.role },
-    meta, text: input.text, rawOcrText: String(input.rawOcrText || ''), extraction: extractDeclarations(input.text),
+    meta, text: input.text, rawOcrText: String(input.rawOcrText || ''), extraction, regions,
     evidenceItems,
     clientAuditChain, clientAuditUntrusted: true,
     ocrProvenance: { ...provenance, clientReported: true, independentlyVerified: false },

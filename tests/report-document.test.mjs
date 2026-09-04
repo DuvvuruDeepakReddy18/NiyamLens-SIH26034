@@ -74,6 +74,17 @@ test('field values, conflicting readings, semantic validation and reviews remain
   assert.equal(record.result.status, 'manual_review')
 })
 
+test('DOCX preserves every source-region panel, OCR line, geometry, rule and officer state', async () => {
+  const record = base()
+  record.evidenceItems = [{ id: 'PANEL-TRACE', name: 'trace-panel.png', sha256: 'a'.repeat(64) }]
+  record.extraction = { fields: [{ id: 'mrp', label: 'Maximum Retail Price', detected: true, value: '40.00', evidence: 'MRP Rs 40.00' }] }
+  record.regions = [{ id: 'mrp', label: 'Maximum Retail Price', panelId: 'PANEL-TRACE', text: 'M.R.P. Rs 40.00', bbox: { x0: 11, y0: 22, x1: 133, y1: 55 }, pageWidth: 900, pageHeight: 1120 }]
+  record.meta.fieldReviews = { mrp: { state: 'confirmed', value: '40.00', reason: 'Compared with source pixels' } }
+  record.result.checks = [{ id: 'mrp', status: 'pass', label: 'Maximum Retail Price', rule: 'Rule 6(1)(e)', reason: 'Present', evidence: 'MRP Rs 40.00' }]
+  const { xml } = await inspect(record)
+  for (const text of ['Source-region traceability', 'trace-panel.png', 'M.R.P. Rs 40.00', 'x 11–133; y 22–55 px', 'Frame 900 × 1120 px', 'Rule 6(1)(e)', 'Officer: CONFIRMED']) assert.ok(xml.includes(text), text)
+})
+
 test('completed-run history and raw transcript support OCR provenance, while corrections stay visible', async () => {
   const record = base()
   record.rawOcrText = 'MRP Rs. 1OO'
@@ -147,6 +158,7 @@ test('unsafe image dimensions and oversized image text are bounded before packin
 
 test('oversized record collections and transcripts fail honestly instead of truncating', async () => {
   await assert.rejects(buildInspectionDocx({ ...base(), evidenceItems: Array.from({ length: 5 }, (_, id) => ({ id })) }), /four captured evidence panels/)
+  await assert.rejects(buildInspectionDocx({ ...base(), regions: Array.from({ length: 129 }, (_, id) => ({ id })) }), /bounded DOCX export size/)
   await assert.rejects(buildInspectionDocx({ ...base(), text: 'x'.repeat(REPORT_LIMITS.textCharacters + 1) }), /Nothing was truncated/)
   await assert.rejects(buildInspectionDocx(null), /inspection record is required/)
 })

@@ -1,4 +1,5 @@
 import { appendAuditEvent, verifyAuditChain } from './audit.mjs'
+import { normalizeSourceRegions } from './sourceRegions.mjs'
 export const DISPOSITIONS = ['compliant', 'non_compliant', 'manual_review', 'exempt']
 export const effectiveStatus = (record) => record.reviewHistory?.at(-1)?.status || record.supervisorReview?.status || record.automatedResult?.status || record.result?.status
 export function auditPresentation(record) {
@@ -7,9 +8,11 @@ export function auditPresentation(record) {
   return { events, untrusted, verified: !untrusted && record.auditVerified === true }
 }
 export function normalizeCase(record) {
+  if (!record || typeof record !== 'object' || Array.isArray(record)) throw new Error('Evidence record must be a JSON object.')
   const automatedResult = record.automatedResult || { ...record.result, status: record.supervisorReview?.automatedStatus || record.result?.status }
   const reviewHistory = record.reviewHistory || (record.supervisorReview ? [{ ...record.supervisorReview, legacy: true }] : [])
-  return { ...record, schemaVersion: 2, automatedResult, result: automatedResult, reviewHistory }
+  const regions = normalizeSourceRegions(record.regions, record.evidenceItems, record.extraction)
+  return { ...record, schemaVersion: 2, automatedResult, result: automatedResult, reviewHistory, regions }
 }
 export async function appendReview(record, { actor, status, reason, id = crypto.randomUUID(), at = new Date().toISOString() }) {
   if (!['supervisor', 'admin'].includes(actor?.role)) throw new Error('Only a supervisor or administrator may review a case.')

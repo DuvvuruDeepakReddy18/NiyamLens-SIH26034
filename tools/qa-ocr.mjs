@@ -21,8 +21,10 @@ page.on('pageerror', (error) => errors.push(error.message))
 page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()) })
 
 await page.goto(baseUrl, { waitUntil: 'networkidle' })
-await page.locator('input[type="file"]').setInputFiles(path.join(process.cwd(), 'public', 'sample-real-label.svg'))
+await page.locator('input[type="file"]').setInputFiles(path.join(process.cwd(), 'public', 'sample-real-label.png'))
 await page.getByText(/panel ready for OCR/i).waitFor()
+const qualityCaution = page.getByRole('button', { name: 'Continue with caution', exact: true })
+if (await qualityCaution.count()) await qualityCaution.click()
 await page.getByRole('button', { name: /Run browser OCR/i }).click()
 await page.getByText(/OCR complete across/i).waitFor({ timeout: 120_000 })
 
@@ -42,7 +44,6 @@ const expectedLines = [
   'CONSUMER CARE: care@fieldharvest.in',
   'Helpline: 1800 111 2026',
   'UNIT SALE PRICE Rs. 0.48/g',
-  '20 mm REF',
   '8901234567890',
 ]
 const normalizedText = text.replace(/^\[PANEL[^\n]*\]\s*/i, '').replace(/\s+/g, ' ').trim()

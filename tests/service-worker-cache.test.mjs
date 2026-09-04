@@ -25,7 +25,7 @@ function workerHarness({ fetchImpl = async () => new Response('network'), matchI
     caches: {
       match: matchImpl,
       open: async (name) => { calls.open.push(name); if (openError) throw openError; return cache },
-      keys: async () => ['niyamlens-shell-v9', 'niyamlens-shell-v10', 'niyamlens-shell-v11', 'niyamlens-shell-v12', 'unrelated-cache'],
+      keys: async () => ['niyamlens-shell-v9', 'niyamlens-shell-v10', 'niyamlens-shell-v11', 'niyamlens-shell-v12', 'niyamlens-shell-v13', 'niyamlens-shell-v14', 'niyamlens-ocr-v0', 'niyamlens-ocr-v1', 'unrelated-cache'],
       delete: async (name) => { calls.delete.push(name); return true },
     },
     fetch: async (request) => { calls.fetch.push(request); return fetchImpl(request) },
@@ -36,14 +36,24 @@ function workerHarness({ fetchImpl = async () => new Response('network'), matchI
     async dispatchFetch(pathname, { method = 'GET', headers = {}, mode = 'cors' } = {}) {
       let intercepted = false
       let response
+      const pending = []
       const request = { url: new URL(pathname, ORIGIN).href, method, headers: new Headers(headers), mode }
-      listeners.get('fetch')({ request, respondWith: (pending) => { intercepted = true; response = pending } })
-      return { intercepted, response: await response }
+      listeners.get('fetch')({ request, respondWith: (value) => { intercepted = true; response = value }, waitUntil: (value) => pending.push(value) })
+      const resolved = await response
+      await Promise.all(pending)
+      return { intercepted, response: resolved }
     },
     async dispatchLifecycle(type) {
       const pending = []
       listeners.get(type)({ waitUntil: (value) => pending.push(value) })
       await Promise.all(pending)
+    },
+    async dispatchMessage(data) {
+      const pending = []
+      const messages = []
+      listeners.get('message')({ data, ports: [{ postMessage: (value) => messages.push(value) }], waitUntil: (value) => pending.push(value) })
+      await Promise.all(pending)
+      return messages
     },
   }
 }
@@ -126,13 +136,84 @@ test('network HTTP errors are returned unchanged and never cached', async () => 
   assert.equal(harness.calls.put.length, 0)
 })
 
-test('cache v12 retains lazy optional Paddle assets and removes only old app caches', async () => {
+test('ordinary same-origin GET responses are not retained in the offline shell cache', async () => {
+  const network = new Response('future personalized page')
+  const harness = workerHarness({ fetchImpl: async () => network })
+  assert.equal((await harness.dispatchFetch('/future-account-page')).response, network)
+  assert.equal(harness.calls.put.length, 0)
+})
+
+test('shell v14 is independent from OCR v1 and activation removes only superseded app caches', async () => {
   const harness = workerHarness()
   await harness.dispatchLifecycle('install')
-  assert.deepEqual(harness.calls.open, ['niyamlens-shell-v12'])
+  assert.deepEqual(harness.calls.open, ['niyamlens-shell-v14'])
   assert(harness.calls.addAll.flat().includes('/'))
-  assert(!harness.calls.addAll.flat().some((asset) => asset.includes('/paddle-v1/')))
+  assert(!harness.calls.addAll.flat().some((asset) => asset.startsWith('/ocr/')))
   await harness.dispatchLifecycle('activate')
-  assert.deepEqual(harness.calls.delete, ['niyamlens-shell-v9', 'niyamlens-shell-v10', 'niyamlens-shell-v11'])
+  assert.deepEqual(harness.calls.delete, ['niyamlens-shell-v9', 'niyamlens-shell-v10', 'niyamlens-shell-v11', 'niyamlens-shell-v12', 'niyamlens-shell-v13', 'niyamlens-ocr-v0'])
   assert.equal(harness.calls.claimed, 1)
+})
+
+test('offline OCR pack reports progress and writes readiness only after every required asset', async () => {
+  const harness = workerHarness({ fetchImpl: async () => new Response('asset', { status: 200 }) })
+  const messages = await harness.dispatchMessage({ type: 'NIYAMLENS_CACHE_OCR_PACK' })
+  const progress = messages.filter((message) => message.type === 'progress')
+  assert(progress.length > 5)
+  assert.equal(messages.at(-1).type, 'complete')
+  assert.equal(messages.at(-1).completed, progress.length)
+  assert.equal(messages.at(-1).total, progress.length)
+  assert.equal(harness.calls.put.at(-1)[0], '/__niyamlens/offline-ocr-ready')
+  assert.equal(harness.calls.open[0], 'niyamlens-ocr-v1')
+})
+
+test('failed OCR-pack download never writes a false readiness sentinel', async () => {
+  const harness = workerHarness({ fetchImpl: async (request) => String(request).includes('eng.traineddata') ? new Response('missing', { status: 503 }) : new Response('asset', { status: 200 }) })
+  const messages = await harness.dispatchMessage({ type: 'NIYAMLENS_CACHE_OCR_PACK' })
+  assert.equal(messages.at(-1).type, 'error')
+  assert(!harness.calls.put.some(([key]) => key === '/__niyamlens/offline-ocr-ready'))
+})
+
+test('offline verification handshakes with protocol v2 and checks every shell and OCR asset', async () => {
+  const shell = new Set(['/', '/icon.svg', '/icon-192.png', '/icon-512.png', '/icon-maskable-512.png', '/manifest.webmanifest', '/assets/app.js', '/assets/app.css'])
+  const matchImpl = async (key) => {
+    if (key === '/') return new Response('<script src="/assets/app.js"></script><link href="/assets/app.css">')
+    if (key === '/__niyamlens/offline-ocr-ready') return new Response(JSON.stringify({ version: 1, assets: 11 }))
+    if (shell.has(key) || String(key).startsWith('/ocr/')) return new Response('cached')
+    return undefined
+  }
+  const harness = workerHarness({ matchImpl })
+  const messages = await harness.dispatchMessage({ type: 'NIYAMLENS_VERIFY_OFFLINE' })
+  assert.equal(JSON.stringify(messages), JSON.stringify([{ type: 'verification', protocol: 2, version: '14', shellReady: true, ocrReady: true, completed: 11, total: 11 }]))
+  assert(harness.calls.open.includes('niyamlens-shell-v14'))
+  assert(harness.calls.open.includes('niyamlens-ocr-v1'))
+})
+
+test('historical sentinel cannot claim readiness when any required OCR asset is missing', async () => {
+  const matchImpl = async (key) => {
+    if (key === '/__niyamlens/offline-ocr-ready') return new Response(JSON.stringify({ version: 1, assets: 11 }))
+    if (key === '/ocr/lang/tam.traineddata.gz') return undefined
+    if (String(key).startsWith('/ocr/')) return new Response('cached')
+    return undefined
+  }
+  const messages = await workerHarness({ matchImpl }).dispatchMessage({ type: 'NIYAMLENS_VERIFY_OFFLINE' })
+  assert.equal(messages[0].protocol, 2)
+  assert.equal(messages[0].ocrReady, false)
+  assert.equal(messages[0].completed, 10)
+})
+
+test('successful root navigation caches every referenced build dependency before replacing the shell entry', async () => {
+  const harness = workerHarness({ fetchImpl: async (request) => typeof request === 'string' ? new Response(`asset:${request}`) : new Response('<script src="/assets/fresh.js"></script><link href="/assets/fresh.css">', { status: 200 }) })
+  assert.match(await (await harness.dispatchFetch('/', { mode: 'navigate' })).response.text(), /fresh\.js/)
+  assert.deepEqual(harness.calls.open, ['niyamlens-shell-v14'])
+  assert.deepEqual(harness.calls.put.map(([key]) => key), ['/assets/fresh.js', '/assets/fresh.css', '/'])
+})
+
+test('failed root dependency refresh returns fresh online HTML without replacing the working offline root', async () => {
+  const harness = workerHarness({ fetchImpl: async (request) => {
+    if (request === '/assets/missing.js') return new Response('missing', { status: 503 })
+    if (typeof request === 'string') return new Response(`asset:${request}`)
+    return new Response('<script src="/assets/current.js"></script><script src="/assets/missing.js"></script>', { status: 200 })
+  } })
+  assert.match(await (await harness.dispatchFetch('/', { mode: 'navigate' })).response.text(), /current\.js/)
+  assert(!harness.calls.put.some(([key]) => key === '/'))
 })
