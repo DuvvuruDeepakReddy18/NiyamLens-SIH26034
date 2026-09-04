@@ -1,4 +1,4 @@
-const CACHE = 'niyamlens-shell-v7'
+const CACHE = 'niyamlens-shell-v8'
 const OFFLINE_ASSETS = [
   '/',
   '/icon.svg',
@@ -33,14 +33,15 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(keys.filter((key) => key.startsWith('niyamlens-shell-') && key !== CACHE).map((key) => caches.delete(key))))
       .then(() => self.clients.claim()),
   )
 })
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
-  if (event.request.method !== 'GET' || url.origin !== self.location.origin) return
+  // Never retain authenticated responses, API records or signed evidence in the shell cache.
+  if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/') || event.request.headers.has('authorization')) return
   event.respondWith((async () => {
     const pathname = url.pathname
     const cached = await caches.match(pathname, { ignoreSearch: true })

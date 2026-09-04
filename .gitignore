@@ -13,6 +13,7 @@ docs/NiyamLens_SIH26034_Ready_to_Submit_Final.pdf
 docs/NiyamLens_SIH26034_Ready_to_Submit_v2.pdf
 tools/build-sah-ppt.cjs
 dist/
+dist-workspace-test/
 __pycache__/
 *.pyc
 *.log
@@ -21,7 +22,9 @@ qa-*.png
 .vercel/
 .env
 .env.local
-.env.*.local
+.env.*
+supabase/.temp/
+supabase/.branches/
 !.env.example
 datasets/openfoodfacts-india/data_keys.gz
 datasets/openfoodfacts-india/india_products_*.csv

@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import handler, { languageHints, normalizeVisionAnnotation, parseImageDataUrl } from '../api/ocr.js'
+import { createOcrHandler, languageHints, normalizeVisionAnnotation, parseImageDataUrl } from '../api/ocr.js'
+const handler = createOcrHandler({ authorize: async () => ({}), limit: async () => {} })
 
 const responseRecorder = () => ({
   statusCode: 0,

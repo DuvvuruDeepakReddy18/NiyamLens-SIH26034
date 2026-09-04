@@ -54,7 +54,13 @@ import { parseBenchmarkFile, runBenchmark, SEEDED_BENCHMARK } from './lib/benchm
 import { APPROVAL_GATES, RULE_EDGE_CASES, RULE_MATRIX, RULE_MATRIX_VERSION } from './lib/ruleMatrix.mjs'
 import { decryptBundle, encryptBundle } from './lib/secureBundle.mjs'
 import { evaluateCompliance, FONT_TIERS, RULE_PACK } from './lib/rules.mjs'
-import { listInspections, saveInspection } from './lib/storage.mjs'
+import { createEvidenceStore } from './lib/storage.mjs'
+import { appendReview, auditPresentation, effectiveStatus, normalizeCase } from './lib/caseRecords.mjs'
+import { evaluateInspection, fieldCandidates } from './lib/inspectionSafety.mjs'
+import { createOperation, createSyncEngine } from './lib/syncEngine.mjs'
+import { mergeCloudRecord } from './lib/workspaceClient.mjs'
+import { WorkspaceGate, SharedOperations } from './Workspace.jsx'
+import FieldVerification from './FieldVerification.jsx'
 import { analyzeImageQuality, calibrateOcrReliability, createOcrInputVariants, createOcrRegionVariant, createOcrTileVariants, detectReferenceCard, flattenOcrWords, matchDeclarationRegions, measureRegion, mergeOcrPassTexts, webXrDepthSupport } from './lib/vision.mjs'
 
 const NAV_ITEMS = [
@@ -147,7 +153,7 @@ const loadLegacyHistory = () => {
 const createInspectionId = () => {
   const date = new Date()
   const stamp = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`
-  return `NLM-${stamp}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
+  return `NLM-${stamp}-${crypto.randomUUID()}`
 }
 
 function StatusPill({ status, compact = false }) {
@@ -596,12 +602,16 @@ function ChallengeClock({ challenge }) {
   return <div className="challenge-ribbon"><Timer size={18} /><span>Blind inspection <b>{challenge.code}</b></span><code>{minutes}:{seconds}</code><small>Controlled packets disabled · all actions audited</small></div>
 }
 
-function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeComplete, actor }) {
+function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeComplete, actor, workspace, store, onNewInspection }) {
   const [inspectionId, setInspectionId] = useState(createInspectionId)
   const [startedAt, setStartedAt] = useState(() => new Date().toISOString())
   const [evidenceItems, setEvidenceItems] = useState([])
   const [activeEvidenceId, setActiveEvidenceId] = useState('')
   const [text, setText] = useState('')
+  const [rawOcrText, setRawOcrText] = useState('')
+  const [draft, setDraft] = useState(null)
+  const [draftReady, setDraftReady] = useState(false)
+  const [draftMessage, setDraftMessage] = useState('')
   const [meta, setMeta] = useState(INITIAL_META)
   const [ocrState, setOcrState] = useState({ running: false, progress: 0, label: 'Ready', error: '' })
   const [processing, setProcessing] = useState(false)
@@ -611,7 +621,9 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   const [depthState, setDepthState] = useState({ supported: false, message: '' })
   const [auditChain, setAuditChain] = useState([])
   const auditRef = useRef([])
+  const auditQueue = useRef(Promise.resolve())
   const [saved, setSaved] = useState(false)
+  const [sealedRecord, setSealedRecord] = useState(null)
   const [saving, setSaving] = useState(false)
   const fileInput = useRef(null)
 
@@ -619,19 +631,41 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   const extraction = useMemo(() => extractDeclarations(text), [text])
   const rawRegions = useMemo(() => matchDeclarationRegions(extraction, ocrWords), [extraction, ocrWords])
   const evaluationMeta = useMemo(() => ({ ...meta, evidencePanelIds: evidenceItems.map((item) => item.id) }), [meta, evidenceItems])
-  const result = useMemo(() => evaluateCompliance({ text, meta: evaluationMeta }), [text, evaluationMeta])
+  const result = useMemo(() => evaluateInspection({ text, meta: evaluationMeta }), [text, evaluationMeta])
   const regions = useMemo(() => {
     const statuses = Object.fromEntries(result.checks.map((check) => [check.id, check.status]))
     return rawRegions.map((region) => ({ ...region, status: statuses[region.id] || 'info' }))
   }, [rawRegions, result])
 
-  useEffect(() => setSaved(false), [text, meta, evidenceItems])
+  useEffect(() => {
+    let active = true
+    store.get('drafts', 'active').then((record) => { if (active) { setDraft(record); setDraftReady(true) } }).catch((error) => { if (active) { setDraftMessage(error.message); setDraftReady(true) } })
+    return () => { active = false }
+  }, [store])
+  useEffect(() => {
+    if (!draftReady || draft || saved || !evidenceItems.length) return
+    const timer = setTimeout(() => {
+      store.put('drafts', { id: 'active', inspectionId, startedAt, evidenceItems, activeEvidenceId, text, rawOcrText, meta, ocrWords, auditChain, challengeId: challenge?.id || null }).then(() => setDraftMessage('Draft saved on this device.')).catch((error) => setDraftMessage(`Draft NOT saved: ${error.message}`))
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [store, draftReady, draft, saved, inspectionId, startedAt, evidenceItems, activeEvidenceId, text, rawOcrText, meta, ocrWords, auditChain])
+  const restoreDraft = () => {
+    if (challenge?.active && draft.challengeId !== challenge.id) { setDraftMessage('This draft predates the blind challenge. It cannot be used as blind-run evidence. Discard it explicitly or exit the challenge to recover it.'); return }
+    setInspectionId(draft.inspectionId); setStartedAt(draft.startedAt); setEvidenceItems(draft.evidenceItems); setActiveEvidenceId(draft.activeEvidenceId)
+    setText(draft.text); setRawOcrText(draft.rawOcrText || ''); setMeta(draft.meta); setOcrWords(draft.ocrWords || []); auditRef.current = draft.auditChain || []; setAuditChain(auditRef.current); setDraft(null); setDraftMessage('Draft restored; verify before sealing.')
+  }
 
-  const updateMeta = (key, value) => setMeta((current) => ({ ...current, [key]: value }))
+  const updateMeta = (key, value) => setMeta((current) => ({ ...current, [key]: value,
+    ...(['pdpArea', 'pdpUncertainty', 'formedText'].includes(key) ? { pdpConfirmed: false } : {}),
+    ...(['referenceMm', 'measurementUncertainty'].includes(key) ? { measurementConfirmed: false, widthCharacterConfirmed: false } : {}),
+    ...(['quantity', 'unit', 'category', 'commodityClass'].includes(key) ? { classificationConfirmed: false } : {}),
+  }))
   const updatePanelMeasurement = (key, value) => {
     if (!activeEvidence?.id) return
     setMeta((current) => ({
       ...current,
+      measurementConfirmed: false,
+      widthCharacterConfirmed: false,
       panelMeasurements: {
         ...(current.panelMeasurements || {}),
         [activeEvidence.id]: { ...(current.panelMeasurements?.[activeEvidence.id] || {}), [key]: value },
@@ -644,16 +678,18 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     return { ...current, panelMeasurements: nextMeasurements }
   })
 
-  const recordAudit = async (type, payload = {}) => {
-    const next = await appendAuditEvent(auditRef.current, type, payload, actor?.id || 'local-officer')
-    auditRef.current = next
-    setAuditChain(next)
-    return next
+  const recordAudit = (type, payload = {}) => {
+    const operation = auditQueue.current.then(async () => {
+      const next = await appendAuditEvent(auditRef.current, type, payload, actor?.id || 'local-officer')
+      auditRef.current = next; setAuditChain(next); return next
+    })
+    auditQueue.current = operation.catch(() => {})
+    return operation
   }
 
   const updatePanelDimension = (key, value) => {
     setMeta((current) => {
-      const next = { ...current, [key]: value }
+      const next = { ...current, [key]: value, pdpConfirmed: false }
       const width = Number(key === 'panelWidthCm' ? value : next.panelWidthCm)
       const height = Number(key === 'panelHeightCm' ? value : next.panelHeightCm)
       if (width > 0 && height > 0) next.pdpArea = Number((width * height).toFixed(2))
@@ -663,7 +699,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
 
   const updateCylinderDimension = (key, value) => {
     setMeta((current) => {
-      const next = { ...current, [key]: value }
+      const next = { ...current, [key]: value, pdpConfirmed: false }
       const diameter = Number(key === 'cylinderDiameterCm' ? value : next.cylinderDiameterCm)
       const height = Number(key === 'cylinderHeightCm' ? value : next.cylinderHeightCm)
       const coverage = Number(key === 'cylinderCoverage' ? value : next.cylinderCoverage)
@@ -697,6 +733,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     if (!files.length) return
     const firstPanel = evidenceItems.length === 0
     try {
+      if (workspace && files.some((file) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type))) throw new Error('Managed evidence accepts JPEG, PNG or WebP originals. Export other camera formats before capture.')
       setProcessing(true)
       setOcrState({ running: false, progress: 4, label: `Securing ${files.length} evidence panel${files.length > 1 ? 's' : ''}`, error: '' })
       const capturedItems = await Promise.all(files.map(evidenceFromFile))
@@ -708,7 +745,8 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       if (firstPanel) {
         beginEvidenceRecord()
         setText('')
-        setMeta(INITIAL_META)
+        setRawOcrText('')
+        setMeta({ ...INITIAL_META, enforceEvidenceReview: true })
         setOcrWords([])
         setBarcodeState({ message: '', error: false, candidate: null })
         await recordAudit('inspection_started', { challengeId: challenge?.id || null })
@@ -942,7 +980,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
         const reliability = calibrateOcrReliability(fullPanelPasses, item.quality?.score)
         reliabilities.push(reliability.score)
         engineConfidences.push(reliability.engineConfidence)
-        recognizedItems.push({ ...item, ocrText: mergedText, ocrConfidence: reliability.engineConfidence, ocrReliability: reliability.score, ocrAgreement: reliability.agreement, ocrWords: passes.flatMap((pass) => pass.words), ocrPasses: passes.map(({ id, confidence }) => ({ id, confidence: Number(confidence.toFixed(1)) })) })
+        recognizedItems.push({ ...item, ocrText: mergedText, ocrConfidence: reliability.engineConfidence, ocrReliability: reliability.score, ocrAgreement: reliability.agreement, ocrWords: passes.flatMap((pass) => pass.words), ocrPasses: passes.map(({ id, text, confidence }) => ({ id: `${item.id}:${id}`, text, confidence: Number(confidence.toFixed(1)) })) })
       }
       const combinedText = packets.join('\n\n')
       const averageReliability = reliabilities.length ? reliabilities.reduce((sum, value) => sum + value, 0) / reliabilities.length : 0
@@ -953,9 +991,10 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
           ? 'Usable OCR evidence; verify highlighted values against the package.'
           : 'Low-confidence evidence; retake the panel or use deep scan before deciding.'
       setText(combinedText)
+      setRawOcrText(combinedText)
       setOcrWords(collectedWords)
       setEvidenceItems(recognizedItems)
-      setMeta((current) => ({ ...current, ocrConfidence: Number(averageReliability.toFixed(1)), ocrEngineConfidence: Number(averageEngineConfidence.toFixed(1)), ocrReliabilityReason: reliabilityReason, ocrSource: deepScan ? 'local-deep' : 'local' }))
+      setMeta((current) => ({ ...current, fieldReviews: {}, fieldCandidates: fieldCandidates(recognizedItems.flatMap((item) => item.ocrPasses)), ocrConfidence: Number(averageReliability.toFixed(1)), ocrEngineConfidence: Number(averageEngineConfidence.toFixed(1)), ocrReliabilityReason: reliabilityReason, ocrSource: deepScan ? 'local-deep' : 'local' }))
       applyExtraction(extractDeclarations(combinedText))
       await recordAudit('ocr_completed', { panels: evidenceItems.length, reliability: Number(averageReliability.toFixed(1)), engineConfidence: Number(averageEngineConfidence.toFixed(1)), wordBoxes: collectedWords.length, language: meta.ocrLanguage, strategy: deepScan ? 'three-pass-plus-four-detail-tiles' : 'three-pass-adaptive-layout' })
       setOcrState({ running: false, progress: 100, label: `${deepScan ? 'Deep scan' : 'OCR'} complete across ${evidenceItems.length} panel${evidenceItems.length > 1 ? 's' : ''} — verify evidence`, error: '' })
@@ -986,7 +1025,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
         setOcrState({ running: true, progress: Math.round((index / evidenceItems.length) * 85) + 5, label: `Connected OCR · panel ${index + 1}/${evidenceItems.length}`, error: '' })
         const response = await fetch('/api/ocr', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: workspace ? await workspace.api.headers() : { 'Content-Type': 'application/json' },
           body: JSON.stringify({ image: item.analysisUrl, language: meta.ocrLanguage || 'eng' }),
         })
         const payload = await response.json().catch(() => ({}))
@@ -1005,6 +1044,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
           ...item,
           ocrText: mergedText,
           connectedOcrText: connectedText,
+          ocrPasses: [...(item.ocrPasses || []), { id: `${item.id}:google-vision`, text: connectedText }],
           ocrProvider: payload.provider || 'google-vision',
           ocrConfidence: engineConfidence,
           ocrReliability: reliability,
@@ -1020,8 +1060,9 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
         : 'Connected OCR is uncertain on this capture; retake the declaration panel before deciding.'
       setText(combinedText)
       setOcrWords(connectedWords)
+      setRawOcrText(combinedText)
       setEvidenceItems(recognizedItems)
-      setMeta((current) => ({ ...current, ocrConfidence: reliability, ocrEngineConfidence: engineConfidence, ocrReliabilityReason: reliabilityReason, ocrSource: 'google-vision' }))
+      setMeta((current) => ({ ...current, fieldReviews: {}, fieldCandidates: fieldCandidates(recognizedItems.flatMap((item) => item.ocrPasses)), ocrConfidence: reliability, ocrEngineConfidence: engineConfidence, ocrReliabilityReason: reliabilityReason, ocrSource: 'google-vision' }))
       applyExtraction(extractDeclarations(combinedText))
       await recordAudit('connected_ocr_completed', { panels: evidenceItems.length, provider: 'google-vision', reliability, engineConfidence, wordBoxes: connectedWords.length })
       setOcrState({ running: false, progress: 100, label: `Connected OCR complete across ${evidenceItems.length} panel${evidenceItems.length > 1 ? 's' : ''} — verify evidence`, error: '' })
@@ -1039,6 +1080,8 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     fileName: evidenceItems[0]?.name || '',
     evidenceItems,
     text,
+    rawOcrText,
+    rulePack: RULE_PACK.id,
     extraction,
     regions,
     auditChain: chain,
@@ -1055,7 +1098,10 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       const finalChain = await recordAudit('inspection_sealed', { inspectionId, status: result.status, score: result.score, evidencePanels: evidenceItems.length })
       const record = { ...buildRecord(finalChain), auditVerified: await verifyAuditChain(finalChain) }
       await onSaveRecord(record)
+      setSealedRecord(record)
       setSaved(true)
+      await store.remove('drafts', 'active')
+      setDraftMessage('Sealed record saved. Start a new inspection to capture new evidence.')
       if (challenge) onChallengeComplete?.(record)
     } catch (error) {
       setOcrState((current) => ({ ...current, error: error.message || 'The inspection could not be stored.' }))
@@ -1078,7 +1124,8 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
         </div>
       </div>
       <ChallengeClock challenge={challenge} />
-
+      <div className="draft-bar" role="status">{draft ? <><span>An unfinished inspection is available.</span><button onClick={restoreDraft}>Restore draft</button><button onClick={async () => { try { await store.remove('drafts', 'active'); setDraft(null) } catch (error) { setDraftMessage(error.message) } }}>Discard unfinished draft</button></> : draftMessage || 'Drafts save automatically on this device after capture.'}{saved && <><button onClick={() => onOpenReport(sealedRecord)}>Open sealed report</button><button onClick={onNewInspection}>Start new inspection</button></>}</div>
+      <fieldset className="studio-lock" disabled={saved || saving || processing || ocrState.running || Boolean(draft)}>
       <div className="studio-grid">
         <div className="workflow-column">
           <section className="workflow-step">
@@ -1125,7 +1172,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               onCheckDepth={checkDepth}
               depthState={depthState}
             />
-            {!challenge?.active && <details className="test-aids">
+            {!challenge?.active && !workspace && <details className="test-aids">
               <summary><Sparkles size={14} /> Controlled test packets</summary>
               <div className="demo-actions">
                 <button type="button" onClick={() => applyDemo(DEMOS.risky)}>Violation packet</button>
@@ -1169,7 +1216,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               </div>
               <span className="confidence-chip">Reliability {Number(meta.ocrConfidence || 0).toFixed(0)}% · engine {Number(meta.ocrEngineConfidence || 0).toFixed(0)}%</span>
             </div>
-            <p className="connected-ocr-disclosure"><LockKeyhole size={13} /> Browser OCR is the private default. Connected OCR sends processed panels to the configured Google Vision service only when you click it; NiyamLens does not store them on its server.</p>
+            <p className="connected-ocr-disclosure"><LockKeyhole size={13} /> Browser OCR is the private default. Connected OCR sends processed panels to Google Vision only when you click it and requires workspace sign-in. Sealing in a managed workspace uploads evidence to private storage. Reliability percentages below are unvalidated heuristics, not accuracy probabilities.</p>
             {ocrState.error && <div className="inline-warning"><AlertTriangle size={17} />{ocrState.error}</div>}
             <DeclarationCoverage extraction={extraction} reliability={meta.ocrConfidence} engineConfidence={meta.ocrEngineConfidence} reliabilityReason={meta.ocrReliabilityReason} />
             <textarea
@@ -1180,6 +1227,8 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               spellCheck="false"
             />
             <ExtractionWorkbench extraction={extraction} onApply={applyExtraction} barcodeState={barcodeState} regions={regions} onSelectRegion={(id) => { const region = regions.find((item) => item.id === id); if (region) setActiveEvidenceId(region.panelId); setActiveRegionId(id) }} meta={meta} />
+            {rawOcrText && <details><summary>Original OCR transcript (not edited)</summary><pre className="transcript-original">{rawOcrText}</pre></details>}
+            {meta.enforceEvidenceReview && <FieldVerification extraction={extraction} meta={meta} onChange={updateMeta} />}
             <div className="translation-panel">
               <header><Languages size={17} /><div><strong>Officer interpretation</strong><small>Original OCR evidence is preserved; this note never replaces it.</small></div></header>
               <div>
@@ -1283,6 +1332,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
           onReport={() => onOpenReport(buildRecord())}
         />
       </div>
+      </fieldset>
     </section>
   )
 }
@@ -1301,7 +1351,7 @@ function MetricCard({ icon: Icon, label, value, copy, tone = 'ink' }) {
 function Dashboard({ history, onNavigate, onOpenReport }) {
   const totals = history.reduce(
     (accumulator, item) => {
-      const status = item?.result?.status
+      const status = effectiveStatus(item)
       if (Object.hasOwn(accumulator, status)) accumulator[status] += 1
       else accumulator.unknown += 1
       return accumulator
@@ -1394,7 +1444,12 @@ function Dashboard({ history, onNavigate, onOpenReport }) {
 
 function HistoryPage({ history, onOpenReport, onNavigate }) {
   const [filter, setFilter] = useState('all')
-  const visible = filter === 'all' ? history : history.filter((item) => item.result.status === filter)
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(0)
+  const filtered = history.filter((item) => (filter === 'all' || effectiveStatus(item) === filter) && `${item.id} ${item.meta.productName || ''} ${item.meta.barcode || ''}`.toLowerCase().includes(search.toLowerCase()))
+  const pageCount = Math.max(1, Math.ceil(filtered.length / 20))
+  const currentPage = Math.min(page, pageCount - 1)
+  const visible = filtered.slice(currentPage * 20, (currentPage + 1) * 20)
   return (
     <section className="history-page page-enter">
       <div className="page-intro">
@@ -1415,6 +1470,7 @@ function HistoryPage({ history, onOpenReport, onNavigate }) {
           <button type="button" key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{label}</button>
         ))}
       </div>
+      <div className="history-search"><input aria-label="Search inspections" placeholder="Search product, case ID or barcode" value={search} onChange={(event) => { setSearch(event.target.value); setPage(0) }} /><button disabled={!currentPage} onClick={() => setPage(currentPage - 1)}>Previous</button><span>Page {currentPage + 1} / {pageCount} · {filtered.length} cases</span><button disabled={currentPage + 1 >= pageCount} onClick={() => setPage(currentPage + 1)}>Next</button></div>
       {visible.length ? (
         <div className="history-list">
           {visible.map((item) => (
@@ -1422,7 +1478,7 @@ function HistoryPage({ history, onOpenReport, onNavigate }) {
               <div className="record-id"><code>{item.id}</code><small>{formatDate(item.createdAt)}</small></div>
               <div className="record-product"><strong>{item.meta.productName || 'Unnamed product'}</strong><span>{item.meta.category} · {item.meta.quantity || '?'} {item.meta.unit}</span></div>
               <div className="record-score"><b>{item.result.score}</b><span>evidence score</span></div>
-              <StatusPill status={item.result.status} />
+              <StatusPill status={effectiveStatus(item)} />
               <button type="button" className="open-record" onClick={() => onOpenReport(item)}>Open evidence <ArrowRight size={16} /></button>
             </article>
           ))}
@@ -1608,6 +1664,7 @@ function RulesLibrary() {
 
 function ReportModal({ record, onClose }) {
   if (!record) return null
+  const audit = auditPresentation(record)
   const reportImages = record.evidenceItems?.length
     ? record.evidenceItems
     : record.imageUrl ? [{ id: 'legacy', name: record.fileName || 'Package evidence', analysisUrl: record.imageUrl, sha256: '' }] : []
@@ -1657,10 +1714,12 @@ function ReportModal({ record, onClose }) {
             <small>Automated status preserved as <b>{statusLabel(record.supervisorReview.automatedStatus)}</b> · Sealed by {record.supervisorReview.actor?.name || record.supervisorReview.actor?.id || 'supervisor'} · {formatDate(record.supervisorReview.at)}</small>
           </section>
         )}
-        <section className={`report-integrity ${record.auditVerified ? 'verified' : 'pending'}`}>
+        {record.reviewHistory?.length > 0 && <section className="report-text"><h2>Complete disposition history</h2>{record.reviewHistory.map((review, index) => <p key={review.id || index}><b>{index + 1}. {statusLabel(review.status)}</b> · {formatDate(review.at)} · {review.actor?.name || review.actor?.id}<br />{review.reason}</p>)}</section>}
+        {record.serverVersion && <section className="report-text"><h2>Server receipt</h2><p>Version {record.serverVersion} · Received {formatDate(record.serverSealedAt)}</p><code>{record.serverPayloadHash}</code><p>Client observations are officer-supplied; server persistence and an internally hash-linked audit are not independent proof of the photographed package.</p></section>}
+        <section className={`report-integrity ${audit.verified ? 'verified' : 'pending'}`}>
           <ShieldCheck size={22} />
-          <div><span>CHAIN OF CUSTODY</span><strong>{record.auditVerified ? 'Audit chain verified' : 'Verification pending'}</strong><small>{record.auditChain?.length || 0} hash-linked events · {record.challenge?.id ? `Blind challenge ${record.challenge.code}` : 'Standard inspection'}</small></div>
-          <code>{record.auditChain?.at(-1)?.hash ? `${record.auditChain.at(-1).hash.slice(0, 24)}…` : 'NO SEALED HASH'}</code>
+          <div><span>CAPTURE AUDIT</span><strong>{audit.untrusted ? 'Officer-supplied timeline — not independently verified' : audit.verified ? 'Local audit chain verified' : 'Verification pending'}</strong><small>{audit.events.length} recorded events · {record.challenge?.id ? `Blind challenge ${record.challenge.code}` : 'Standard inspection'}</small></div>
+          <code>{audit.events.at(-1)?.hash ? `${String(audit.events.at(-1).hash).slice(0, 24)}…` : 'NO SEALED HASH'}</code>
         </section>
         <section className="report-context">
           <div>
@@ -1715,10 +1774,11 @@ function ReportModal({ record, onClose }) {
           </table>
         </section>
         <section className="report-text">
-          <h2>Extracted evidence text</h2>
+          <h2>Officer-reviewed evidence text</h2>
           <pre>{record.text || 'No extracted text supplied.'}</pre>
         </section>
-        {record.auditChain?.length > 0 && <section className="report-audit"><h2>Hash-linked local audit timeline</h2>{record.auditChain.map((event) => <div key={event.hash}><span>{event.index}</span><code>{event.type}</code><b>{event.actor}</b><time>{formatDate(event.at)}</time><small>{event.hash.slice(0, 16)}…</small></div>)}</section>}
+        <section className="report-text"><h2>Original OCR transcript before manual corrections</h2><pre>{record.rawOcrText || 'No original OCR transcript recorded; this may be manually entered or legacy evidence.'}</pre></section>
+        {audit.events.length > 0 && <section className="report-audit"><h2>{audit.untrusted ? 'Officer-supplied capture timeline' : 'Hash-linked local audit timeline'}</h2>{audit.untrusted && <p>Preserved client observations, not an independently verified server audit. The server receipt is shown separately.</p>}{audit.events.map((event, index) => <div key={event.hash || index}><span>{event.index}</span><code>{event.type}</code><b>{event.actor}</b><time>{formatDate(event.at)}</time><small>{String(event.hash || '').slice(0, 16)}…</small></div>)}</section>}
         <footer>
           <strong>Decision-support notice</strong>
           <p>This prototype does not issue a statutory determination. The applicable law, amendment date, package classification and original physical evidence must be verified by an authorised Legal Metrology officer.</p>
@@ -1729,6 +1789,8 @@ function ReportModal({ record, onClose }) {
 }
 
 function OverrideModal({ record, onClose, onApply }) {
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState(record?.result.status || 'manual_review')
   const [reason, setReason] = useState('')
   useEffect(() => {
@@ -1738,66 +1800,136 @@ function OverrideModal({ record, onClose, onApply }) {
   if (!record) return null
   return (
     <div className="override-modal" role="dialog" aria-modal="true" aria-label="Supervisor review">
-      <form onSubmit={(event) => { event.preventDefault(); if (reason.trim()) onApply(status, reason.trim()) }}>
+      <form onSubmit={async (event) => { event.preventDefault(); setBusy(true); setError(''); try { await onApply(status, reason.trim()) } catch (issue) { setError(issue.message) } finally { setBusy(false) } }}>
         <header><div><span className="eyebrow">SUPERVISOR REVIEW</span><h3>{record.id}</h3></div><button type="button" onClick={onClose} aria-label="Close"><X size={18} /></button></header>
         <p>The automated finding remains preserved. A supervisor disposition creates a new hash-linked audit event and never rewrites the original checks.</p>
         <label>Supervisor disposition<select value={status} onChange={(event) => setStatus(event.target.value)}><option value="compliant">Pass</option><option value="non_compliant">Flag</option><option value="manual_review">Manual review</option><option value="exempt">Exempt</option></select></label>
         <label>Mandatory reason<textarea value={reason} onChange={(event) => setReason(event.target.value)} placeholder="State the physical evidence and legal basis for the disposition…" /></label>
-        <footer><button type="button" onClick={onClose}>Cancel</button><button type="submit" disabled={!reason.trim()}><ShieldCheck size={16} /> Seal supervisor disposition</button></footer>
+        <p role="alert">{error}</p>
+        <footer><button type="button" onClick={onClose} disabled={busy}>Cancel</button><button type="submit" disabled={busy || reason.trim().length < 12}><ShieldCheck size={16} /> {busy ? 'Saving…' : 'Seal supervisor disposition'}</button></footer>
       </form>
     </div>
   )
 }
 
-export default function App() {
+function InspectionApp({ workspace }) {
   const [route, setRoute] = useState('inspect')
   const [history, setHistory] = useState([])
   const [report, setReport] = useState(null)
   const [overrideRecord, setOverrideRecord] = useState(null)
-  const [actor, setActor] = useState(() => {
+  const [studioKey, setStudioKey] = useState(0)
+  const [syncError, setSyncError] = useState('')
+  const [operations, setOperations] = useState([])
+  const [syncing, setSyncing] = useState(false)
+  const store = useMemo(() => createEvidenceStore(workspace?.scope || 'local'), [workspace?.scope])
+  const [localActor, setActor] = useState(() => {
     try { return JSON.parse(localStorage.getItem('niyamlens:actor') || 'null') || LOCAL_ACTORS[0] } catch { return LOCAL_ACTORS[0] }
   })
+  const actor = workspace?.actor || localActor
+  const challengeKey = workspace ? `niyamlens:challenge:${workspace.scope}` : 'niyamlens:challenge'
   const [challenge, setChallenge] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('niyamlens:challenge') || 'null') } catch { return null }
+    try { return JSON.parse(localStorage.getItem(challengeKey) || 'null') } catch { return null }
   })
 
-  useEffect(() => { localStorage.setItem('niyamlens:actor', JSON.stringify(actor)) }, [actor])
+  useEffect(() => { if (!workspace) localStorage.setItem('niyamlens:actor', JSON.stringify(actor)) }, [actor, workspace])
   useEffect(() => {
-    if (challenge) localStorage.setItem('niyamlens:challenge', JSON.stringify(challenge))
-    else localStorage.removeItem('niyamlens:challenge')
-  }, [challenge])
+    if (challenge) localStorage.setItem(challengeKey, JSON.stringify(challenge))
+    else localStorage.removeItem(challengeKey)
+  }, [challenge, challengeKey])
 
   useEffect(() => {
     let active = true
     const hydrate = async () => {
       try {
-        const records = await listInspections()
+        const records = await store.listInspections()
         if (!active) return
         if (records.length) {
-          setHistory(records.slice(0, 50))
+          setHistory(records.map(normalizeCase))
           return
         }
-        const legacy = loadLegacyHistory()
-        setHistory(legacy.slice(0, 50))
-        await Promise.allSettled(legacy.slice(0, 50).map(saveInspection))
-      } catch {
-        if (active) setHistory(loadLegacyHistory().slice(0, 50))
+        const legacy = workspace ? [] : loadLegacyHistory()
+        setHistory(legacy.map(normalizeCase))
+        await Promise.all(legacy.map(store.saveInspection))
+      } catch (error) {
+        if (active) setSyncError(`Local storage unavailable: ${error.message}`)
       }
     }
     hydrate()
     return () => { active = false }
-  }, [])
+  }, [store])
+
+  const refreshLocal = async (signal) => {
+    const records = (await store.listInspections()).map(normalizeCase)
+    const queued = await store.all('outbox')
+    if (signal) await workspace.api.ensureCurrent(signal)
+    setHistory(records)
+    setOperations(queued)
+  }
+  const syncEngine = useMemo(() => workspace && createSyncEngine({ store, transport: async (operation) => {
+    const signal = workspace.api.signal
+    const result = await workspace.api.transport(operation)
+    if (result.record) result.record = mergeCloudRecord(await store.get('inspections', operation.recordId), result.record)
+    await workspace.api.ensureCurrent(signal)
+    return result
+  }, onChange: refreshLocal }), [workspace?.api, store])
+  const synchronize = async (force = false) => {
+    if (!workspace || !navigator.onLine) { await refreshLocal(); return }
+    const signal = workspace.api.signal
+    setSyncing(true); setSyncError('')
+    try {
+      await syncEngine.run(force)
+      await workspace.api.ensureCurrent(signal)
+      let offset = 0
+      do {
+        const page = await workspace.api.request(`cases?offset=${offset}`, { signal })
+        for (const record of page.records) {
+          await workspace.api.ensureCurrent(signal)
+          await store.mergeRemote(record, mergeCloudRecord)
+        }
+        offset = page.nextOffset
+      } while (offset !== null)
+      await refreshLocal(signal)
+    } catch (error) { if (!signal.aborted) setSyncError(error.message) } finally { if (!signal.aborted) setSyncing(false) }
+  }
+  useEffect(() => {
+    if (!workspace) return
+    synchronize()
+    const online = () => synchronize()
+    window.addEventListener('online', online)
+    const timer = setInterval(online, 30000)
+    return () => { window.removeEventListener('online', online); clearInterval(timer); workspace.api.cancelPending() }
+  }, [workspace?.api, store])
+
+  const archiveConflictingReview = async (operation) => {
+    const signal = workspace.api.signal
+    try {
+      const { record } = await workspace.api.request(`cases?id=${encodeURIComponent(operation.recordId)}`, { signal })
+      const cached = await store.get('inspections', operation.recordId)
+      await workspace.api.ensureCurrent(signal)
+      await store.transact(['settings', 'outbox', 'inspections'], 'readwrite', (tx) => {
+        tx.objectStore('settings').put({ id: `archived-review:${operation.id}`, operation, archivedAt: new Date().toISOString() })
+        tx.objectStore('outbox').delete(operation.id)
+        tx.objectStore('inspections').put(mergeCloudRecord(cached, record))
+      })
+      await refreshLocal(signal)
+    } catch (error) { if (!signal.aborted) setSyncError(error.message) }
+  }
+  const openReport = async (record) => {
+    const signal = workspace?.api.signal
+    try {
+      const opened = workspace && record.serverVersion ? await workspace.api.openRecord(record) : record
+      if (signal) await workspace.api.ensureCurrent(signal)
+      setReport(opened)
+    } catch (error) { if (!signal?.aborted) setSyncError(`Evidence unavailable: ${error.message}`) }
+  }
 
   const saveRecord = async (record) => {
-    await saveInspection(record)
-    setHistory((current) => [record, ...current.filter((item) => item.id !== record.id)].slice(0, 50))
-    const metadataOnly = { ...record, imageUrl: '', evidenceItems: [] }
-    try {
-      const legacy = loadLegacyHistory().filter((item) => item.id !== record.id)
-      localStorage.setItem('niyamlens:inspections', JSON.stringify([metadataOnly, ...legacy].slice(0, 50)))
-    } catch {
-      // IndexedDB remains the authoritative local evidence register.
-    }
+    if (await store.get('inspections', record.id)) throw new Error('This case is already sealed. Start a new inspection to change evidence.')
+    const normalized = normalizeCase({ ...record, syncState: workspace ? 'pending' : 'local' })
+    if (workspace) await store.saveAndQueue(normalized, createOperation('seal', record.id, normalized))
+    else await store.saveInspection(normalized)
+    await refreshLocal()
+    if (workspace) synchronize()
   }
 
   const startChallenge = () => {
@@ -1813,37 +1945,40 @@ export default function App() {
 
   const applyOverride = async (status, reason) => {
     if (!overrideRecord) return
-    const chain = await appendAuditEvent(overrideRecord.auditChain || [], 'supervisor_disposition', { originalStatus: overrideRecord.result.status, disposition: status, reason }, actor.id)
-    const updated = {
-      ...overrideRecord,
-      result: { ...overrideRecord.result, status },
-      supervisorReview: { status, reason, actor, at: new Date().toISOString(), automatedStatus: overrideRecord.result.status },
-      auditChain: chain,
-      auditVerified: await verifyAuditChain(chain),
-    }
-    await saveInspection(updated)
-    setHistory((current) => current.map((item) => item.id === updated.id ? updated : item))
+    const operation = createOperation('review', overrideRecord.id, { status, reason }, overrideRecord.serverVersion || 0)
+    const updated = await appendReview(overrideRecord, { status, reason, actor, id: operation.id })
+    if (workspace) await store.saveAndQueue({ ...updated, syncState: 'pending-review' }, operation)
+    else await store.saveInspection(updated)
+    await refreshLocal()
     setOverrideRecord(null)
+    if (workspace) synchronize()
   }
 
   const importRecord = async (record) => {
-    await saveInspection(record)
-    setHistory((current) => [record, ...current.filter((item) => item.id !== record.id)].slice(0, 50))
+    if (workspace) throw new Error('Imported bundles must be inspected locally; they cannot overwrite managed cases.')
+    if (await store.get('inspections', record.id)) throw new Error('A record with this ID already exists. Import cannot overwrite it.')
+    await store.saveInspection(normalizeCase(record))
+    await refreshLocal()
   }
 
   return (
     <>
       <Shell route={route} setRoute={setRoute} historyCount={history.length} actor={actor}>
-        {route === 'inspect' && <InspectionStudio onSaveRecord={saveRecord} onOpenReport={setReport} challenge={challenge?.active ? challenge : null} onChallengeComplete={completeChallenge} actor={actor} />}
+        {(workspace || syncError) && <div className="sync-status" role="status"><b>{syncing ? 'Synchronizing…' : `${operations.length} queued change(s)`}</b><span>{syncError || 'Local evidence is retained until the server acknowledges it.'}</span>{workspace && <button disabled={syncing} onClick={() => synchronize(true)}>Sync / retry</button>}{operations.map((operation) => <details key={operation.id}><summary>{operation.kind} · {operation.recordId} · {operation.state}</summary><p>{operation.lastError || 'Waiting for upload and server verification.'}</p>{operation.kind === 'review' && operation.state === 'conflict' && <><p>Your proposed disposition: {operation.payload.status}. {operation.payload.reason}</p><button onClick={() => archiveConflictingReview(operation)}>Keep server version; archive my unsent review locally</button><p>Then reopen Evidence and submit a new review against the latest version.</p></>}</details>)}</div>}
+        {route === 'inspect' && <InspectionStudio key={studioKey} store={store} workspace={workspace} onNewInspection={() => setStudioKey((value) => value + 1)} onSaveRecord={saveRecord} onOpenReport={openReport} challenge={challenge?.active ? challenge : null} onChallengeComplete={completeChallenge} actor={actor} />}
         {route === 'challenge' && <BlindChallengePage challenge={challenge} onStart={startChallenge} onContinue={() => setRoute('inspect')} history={history} />}
-        {route === 'dashboard' && <Dashboard history={history} onNavigate={setRoute} onOpenReport={setReport} />}
-        {route === 'history' && <HistoryPage history={history} onOpenReport={setReport} onNavigate={setRoute} />}
+        {route === 'dashboard' && <Dashboard history={history} onNavigate={setRoute} onOpenReport={openReport} />}
+        {route === 'history' && <HistoryPage history={history} onOpenReport={openReport} onNavigate={setRoute} />}
         {route === 'benchmark' && <ValidationLab />}
-        {route === 'operations' && <OfficerOperations history={history} actor={actor} onActorChange={setActor} onOpenReport={setReport} onOverride={setOverrideRecord} onImportRecord={importRecord} />}
+        {route === 'operations' && (workspace ? <SharedOperations workspace={workspace} history={history} onOpenReport={openReport} onOverride={setOverrideRecord} /> : <OfficerOperations history={history} actor={actor} onActorChange={setActor} onOpenReport={openReport} onOverride={setOverrideRecord} onImportRecord={importRecord} />)}
         {route === 'rules' && <RulesLibrary />}
       </Shell>
       <ReportModal record={report} onClose={() => setReport(null)} />
       <OverrideModal record={overrideRecord} onClose={() => setOverrideRecord(null)} onApply={applyOverride} />
     </>
   )
+}
+
+export default function App() {
+  return <WorkspaceGate>{(workspace) => <InspectionApp key={workspace?.scope || 'local'} workspace={workspace} />}</WorkspaceGate>
 }

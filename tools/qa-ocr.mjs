@@ -28,7 +28,7 @@ await page.getByText(/OCR complete across/i).waitFor({ timeout: 120_000 })
 
 const text = await page.locator('.evidence-editor').inputValue()
 const confidence = await page.locator('.confidence-chip').innerText()
-const productName = await page.getByLabel('Product / generic name').inputValue()
+const productName = await page.getByLabel('Product / generic name', { exact: true }).inputValue()
 const parsedSignals = await page.locator('.extraction-grid .detected').count()
 const mappedRegions = await page.locator('.declaration-region').count()
 const expectedLines = [

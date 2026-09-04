@@ -1,3 +1,4 @@
+import { requireMember, quota, failure } from '../server/security.mjs'
 const MAX_BASE64_LENGTH = 4_000_000
 const GOOGLE_VISION_ENDPOINT = 'https://vision.googleapis.com/v1/images:annotate'
 
@@ -63,12 +64,15 @@ export function normalizeVisionAnnotation(annotation = {}) {
   return { text: String(annotation.fullTextAnnotation?.text || annotation.textAnnotations?.[0]?.description || '').trim(), confidence: Number(confidence.toFixed(1)), words }
 }
 
-export default async function handler(req, res) {
+export function createOcrHandler({ authorize = requireMember, limit = quota } = {}) {
+return async function handler(req, res) {
   if (req.method === 'GET') return send(res, 200, { configured: Boolean(process.env.GOOGLE_CLOUD_VISION_API_KEY), provider: 'google-vision', mode: 'explicit-opt-in' })
   if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed.' })
   const apiKey = process.env.GOOGLE_CLOUD_VISION_API_KEY
   if (!apiKey) return send(res, 503, { error: 'Connected OCR is not configured. Add GOOGLE_CLOUD_VISION_API_KEY to the server environment.' })
   try {
+    const context = await authorize(req)
+    await limit(context, 'connected-ocr', 10, 100)
     const content = parseImageDataUrl(req.body?.image)
     const response = await fetch(GOOGLE_VISION_ENDPOINT, {
       method: 'POST',
@@ -84,7 +88,10 @@ export default async function handler(req, res) {
     if (!result.text) return send(res, 422, { error: 'Connected OCR found no readable text. Retake or crop the declaration panel.' })
     return send(res, 200, { ...result, provider: 'google-vision', retention: 'NiyamLens does not persist the transferred image.' })
   } catch (error) {
+    if (error.status) return failure(res, error)
     const status = /required|exceeds/i.test(error.message || '') ? 400 : 502
     return send(res, status, { error: error.message || 'Connected OCR failed.' })
   }
 }
+}
+export default createOcrHandler()

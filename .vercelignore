@@ -1,0 +1,18 @@
+# Only application sources/assets belong in the hosting build context.
+.git/
+.github/
+.video-pydeps/
+.env*
+node_modules/
+dist/
+dist-workspace-test/
+docs/
+datasets/
+reports/
+tests/
+tools/
+supabase/
+qa-*.png
+*.log
+__pycache__/
+*.pyc

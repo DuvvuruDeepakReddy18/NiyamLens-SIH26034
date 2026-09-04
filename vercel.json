@@ -4,7 +4,9 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/ocr.js": { "maxDuration": 30 }
+    "api/ocr.js": { "maxDuration": 30 },
+    "api/evidence.js": { "maxDuration": 60 },
+    "api/cases.js": { "maxDuration": 60 }
   },
   "headers": [
     {
