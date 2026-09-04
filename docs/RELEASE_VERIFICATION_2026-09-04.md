@@ -8,6 +8,7 @@ This release candidate adds the managed-cloud implementation. It does **not** cl
 | --- | --- |
 | Unit, database and client regression tests | 93/93 passed |
 | Production Vite build | Passed |
+| GitHub-hosted verification | Source commit's install, test and build steps passed; registry audit still running at this verification snapshot |
 | Production dependency audit | `npm audit --omit=dev --audit-level=high`: zero known vulnerabilities |
 | Account-change cancellation | Bound-user requests, aborted uploads and stale-response regressions passed |
 | Portable evidence reports | Bounded downloads, original/analysis digest checks and embedded-image export tests passed |
@@ -15,14 +16,20 @@ This release candidate adds the managed-cloud implementation. It does **not** cl
 | Managed-mode browser regression | Passed in Chrome with zero page errors: offline queue, two byte/hash-checked mocked uploads, server recomputation, portable export, timeline provenance and sign-out/account-switch isolation |
 | Hosted Supabase Auth/Storage | Not run: account sign-in and project creation required |
 | Hosting configuration | Existing Vercel project confirmed; no production or preview environment variables configured |
+| Hosted preview | Ready; homepage serves the expected bundle; downloaded JavaScript SHA-256 exactly matches the tested build |
+| Hosted readiness/API | `/api/health`: HTTP 503 and `ready:false`; `/api/cases`: HTTP 503, shared backend not configured. No case data returned |
 | Secret hygiene | Only empty `.env.example` tracked; environment files and non-application artifacts excluded from hosting build context |
 
 The SQL tests execute actual embedded PostgreSQL with Auth/Storage schema fixtures. Client and managed-browser tests mock provider services. Neither substitutes for real Supabase token, Storage, email or multi-user acceptance testing.
 
 ## Publication
 
-- Release branch: `codex/managed-cloud-release`.
-- Source backup and Vercel preview: pending completion of the release checks.
+- Release branch: [`codex/managed-cloud-release`](https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034/tree/codex/managed-cloud-release), pushed and verified against the remote.
+- Deployed application source: [`424b6b59f955f6df3cce08f14780d9f372ef77ee`](https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034/commit/424b6b59f955f6df3cce08f14780d9f372ef77ee). Subsequent release-note-only commits do not change this tested snapshot.
+- [Verified Vercel preview](https://niyamlens-sih26034-iolybk76r-duvvurudeepakreddy18s-projects.vercel.app): `dpl_qMaavkHYHYDGczfN6SpMn2TWgGbS`, Ready, Preview, Vite, 18-second deployment duration. Created automatically by the GitHub push; build logs confirm branch and commit.
+- Preview protection is enabled: unauthenticated requests redirect to Vercel sign-in. Authenticated CLI smoke checks used a CLI-generated project automation bypass token; no token is included in this record or Git. No public-access setting was disabled.
+- Verified app asset: `/assets/index-XrkyorMA.js`, SHA-256 `bae0ed10b8fcfacabb2b3de984a6b6d1322b116494f661d133f6914cdb4db562` (local and hosted exact match).
+- [Source-commit CI run](https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034/actions/runs/33838301686); its test/build steps passed, audit was pending when checked. No final remote audit success is claimed.
 - Production is intentionally unchanged: <https://niyamlens-sih26034.vercel.app/>.
 - Verified existing production deployment: `dpl_HuQQppi67JvjrsfQ7xjmtMqNvnFU` (Ready).
 - Previous production source: `ac488014b7a219570a704c2e6e96cd5421f25c2d`.

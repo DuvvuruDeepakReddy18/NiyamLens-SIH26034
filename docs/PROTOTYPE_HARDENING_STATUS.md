@@ -2,7 +2,7 @@
 
 4 September 2026 — SIH26034 / NiyamLens
 
-This is an implementation update, **not a claim that the system is production-certified or automatically accurate on every real package**. A hosted Supabase project has not been configured. The managed release is being prepared on `codex/managed-cloud-release`; production remains unchanged until real Auth/Storage acceptance checks pass. See the dated release record for the verified hosting and backup state.
+This is an implementation update, **not a claim that the system is production-certified or automatically accurate on every real package**. A hosted Supabase project has not been configured. The managed release is backed up on GitHub on `codex/managed-cloud-release` and deployed as a protected Vercel preview; production remains unchanged until real Auth/Storage acceptance checks pass. See `RELEASE_VERIFICATION_2026-09-04.md` for the exact source, preview and test evidence.
 
 ## Implemented
 
