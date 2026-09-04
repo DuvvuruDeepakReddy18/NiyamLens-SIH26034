@@ -1,8 +1,8 @@
 # Functional prototype: implementation and verification
 
-4 September 2026 — SIH26034 / NiyamLens
+5 September 2026 — SIH26034 / NiyamLens
 
-This is an implementation update, **not a claim that the system is production-certified or automatically accurate on every real package**. A hosted Supabase project is now configured and reachable from a staged Vercel deployment. The public domain remains unchanged until first-user setup and real Auth/Storage acceptance checks pass. The managed release is backed up on GitHub on `codex/managed-cloud-release`. See [the current activation checkpoint](CLOUD_ACTIVATION_2026-09-04.md) for exact hosted status, including the unresolved npm advisory-service timeout; `RELEASE_VERIFICATION_2026-09-04.md` preserves the earlier preview verification.
+This is an implementation update, **not a claim that the system is production-certified or automatically accurate on every real package**. The hosted Supabase project and verified 0.4.4 build are now connected at <https://niyamlens-sih26034.vercel.app/>. Auth redirects use that stable public origin, while generated deployment URLs remain Vercel-protected. The first approved Officer account is confirmed and has been sent one public-origin recovery email; fresh password sign-in and the real multi-user/field/restore gates remain open. The managed release is backed up on GitHub on `codex/managed-cloud-release`. See [the public-cutover report](../reports/public-release-2026-09-05/VALIDATION.md) for exact hosted status and rollback details.
 
 ## Implemented
 

@@ -1,6 +1,6 @@
 # NiyamLens shared-workspace setup
 
-Updated 4 September 2026. A hosted Supabase project, administrator account and connected staged Vercel build exist. Basic real-photo Auth/Storage/seal/export acceptance is documented in [the 0.4.3 cloud report](../reports/fix-gaps-2026-09-04/CLOUD-ACCEPTANCE.md); it is not full multi-user acceptance. The public production domain remains unchanged. Follow [the 0.4.4 pilot gates](PILOT_READINESS.md) for the next checks. Read [the activation checkpoint](CLOUD_ACTIVATION_2026-09-04.md) before running any setup command: the schema is already installed manually, but CLI migration history is not yet recorded. This guide also describes reproducible setup for a separate, genuinely new project. Do not provision the first administrator again.
+Updated 5 September 2026. A hosted Supabase project and public NiyamLens 0.4.4 deployment now exist. The stable production origin, Auth Site URL and exact redirect allowlist are aligned; see [the public-cutover report](../reports/public-release-2026-09-05/VALIDATION.md). One approved Officer accepted the first invitation and received a public-origin recovery email, but fresh password sign-in and the full multi-user matrix remain open gates. Read [the activation checkpoint](CLOUD_ACTIVATION_2026-09-04.md) before running any setup command: the schema is already installed manually, but CLI migration history is not yet recorded. This guide also describes reproducible setup for a separate, genuinely new project. Do not provision the first administrator again and do not push this repository's localhost-oriented `config.toml` into the hosted project.
 
 ## What works without a project
 
@@ -106,7 +106,7 @@ Add the same five environment names to the intended Vercel environment. Keep the
 
 The repository includes API routes and function timeouts. Image bytes upload directly to private Supabase Storage using exact-path upload tokens; metadata requests go through Vercel. The server subsequently verifies byte count, allowed type and SHA-256 before a case can be sealed. Upload recovery is **per file**, not byte-level resumable upload.
 
-Do not replace the current production site until the acceptance checks below pass. The current staged application uses the intended production database; it is not an isolated staging project. Its four required Vercel Production variables are already configured; the optional Google Vision key is not. See the activation checkpoint for the staged deployment, observed checks and remaining gates.
+The verified 0.4.4 build is now on <https://niyamlens-sih26034.vercel.app/> and uses the intended production database; it is not an isolated staging project. Its four required Vercel Production variables are configured; the optional Google Vision key is not. Generated deployment URLs remain Vercel-protected. Use the stable public origin for application users, follow the acceptance checks below, and use [the public-cutover report](../reports/public-release-2026-09-05/VALIDATION.md) for the exact deployment and rollback IDs.
 
 ## Acceptance checks before team use
 

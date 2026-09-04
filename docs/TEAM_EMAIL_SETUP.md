@@ -1,6 +1,6 @@
 # Team invitation email setup
 
-Status on 4 September 2026: **SMTP and latest-stage Site URL saved; Brevo IP blocker fixed narrowly; first approved invitation accepted for sending; intended Officer membership provisioned**. The owner created the dedicated key and entered it privately. Chrome verified saved non-secret SMTP values after reload. The first attempt failed because Brevo blocked the sending IP. After a fresh explicit approval, only the matching blocked address was authorized, SMTP protection stayed enabled, API blocking stayed disabled, and exactly one retry was made. Supabase created the first recipient in **Waiting for verification** state and Auth logs recorded HTTP 200, `user invited: request completed`, at 23:38:25. After separate approval, one active Officer membership was inserted and independently verified without altering the owner's active administrator access. This proves provider acceptance and access provisioning, not inbox arrival, link acceptance or password sign-in. The other three identities remain untouched. Recipient addresses and role mapping remain in the local Git/hosting-ignored roster, not this document.
+Status on 5 September 2026: **SMTP active; stable public Site URL saved; first approved invitation consumed; intended Officer membership provisioned; one public-origin recovery email accepted for sending**. The original invite reached the recipient but redirected to a Vercel-protected generated URL. A limited read-only Auth query confirmed that the account was email-confirmed and signed in, so it was not reinvited or recreated. The verified 0.4.4 build was promoted, the stable public origin was added to the exact redirect allowlist and set as Site URL, and one recovery request was then sent to that origin. Fresh recipient password sign-in is still an observed gate, not a claimed pass. The other three identities remain untouched. See [the public-cutover report](../reports/public-release-2026-09-05/VALIDATION.md). Recipient addresses and role mapping remain in the local Git/hosting-ignored roster, not this document.
 
 ## Selected pilot route
 
@@ -46,11 +46,11 @@ Preserve disabled public signup, email confirmation, current passwords and membe
 
 ## Redirect preflight
 
-The intended pilot origin is:
+The intended application origin is:
 
-<https://niyamlens-sih26034-bqda9qfmx-duvvurudeepakreddy18s-projects.vercel.app/>
+<https://niyamlens-sih26034.vercel.app/>
 
-Its exact origin is already allowlisted. Following explicit owner approval, the default Site URL was changed to the latest-stage root above, saved, reloaded and verified persisted with Save changes disabled. Both existing exact allowlist entries remain unchanged. An allowlist entry alone does **not** choose an invitation destination. The live **Invite a new user** dialog exposes no per-invite redirect control, so this flow relies on the saved Site URL. No wildcard, privileged credential export or public-domain promotion was performed.
+Its exact origin is allowlisted and is the saved default Site URL. Both prior exact staged origins were preserved; no wildcard was added. Generated deployment URLs remain behind Vercel Authentication, so they must not be used for ordinary application invitations or recovery. A Vercel **Request Sent** page is infrastructure access control, not NiyamLens authentication; do not approve application users into the Vercel team. The first confirmed recipient was sent one new recovery email only after the stable public configuration was read back.
 
 Previous Site URL, recorded for an approved rollback if needed:
 

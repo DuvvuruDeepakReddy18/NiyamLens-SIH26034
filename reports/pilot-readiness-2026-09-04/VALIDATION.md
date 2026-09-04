@@ -2,6 +2,8 @@
 
 4 September 2026. This is an implementation/test checkpoint, not an SIH-winning guarantee, regulatory certification, finished field pilot or production sign-off.
 
+**Superseded for current deployment status:** see [the 5 September public-cutover report](../public-release-2026-09-05/VALIDATION.md). The observations below are retained as historical pre-promotion evidence.
+
 ## Implemented
 
 - **Verify cloud copy**: explicitly fetches fresh current-origin server metadata and every original/analysis image, validates receipt shape and image hashes, and refuses cached fallback. Request-specific cancellation leaves synchronization and local evidence intact. A transient check banner is separate from the sealed receipt.

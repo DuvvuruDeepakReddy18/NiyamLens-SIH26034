@@ -51,18 +51,18 @@ See [BACKUP_RESTORE.md](BACKUP_RESTORE.md) for the exact snapshot contract and o
 
 It deliberately has no live-restore switch. Auth UUID stubs and a byte-stream table are not restored Supabase logins or the real Storage service. A portable case JSON is not a full workspace backup. The live gate still needs a consistent operator export, protected off-site copy, and a service-level recovery test in a **separately approved disposable project**. Never reset the evidence-bearing project for a rehearsal.
 
-## 5. Stage first; promote only after observed acceptance
+## 5. Public cutover completed; finish observed acceptance
 
-The release checklist is:
+The verified 0.4.4 stage was promoted on 5 September 2026 after managed health, unsigned-in boundaries and owner sign-in had passed. The stable public-origin smoke checks and Auth redirect correction are recorded in [the public-cutover report](../reports/public-release-2026-09-05/VALIDATION.md). The remaining release checklist is:
 
 - Automated application/probe/restore tests, five audit-gate tests, build and OCR asset hashes pass.
 - Managed staging health and unsigned-in denials pass; hosted build reports managed configuration.
 - A real owner/teammate signs into the exact new origin and **Verify cloud copy** succeeds there.
 - The real multi-user/other-organization matrix and hands-on offline/review checks pass.
 - The new-photo pilot and backup/service-restore evidence are reviewed; remaining limitations have an explicit owner.
-- Auth Site URL/allowed recovery redirects are set for the final public domain; then promote and repeat public-domain smoke checks.
+- Auth Site URL/allowed recovery redirects are set for the final public domain and public-domain smoke checks pass. Observe the recipient completing the newly issued recovery flow on that domain.
 
-No skipped test is promoted to a pass. Local-only GitHub Preview configuration is not a cloud-ready build. Keep the last known public deployment in place if any release-critical gate fails. Roll back application hosting only; do not reset the shared database as application rollback.
+No skipped test is promoted to a pass. Local-only GitHub Preview configuration is not a cloud-ready build. If a release-critical regression appears, promote the exact rollback deployment recorded in the cutover report and repeat smoke checks. Roll back application hosting only; do not reset the shared database as application rollback.
 
 ## Private artifacts and team handoff
 

@@ -1,10 +1,10 @@
 # NiyamLens team feature and verification guide
 
 - **Problem statement:** SIH26034 — packaged-commodity declaration compliance
-- **Release:** NiyamLens 0.3.0, local release candidate
-- **Public application:** <https://niyamlens-sih26034.vercel.app> (redeploy 0.3.0 before using the new OCR controls)
+- **Release:** NiyamLens 0.4.4, public managed release (`LMPC-RC-2026.09-RC5`)
+- **Public application:** <https://niyamlens-sih26034.vercel.app>
 - **Source repository:** <https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034>
-- **Last verified locally:** 3 September 2026
+- **Last verified locally and publicly:** 5 September 2026; see [the public-cutover report](../reports/public-release-2026-09-05/VALIDATION.md)
 
 ## What the product does
 
