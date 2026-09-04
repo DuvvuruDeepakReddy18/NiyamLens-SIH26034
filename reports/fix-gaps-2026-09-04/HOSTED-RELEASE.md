@@ -1,6 +1,8 @@
 # 0.4.3 hosted release checkpoint
 
-4 September 2026. Cloud-configured staging is live; authenticated acceptance and public promotion are not complete.
+Latest checkpoint: [real-photo managed cloud acceptance](CLOUD-ACCEPTANCE.md). Latest-origin administrator authentication, a real private upload/seal, separate-origin retrieval, and managed JSON disk-save/hash verification now pass. Multi-user acceptance, the latest hardened GET with a fresh cache, and public promotion remain outstanding. The preceding [recovery redirect diagnosis and narrow allowlist fix](AUTH-RECOVERY-CHECKPOINT.md) is retained as history.
+
+4 September 2026. This document records the initial hosted checks below; use the latest checkpoint above for subsequently completed authenticated acceptance. Public promotion is not complete.
 
 - Source: [`3760cfca2e3c09883ec8a45838d9dbf8081da1b6`](https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034/commit/3760cfca2e3c09883ec8a45838d9dbf8081da1b6), pushed to `codex/managed-cloud-release` from a clean working tree.
 - [GitHub CI run 33875385729](https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034/actions/runs/33875385729): completed successfully. Application tests, audit-gate tests, build, source/build OCR asset integrity and production dependency audit passed.
@@ -28,12 +30,12 @@ The Windows `vercel.ps1` wrapper consumed the argument separator before curl fla
 
 After staging, `vercel inspect https://niyamlens-sih26034.vercel.app` still resolved the public site to the prior deployment `dpl_HuQQppi67JvjrsfQ7xjmtMqNvnFU`. No promotion command was run. Use the staged link above for this release; the automatically generated GitHub Preview does not have Production cloud settings.
 
-This stage uses the existing intended-production Supabase database. No migrations, resets, invitations, account replacements or evidence uploads were performed by this hosted check. Leave the existing public alias in place if authenticated acceptance fails; do not reset the database as application rollback.
+This stage uses the existing intended-production Supabase database. No migrations, resets, invitations, account replacements or evidence uploads were performed by the initial read-only hosted check recorded here. One identified case was subsequently uploaded during the linked cloud acceptance check. Leave the existing public alias in place if remaining acceptance fails; do not reset the database as application rollback.
 
 ## What remains before public promotion
 
-1. The owner signs in privately in the new Chrome tab using the already-provisioned account. Do not send passwords or invitation links in chat.
-2. Complete an identified test inspection: original/analysis private upload, server-side digest verification, sealing, reload from Supabase and export read-back. Complete role/isolation/offline-retry checks with separately authorized accounts.
+1. Latest-origin owner authentication is now complete. Do not send passwords or invitation links in chat.
+2. The identified test inspection, managed server receipt, separate-origin private retrieval and JSON export read-back are complete within the limits in [CLOUD-ACCEPTANCE.md](CLOUD-ACCEPTANCE.md). Complete latest-stage fresh-cache GET, role/isolation/offline-retry checks with separately authorized accounts.
 3. Verify invitation/recovery delivery and update exact Auth redirect configuration for the final public domain when ready. Google Vision credentials remain unconfigured; database/object backup restoration remains untested.
 4. Only after acceptance, promote the tested release and repeat public-domain smoke checks.
 
