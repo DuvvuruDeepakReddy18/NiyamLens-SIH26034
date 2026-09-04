@@ -14,6 +14,52 @@ const errors = []; let saved = null; let evidenceChecks = 0; let uploadedFiles =
 const uploads = new Map(); const verified = new Set()
 page.on('pageerror', (error) => errors.push(error.message))
 const json = (route, body, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
+const assertWorkspaceLayout = async (width, height = 900) => {
+  await page.setViewportSize({ width, height })
+  const geometry = await page.evaluate(() => {
+    const strip = document.querySelector('.workspace-strip')
+    const sidebar = document.querySelector('.sidebar')
+    const shell = document.querySelector('.app-shell')
+    assertElements(strip, sidebar, shell)
+    const stripRect = strip.getBoundingClientRect()
+    const sidebarRect = sidebar.getBoundingClientRect()
+    const shellRect = shell.getBoundingClientRect()
+    return {
+      stripLeft: stripRect.left,
+      stripRight: stripRect.right,
+      stripBottom: stripRect.bottom,
+      sidebarLeft: sidebarRect.left,
+      sidebarRight: sidebarRect.right,
+      shellTop: shellRect.top,
+      scrollWidth: document.documentElement.scrollWidth,
+      overflowing: [...document.querySelectorAll('body *')].flatMap((element) => {
+        const rect = element.getBoundingClientRect()
+        return rect.right > window.innerWidth + 0.5 || rect.left < -0.5
+          ? [`${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}${[...element.classList].map((name) => `.${name}`).join('')}[${Math.round(rect.left)},${Math.round(rect.right)}]`]
+          : []
+      }).slice(0, 12),
+      childrenInViewport: [...strip.children].every((element) => {
+        const rect = element.getBoundingClientRect()
+        return rect.left >= -0.5 && rect.right <= window.innerWidth + 0.5
+      }),
+    }
+
+    function assertElements(...elements) {
+      if (elements.some((element) => !element)) throw new Error('Workspace layout elements are missing.')
+    }
+  })
+  assert.ok(geometry.stripRight <= width + 0.5, `Workspace strip exceeds ${width}px viewport.`)
+  assert.ok(geometry.childrenInViewport, `Workspace strip content is clipped at ${width}px.`)
+  assert.ok(geometry.scrollWidth <= width, `Horizontal overflow exists at ${width}px (document width ${geometry.scrollWidth}px): ${geometry.overflowing.join(', ')}`)
+  if (width > 820) {
+    assert.ok(Math.abs(geometry.stripLeft - geometry.sidebarRight) <= 0.5, `Workspace strip does not clear the sidebar at ${width}px.`)
+    assert.ok(Math.abs(geometry.stripLeft - 258) <= 0.5, `Desktop rail width changed unexpectedly at ${width}px.`)
+  } else {
+    assert.ok(Math.abs(geometry.stripLeft) <= 0.5, `Mobile workspace strip does not start at the viewport edge at ${width}px.`)
+    assert.ok(geometry.sidebarRight <= 0.5, `Closed mobile sidebar remains visible at ${width}px.`)
+    assert.ok(geometry.shellTop + 0.5 >= geometry.stripBottom, `App shell overlaps the wrapped workspace strip at ${width}px.`)
+  }
+}
 try {
   await page.route('http://127.0.0.1:54321/**', (route) => {
     const path = new URL(route.request().url()).pathname
@@ -74,10 +120,25 @@ try {
     return json(route, { error: 'Unexpected mock API route' }, 404)
   })
   await page.goto('http://127.0.0.1:4174/', { waitUntil: 'networkidle' })
+  await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' })
   await page.getByLabel('Email', { exact: true }).fill(user.email)
   await page.getByLabel('Password', { exact: true }).fill('local-test-password-only')
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
   await page.locator('.workspace-strip').getByText('Test Officer · officer', { exact: true }).waitFor()
+  for (const width of [1280, 821, 820, 560, 390]) await assertWorkspaceLayout(width, width <= 560 ? 844 : 900)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.getByRole('button', { name: 'Open navigation', exact: true }).click()
+  await page.locator('.menu-scrim').waitFor()
+  const scrimCoversWorkspaceControls = await page.evaluate(() => {
+    const strip = document.querySelector('.workspace-strip')
+    if (!strip) throw new Error('Workspace strip is missing.')
+    const rect = strip.getBoundingClientRect()
+    const target = document.elementFromPoint(300, Math.min(rect.bottom - 1, rect.top + 10))
+    return Boolean(target?.closest('.menu-scrim'))
+  })
+  assert.equal(scrimCoversWorkspaceControls, true, 'Mobile navigation scrim must cover workspace controls outside the drawer.')
+  await page.locator('.menu-scrim').evaluate((scrim) => scrim.click())
+  await page.setViewportSize({ width: 1440, height: 1000 })
   assert.equal(await page.getByText('Controlled test packets').count(), 0)
   // Browser-rendered test fixture, not an unseen real-world OCR benchmark.
   const fixturePage = await context.newPage()
@@ -101,8 +162,11 @@ try {
   assert.equal(await page.getByRole('button', { name: 'Review / override', exact: true }).isDisabled(), true)
   await page.getByRole('button', { name: 'Evidence', exact: true }).click()
   await page.getByText('Officer-supplied timeline — not independently verified', { exact: true }).waitFor()
-  const downloadEvent = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Export JSON', exact: true }).click()
+  const browserDownload = page.getByRole('link', { name: 'Download with browser', exact: true })
+  await browserDownload.waitFor()
+  const downloadEvent = page.waitForEvent('download')
+  await browserDownload.click()
   const download = await downloadEvent; const chunks = []
   for await (const chunk of await download.createReadStream()) chunks.push(chunk)
   const exported = JSON.parse(Buffer.concat(chunks).toString('utf8'))
@@ -133,5 +197,5 @@ try {
   await page.getByRole('button', { name: 'Sign out', exact: true }).click()
   await page.getByRole('heading', { name: 'Sign in', exact: true }).waitFor()
   assert.deepEqual(errors, [])
-  console.log(JSON.stringify({ service: 'mocked Auth and upload API; not live Supabase', login: true, realLocalOutbox: true, offlineQueueRetained: true, signedPutUploads: uploadedFiles, verifiedUploadDescriptorContract: true, serverRecomputedCase: true, portableEvidenceExport: true, clientAuditPreserved: true, roleControls: true, accountSwitchDuringRefresh: true, signOut: true, errors }, null, 2))
+  console.log(JSON.stringify({ service: 'mocked Auth and upload API; not live Supabase', login: true, workspaceLayoutViewports: [1280, 821, 820, 560, 390], mobileScrimLayering: true, realLocalOutbox: true, offlineQueueRetained: true, signedPutUploads: uploadedFiles, verifiedUploadDescriptorContract: true, serverRecomputedCase: true, portableEvidenceExport: true, clientAuditPreserved: true, roleControls: true, accountSwitchDuringRefresh: true, signOut: true, errors }, null, 2))
 } finally { await browser.close() }
