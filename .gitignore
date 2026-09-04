@@ -1,4 +1,5 @@
 node_modules/
+.niyamlens-private/
 .video-pydeps/
 docs/demo-video/
 docs/index-reference/

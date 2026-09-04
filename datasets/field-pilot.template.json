@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "kind": "prospective-field-pilot",
+  "datasetId": "team-field-pilot-v1",
+  "ownerId": "team-lead",
+  "state": "draft",
+  "isHoldout": false,
+  "freshnessClaim": "team-attested-new-sku-not-independently-verified",
+  "samplingPlan": "UNPOPULATED TEMPLATE. Collect 20–30 previously unused SKUs before viewing OCR outputs; include curved/glossy labels, tiny print, blur/skew, and English/regional scripts. Preserve every attempted capture, including failures. Use one photograph per SKU for independent photo-level denominators. This pilot does not establish representative field accuracy.",
+  "modes": [],
+  "samples": []
+}

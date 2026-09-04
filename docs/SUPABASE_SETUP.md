@@ -1,6 +1,6 @@
 # NiyamLens shared-workspace setup
 
-Updated 4 September 2026. A hosted Supabase project and a connected, staged Vercel build now exist. The public production domain remains unchanged; real Auth/Storage acceptance and first-user setup are pending. Read [the activation checkpoint](CLOUD_ACTIVATION_2026-09-04.md) before running any setup command: the schema is already installed manually, but CLI migration history is not yet recorded. This guide also describes reproducible setup for a separate, genuinely new project.
+Updated 4 September 2026. A hosted Supabase project, administrator account and connected staged Vercel build exist. Basic real-photo Auth/Storage/seal/export acceptance is documented in [the 0.4.3 cloud report](../reports/fix-gaps-2026-09-04/CLOUD-ACCEPTANCE.md); it is not full multi-user acceptance. The public production domain remains unchanged. Follow [the 0.4.4 pilot gates](PILOT_READINESS.md) for the next checks. Read [the activation checkpoint](CLOUD_ACTIVATION_2026-09-04.md) before running any setup command: the schema is already installed manually, but CLI migration history is not yet recorded. This guide also describes reproducible setup for a separate, genuinely new project. Do not provision the first administrator again.
 
 ## What works without a project
 

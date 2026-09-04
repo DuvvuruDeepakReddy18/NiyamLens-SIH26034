@@ -1,0 +1,11 @@
+{
+  "reviewerId": "replace-with-independent-reviewer-code",
+  "reviewedAt": null,
+  "ocrOutputsConsulted": false,
+  "independentPhotoReview": true,
+  "fields": {
+    "mrp": { "status": "pending", "value": null, "metricEligible": false, "notes": "REPLACE after independent visual review of the exact photograph." },
+    "netQuantity": { "status": "pending", "value": null, "metricEligible": false, "notes": "REPLACE after independent visual review of the exact photograph." },
+    "packDate": { "status": "pending", "value": null, "metricEligible": false, "notes": "REPLACE after independent visual review of the exact photograph." }
+  }
+}

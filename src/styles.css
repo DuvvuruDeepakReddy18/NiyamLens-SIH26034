@@ -552,3 +552,14 @@ main { padding: 35px 38px 70px; }
 .focus-ocr-card details { margin:12px 0; }
 .focus-ocr-card summary { cursor:pointer; font-size:13px; }
 @media (max-width:600px) { .processing-banner { flex-wrap:wrap; } .processing-banner button { width:100%; } }
+.record-actions { display:grid; gap:8px; min-width:0; }
+.record-actions .open-record { grid-column:auto; }
+.verify-cloud-record { display:flex; align-items:center; justify-content:center; gap:7px; padding:9px 12px; border:1px solid var(--line); border-radius:8px; background:var(--panel); color:var(--ink); font-size:12px; cursor:pointer; }
+.record-actions button:disabled { opacity:.55; cursor:wait; }
+.cloud-copy-check { display:flex; align-items:flex-start; gap:12px; width:min(1120px,100%); margin:12px auto; padding:16px 20px; border:1px solid #a9c8bd; border-radius:12px; background:#eef8f3; color:#173c32; }
+.cloud-copy-check > svg { flex-shrink:0; }
+.cloud-copy-check p { margin:5px 0; font-size:13px; overflow-wrap:anywhere; }
+.cloud-copy-check small { display:block; font-size:12px; line-height:1.5; }
+@media (max-width:1180px) { .history-list .record-actions { grid-column:2; } .history-list .record-actions .open-record { grid-column:auto; } }
+@media (max-width:820px) { .history-list .record-actions { grid-column:1 / -1; grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:420px) { .history-list .record-actions { grid-template-columns:1fr; } }

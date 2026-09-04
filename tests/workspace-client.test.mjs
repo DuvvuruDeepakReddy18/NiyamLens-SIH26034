@@ -145,6 +145,67 @@ test('opening locally cached evidence still verifies its bytes without requestin
   })
 })
 
+test('explicit cloud verification fetches fresh metadata and both objects despite valid cached images', async () => {
+  const { api } = setup(); const cached = record(); const fresh = record(); const calls = []
+  const localImage = `data:image/png;base64,${png.toString('base64')}`
+  Object.assign(cached, { serverVersion: 1, text: 'stale cached text' })
+  Object.assign(cached.evidenceItems[0], { originalUrl: localImage, analysisUrl: localImage })
+  Object.assign(fresh, { serverVersion: 2, serverPayloadHash: 'a'.repeat(64), serverSealedAt: '2026-09-04T14:00:00Z', syncState: 'synced', text: 'fresh server text' })
+  await withFetch(async (url, options) => {
+    calls.push(String(url)); assert.equal(options.cache, 'no-store')
+    assert.equal(String(url).startsWith('data:'), false)
+    if (url === `/api/cases?id=${cached.id}`) return json({ record: fresh })
+    if (String(url).startsWith('/api/evidence?')) return json({ url: 'https://storage.example/fresh' })
+    assert.equal(options.headers, undefined); assert.equal(options.credentials, 'omit')
+    return new Response(png, { headers: { 'content-type': 'image/png' } })
+  }, async () => {
+    const opened = await api.openRecord(cached, { source: 'cloud' })
+    assert.equal(opened.serverVersion, 2); assert.equal(opened.text, 'fresh server text')
+    assert.equal(opened.evidenceItems[0].originalUrl, localImage)
+    assert.equal(cached.text, 'stale cached text'); assert.equal(cached.serverVersion, 1)
+    assert.equal(calls.length, 5); assert.equal(calls.filter(url => url.startsWith('/api/evidence?')).length, 2)
+  })
+})
+
+test('explicit cloud verification never falls back to cached bytes after denial or invalid fresh receipt', async () => {
+  for (const response of [
+    () => new Response(JSON.stringify({ error: 'Access denied.' }), { status: 403 }),
+    () => json({ record: { ...record(), id: 'another-case' } }),
+    () => json({ record: { ...record(), serverVersion: 1, serverPayloadHash: ['a'.repeat(64)], serverSealedAt: '2026-09-04T14:00:00Z', syncState: 'synced' } }),
+    () => json({ record: { ...record(), serverVersion: 1, serverPayloadHash: 'a'.repeat(64), serverSealedAt: '2026-09-04T14:00:00Z', syncState: 'pending' } }),
+  ]) {
+    const { api } = setup(); const source = record(); let calls = 0
+    const image = `data:image/png;base64,${png.toString('base64')}`
+    Object.assign(source.evidenceItems[0], { originalUrl: image, analysisUrl: image })
+    await withFetch(async (url) => { calls++; assert.equal(url, `/api/cases?id=${source.id}`); return response() }, async () => {
+      await assert.rejects(api.openRecord(source, { source: 'cloud' }))
+    })
+    assert.equal(calls, 1)
+  }
+})
+
+test('cloud verification stops on a fresh-object hash failure rather than using its valid cached copy', async () => {
+  const { api } = setup(); const source = record(); const fresh = { ...record(), serverVersion: 1, serverPayloadHash: 'a'.repeat(64), serverSealedAt: '2026-09-04T14:00:00Z', syncState: 'synced' }
+  const corrupt = Buffer.from(png); corrupt[corrupt.length - 1] ^= 1
+  Object.assign(source.evidenceItems[0], { originalUrl: `data:image/png;base64,${png.toString('base64')}`, analysisUrl: `data:image/png;base64,${png.toString('base64')}` })
+  await withFetch(async (url) => url.startsWith('/api/cases?') ? json({ record: fresh }) : url.startsWith('/api/evidence?') ? json({ url: 'https://storage.example/fresh' }) : new Response(corrupt, { headers: { 'content-type': 'image/png' } }), async () => {
+    await assert.rejects(api.openRecord(source, { source: 'cloud' }), { status: 422, message: /Original evidence failed SHA-256/ })
+  })
+})
+
+test('a report-specific cancellation does not cancel the workspace or allow a late report', async () => {
+  const { api } = setup(); const controller = new AbortController(); const started = deferred()
+  await withFetch((_url, options) => new Promise((_resolve, reject) => {
+    started.resolve(); options.signal.addEventListener('abort', () => reject(options.signal.reason), { once: true })
+  }), async () => {
+    const pending = api.openRecord(record(), { source: 'cloud', signal: controller.signal })
+    await started.promise; controller.abort(new DOMException('Cancelled', 'AbortError'))
+    await assert.rejects(pending); assert.equal(api.signal.aborted, false)
+  })
+  await withFetch(async () => json({ records: [] }), async () => { assert.deepEqual(await api.request('cases'), { records: [] }) })
+  await assert.rejects(api.openRecord(record(), { source: 'typo' }), { status: 422 })
+})
+
 test('managed seal transmits exact OCR passes but excludes image word boxes', async () => {
   const { api } = setup(); const source = record()
   Object.assign(source.evidenceItems[0], { originalUrl: `data:image/png;base64,${png.toString('base64')}`, analysisUrl: `data:image/png;base64,${png.toString('base64')}`, ocrProvider: 'tesseract.js', ocrPasses: [{ id: 'raw:1', text: ' MRP:22.00\r\n', provider: 'tesseract.js' }], ocrWords: [] })

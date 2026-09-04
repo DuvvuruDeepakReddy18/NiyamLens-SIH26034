@@ -1,0 +1,15 @@
+[
+  {
+    "id": "FIELD-001",
+    "productKey": "replace-with-exact-barcode-or-unique-sku-key",
+    "sourcePath": ".niyamlens-private/field-pilot/photos/FIELD-001.jpg",
+    "capturedAt": null,
+    "collectorId": "replace-with-collector-code",
+    "captureRights": "team-owned-with-consent",
+    "rightsNote": "REPLACE with actual capture permission and provenance, without personal information.",
+    "previouslyUsedForDevelopment": false,
+    "shape": "replace-with-actual-shape",
+    "conditions": ["replace-with-actual-condition"],
+    "scripts": ["replace-with-actual-visible-script"]
+  }
+]

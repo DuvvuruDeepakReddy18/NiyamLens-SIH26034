@@ -113,9 +113,19 @@ export function createWorkspaceClient(client, org, expectedUserId) {
       const result = await request('cases', { method: 'POST', body: JSON.stringify({ record: { ...metadata, evidenceItems: panels, rulePack: RULE_PACK.id } }), signal })
       return { record: mergeCloudRecord(record, result.record) }
     },
-    async openRecord(record) {
-      const signal = controller.signal
+    async openRecord(record, { source = 'available', signal: callerSignal } = {}) {
+      if (!['available', 'cloud'].includes(source)) throw Object.assign(new Error('Unknown evidence retrieval source.'), { status: 422 })
+      const signal = AbortSignal.any([controller.signal, ...(callerSignal ? [callerSignal] : [])])
       await ensureCurrent(signal)
+      if (source === 'cloud') {
+        if (typeof record?.id !== 'string' || !/^[A-Za-z0-9_-]{8,100}$/.test(record.id)) throw Object.assign(new Error('A valid managed case ID is required.'), { status: 422 })
+        const result = await request(`cases?id=${encodeURIComponent(record.id)}`, { signal })
+        const fresh = result.record
+        if (!fresh || fresh.id !== record.id || !Number.isSafeInteger(fresh.serverVersion) || fresh.serverVersion < 1 || typeof fresh.serverPayloadHash !== 'string' || !/^[a-f0-9]{64}$/.test(fresh.serverPayloadHash) || typeof fresh.serverSealedAt !== 'string' || !Number.isFinite(Date.parse(fresh.serverSealedAt)) || fresh.syncState !== 'synced') throw Object.assign(new Error('The server did not return a valid managed receipt. Cached evidence was not substituted.'), { status: 422 })
+        // Inspect a fresh server snapshot without overwriting a local draft,
+        // queued review, or cached image. Failure must never fall back to cache.
+        record = fresh
+      }
       if (!Array.isArray(record.evidenceItems) || record.evidenceItems.length < 1 || record.evidenceItems.length > 4) throw Object.assign(new Error('A managed case requires one to four evidence panels.'), { status: 422 })
       const panels = []
       for (const panel of record.evidenceItems) {
@@ -123,7 +133,7 @@ export function createWorkspaceClient(client, org, expectedUserId) {
         for (const kind of ['original', 'analysis']) {
           let url = next[`${kind}Url`]
           // Signed URLs are transient transport credentials, never an exported image.
-          if (!url?.startsWith('data:image/')) {
+          if (source === 'cloud' || !url?.startsWith('data:image/')) {
             if (!panel[`${kind}Path`]) throw Object.assign(new Error('Private evidence path is missing.'), { status: 422 })
             const result = await request(`evidence?caseId=${encodeURIComponent(record.id)}&path=${encodeURIComponent(panel[`${kind}Path`])}`, { signal })
             url = result.url

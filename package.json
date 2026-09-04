@@ -1,7 +1,7 @@
 {
   "name": "niyamlens",
   "private": true,
-  "version": "0.4.3",
+  "version": "0.4.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,6 +9,14 @@
     "backend:start": "supabase start",
     "backend:status": "supabase status",
     "workspace:setup": "node --env-file-if-exists=.env.local tools/setup-workspace.mjs",
+    "field:pilot": "node tools/field-pilot.mjs",
+    "field:download": "node tools/download-field-pilot.mjs",
+    "field:smoke": "node tools/run-field-ocr-smoke.mjs",
+    "pilot:hosted": "node tools/verify-hosted-permissions.mjs",
+    "backup:verify": "node tools/verify-workspace-backup.mjs",
+    "qa:backup": "node --test tests/workspace-backup.test.mjs",
+    "qa:pilot": "node --test tests/pilot-permissions-recovery.test.mjs tests/hosted-permissions-probe.test.mjs tests/workspace-client.test.mjs",
+    "qa:field-pilot": "node --test tests/field-pilot.test.mjs tests/download-field-pilot.test.mjs tests/field-ocr-smoke.test.mjs",
     "build": "node tools/validate-build-config.mjs && vite build",
     "preview": "vite preview",
     "test": "node --test tests/*.test.mjs",

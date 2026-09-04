@@ -3,6 +3,7 @@
 .github/
 .video-pydeps/
 .env*
+.niyamlens-private/
 node_modules/
 dist/
 dist-workspace-test/

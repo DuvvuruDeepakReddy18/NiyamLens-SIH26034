@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "samples": [
+    {"productKey":"8904004401066","sha256":"58d3622620f71dfad03d1e662e23f4ff547c9fb40d07393a92c22e07d896ad61"},
+    {"productKey":"4806534226284","sha256":"ab397b7f268ea3048cce7ac976dbf2042dc9b601c54ebdb68ad41d46bbc3b499"},
+    {"productKey":"8908024977877","sha256":"9447b236c0dab70096ae4ab433eff57639b7a548a6bd10fcd88fedf0a02660c4"},
+    {"productKey":"8909177014587","sha256":"116efeb0bb63a6ccee0708d2ee429b427bacd322a6953cd5089919021da1acd9"},
+    {"productKey":"8909106053137","sha256":"b8abc3e8f8bc250d1761a88a070e234ab762e753c0ea912e462858b8c8bb22c6"},
+    {"productKey":"8000500411018","sha256":"c10c0c5c6066a987fee96179a5db40d636edca08047acc8a5b3ed25365ba2490"}
+  ]
+}

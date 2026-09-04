@@ -1638,7 +1638,7 @@ function Dashboard({ history, onNavigate, onOpenReport }) {
   )
 }
 
-function HistoryPage({ history, onOpenReport, onNavigate }) {
+function HistoryPage({ history, onOpenReport, onVerifyCloud, reportBusy, onNavigate }) {
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
@@ -1653,6 +1653,7 @@ function HistoryPage({ history, onOpenReport, onNavigate }) {
           <span className="eyebrow">CHAIN OF EVIDENCE</span>
           <h2>Every saved verdict remains inspectable.</h2>
           <p>Open any record to see the supplied image, extracted text, rule checks and uncertainty statement.</p>
+          {onVerifyCloud && <p>Verify cloud copy downloads a fresh server snapshot and both images without using or deleting the local image cache.</p>}
         </div>
       </div>
       <div className="filter-row">
@@ -1675,7 +1676,10 @@ function HistoryPage({ history, onOpenReport, onNavigate }) {
               <div className="record-product"><strong>{item.meta.productName || 'Unnamed product'}</strong><span>{item.meta.category} · {item.meta.quantity || '?'} {item.meta.unit}</span></div>
               <div className="record-score"><b>{item.result.score}%</b><span>checks passed</span></div>
               <StatusPill status={effectiveStatus(item)} />
-              <button type="button" className="open-record" onClick={() => onOpenReport(item)}>Open evidence <ArrowRight size={16} /></button>
+              <div className="record-actions">
+                <button type="button" className="open-record" disabled={reportBusy} onClick={() => onOpenReport(item)}>Open evidence <ArrowRight size={16} /></button>
+                {onVerifyCloud && item.serverVersion > 0 && <button type="button" className="verify-cloud-record" disabled={reportBusy || item.syncState !== 'synced'} title="Fetch fresh server metadata and original/analysis images. Local evidence and unsent reviews are left untouched." onClick={() => onVerifyCloud(item)}><ShieldCheck size={16} /> Verify cloud copy</button>}
+              </div>
             </article>
           ))}
         </div>
@@ -1861,7 +1865,7 @@ function RulesLibrary() {
   )
 }
 
-function ReportModal({ record, onClose }) {
+function ReportModal({ record, cloudCheck, onClose }) {
   if (!record) return null
   const audit = auditPresentation(record)
   const provenance = ocrProvenance(record)
@@ -1878,6 +1882,7 @@ function ReportModal({ record, onClose }) {
           <button type="button" className="close-report" onClick={onClose}><X size={18} /> Close</button>
         </div>
       </div>
+      {cloudCheck && <section className="cloud-copy-check no-print" role="status"><ShieldCheck size={22} /><div><strong>Fresh cloud copy checked</strong><p>Server version {cloudCheck.version} · {cloudCheck.panels * 2} original/analysis images downloaded and SHA-256 checked · {formatDate(cloudCheck.at)}</p><small>Local image cache bypassed. This session check does not certify OCR accuracy or the physical package and is not part of the sealed server receipt.</small></div></section>}
       <ReportDownloads key={record.id} record={record} />
       <article className="evidence-report">
         <header>
@@ -2009,12 +2014,16 @@ function InspectionApp({ workspace }) {
   const [route, setRoute] = useState('inspect')
   const [history, setHistory] = useState([])
   const [report, setReport] = useState(null)
+  const [reportLoading, setReportLoading] = useState(null)
+  const [reportCloudCheck, setReportCloudCheck] = useState(null)
+  const reportRequest = useRef(null)
   const [overrideRecord, setOverrideRecord] = useState(null)
   const [studioKey, setStudioKey] = useState(0)
   const [syncError, setSyncError] = useState('')
   const [operations, setOperations] = useState([])
   const [syncing, setSyncing] = useState(false)
   const store = useMemo(() => createEvidenceStore(workspace?.scope || 'local'), [workspace?.scope])
+  useEffect(() => () => reportRequest.current?.abort(), [])
   const [localActor, setActor] = useState(() => {
     try { return JSON.parse(localStorage.getItem('niyamlens:actor') || 'null') || LOCAL_ACTORS[0] } catch { return LOCAL_ACTORS[0] }
   })
@@ -2108,13 +2117,22 @@ function InspectionApp({ workspace }) {
       await refreshLocal(signal)
     } catch (error) { if (!signal.aborted) setSyncError(error.message) }
   }
-  const openReport = async (record) => {
-    const signal = workspace?.api.signal
+  const openReport = async (record, { source = 'available' } = {}) => {
+    reportRequest.current?.abort()
+    const request = new AbortController()
+    reportRequest.current = request
+    const signal = request.signal
+    setReport(null); setReportCloudCheck(null); setSyncError('')
+    setReportLoading({ id: record.id, source })
     try {
-      const opened = workspace && record.serverVersion ? await workspace.api.openRecord(record) : record
-      if (signal) await workspace.api.ensureCurrent(signal)
+      if (source === 'cloud' && (!workspace || !record.serverVersion || record.syncState !== 'synced')) throw new Error('Synchronize this managed case before verifying its cloud copy.')
+      const opened = workspace && record.serverVersion ? await workspace.api.openRecord(record, { source, signal }) : record
+      if (workspace) await workspace.api.ensureCurrent(signal)
+      if (signal.aborted || reportRequest.current !== request) return
       setReport(opened)
-    } catch (error) { if (!signal?.aborted) setSyncError(`Evidence unavailable: ${error.message}`) }
+      if (source === 'cloud') setReportCloudCheck({ at: new Date().toISOString(), version: opened.serverVersion, panels: opened.evidenceItems.length })
+    } catch (error) { if (!signal.aborted && reportRequest.current === request) setSyncError(`Evidence unavailable: ${error.message}`) }
+    finally { if (reportRequest.current === request) { reportRequest.current = null; setReportLoading(null) } }
   }
 
   const saveRecord = async (record) => {
@@ -2158,16 +2176,17 @@ function InspectionApp({ workspace }) {
   return (
     <>
       <Shell route={route} setRoute={setRoute} historyCount={history.length} actor={actor}>
+        {reportLoading && <div className="processing-banner" role="status"><LoaderCircle size={20} /><span><b>{reportLoading.source === 'cloud' ? 'Checking fresh cloud evidence…' : 'Opening evidence…'}</b><small>{reportLoading.source === 'cloud' ? 'Fetching server metadata and hash-checking original/analysis images. No cached image fallback.' : 'Checking image bytes before opening the report.'}</small></span><button type="button" onClick={() => { reportRequest.current?.abort(); reportRequest.current = null; setReportLoading(null) }}>Cancel evidence check</button></div>}
         {(workspace || syncError) && <div className="sync-status" role="status"><b>{syncing ? 'Synchronizing…' : `${operations.length} queued change(s)`}</b><span>{syncError || 'Local evidence is retained until the server acknowledges it.'}</span>{workspace && <button disabled={syncing} onClick={() => synchronize(true)}>Sync / retry</button>}{operations.map((operation) => <details key={operation.id}><summary>{operation.kind} · {operation.recordId} · {operation.state}</summary><p>{operation.lastError || 'Waiting for upload and server verification.'}</p>{operation.kind === 'review' && operation.state === 'conflict' && <><p>Your proposed disposition: {operation.payload.status}. {operation.payload.reason}</p><button onClick={() => archiveConflictingReview(operation)}>Keep server version; archive my unsent review locally</button><p>Then reopen Evidence and submit a new review against the latest version.</p></>}</details>)}</div>}
         {route === 'inspect' && <InspectionStudio key={studioKey} store={store} workspace={workspace} onNewInspection={() => setStudioKey((value) => value + 1)} onSaveRecord={saveRecord} onOpenReport={openReport} challenge={challenge?.active ? challenge : null} onChallengeComplete={completeChallenge} actor={actor} />}
         {route === 'challenge' && <BlindChallengePage challenge={challenge} onStart={startChallenge} onContinue={() => setRoute('inspect')} history={history} />}
         {route === 'dashboard' && <Dashboard history={history} onNavigate={setRoute} onOpenReport={openReport} />}
-        {route === 'history' && <HistoryPage history={history} onOpenReport={openReport} onNavigate={setRoute} />}
+        {route === 'history' && <HistoryPage history={history} onOpenReport={openReport} onVerifyCloud={workspace ? (record) => openReport(record, { source: 'cloud' }) : null} reportBusy={Boolean(reportLoading)} onNavigate={setRoute} />}
         {route === 'benchmark' && <ValidationLab />}
         {route === 'operations' && (workspace ? <SharedOperations workspace={workspace} history={history} onOpenReport={openReport} onOverride={setOverrideRecord} /> : <OfficerOperations history={history} actor={actor} onActorChange={setActor} onOpenReport={openReport} onOverride={setOverrideRecord} onImportRecord={importRecord} />)}
         {route === 'rules' && <RulesLibrary />}
       </Shell>
-      <ReportModal record={report} onClose={() => setReport(null)} />
+      <ReportModal record={report} cloudCheck={reportCloudCheck} onClose={() => { setReport(null); setReportCloudCheck(null) }} />
       <OverrideModal record={overrideRecord} onClose={() => setOverrideRecord(null)} onApply={applyOverride} />
     </>
   )

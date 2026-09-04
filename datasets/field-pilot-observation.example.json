@@ -1,0 +1,12 @@
+{
+  "sampleId": "FIELD-001",
+  "sourceSha256": "replace-with-hash-from-frozen-manifest",
+  "mode": "replace-with-pre-registered-mode-id",
+  "startedAt": null,
+  "finishedAt": null,
+  "rawText": "REPLACE with one complete unchanged engine pass, never the officer-corrected working transcript.",
+  "transcriptKind": "raw-ocr-unedited",
+  "manuallyEdited": false,
+  "error": null,
+  "review": null
+}
