@@ -1,0 +1,319 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-04T12:44:24.838Z",
+  "source": {
+    "path": "reports/recognition-2026-09-04/rapidocr-default-raw.json",
+    "sha256": "d5febd520cb6debb1486548879a54e127ce184c7f3ab695d8bfc09340b677030",
+    "rows": 8
+  },
+  "plannerSha256": "6ac439c0880c842727fa03119e34bb12284f486bbe62b01fe2243d4f8cab7703",
+  "method": "Pure geometric acquisition-planner replay over previously recorded original-frame OCR polygons; no new inference.",
+  "imageHashesVerified": 8,
+  "photosWithSuggestedRegions": 6,
+  "regionsSuggested": 6,
+  "handCorrection": false,
+  "inferenceRerun": false,
+  "extractedFieldAccuracy": null,
+  "accuracyReason": "Suggested crop coverage is not recognition or field accuracy. No crop was recognized or selected by this diagnostic.",
+  "limitations": [
+    "Previously used eight-photo development corpus, not a holdout.",
+    "Original raw OCR source remains unchanged.",
+    "Suggestions request bounded adjacent pixels and may still omit an undetected distant value; the officer must inspect the rectangle before retrying.",
+    "Absent/cropped headings, rotated print and composite MRP/USP headings cause abstention or require manual selection.",
+    "All original and additional raw readings must remain available after an officer selects a working transcript."
+  ],
+  "rows": [
+    {
+      "sampleId": "CF-001",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/6.jpg",
+      "sourceSha256": "9d2187d0603d8781814e24320b452d596dc826a50ba29f0a7643f6d43b0c619b",
+      "frame": {
+        "width": 1908,
+        "height": 2026
+      },
+      "method": "heading-guided-focus-v1",
+      "suggestions": [
+        {
+          "id": "CF-001:focus:CF-001:line-4",
+          "panelId": "CF-001",
+          "imageUrl": "datasets/openfoodfacts-india/real-labels/8901262260121/6.jpg",
+          "rect": {
+            "x0": 0.613008119876136,
+            "y0": 0.06899390319596978,
+            "x1": 0.876928244895549,
+            "y1": 0.19736877176098278
+          },
+          "field": "netQuantity",
+          "label": "Retry net quantity region",
+          "headingIds": [
+            "CF-001:line-4"
+          ],
+          "headingTexts": [
+            "Net Content:"
+          ],
+          "sourceFrame": {
+            "width": 1908,
+            "height": 2026,
+            "source": "frozen-offline-raw-original-frame"
+          },
+          "contextLineIds": [
+            "CF-001:line-7"
+          ],
+          "reason": "literal_heading_with_unresolved_same_line_value",
+          "method": "heading-guided-focus-v1"
+        }
+      ],
+      "withheld": [
+        {
+          "headingId": "CF-001:line-11",
+          "field": "mrp",
+          "reason": "value_already_format_valid_on_same_line_not_a_verified_value"
+        }
+      ],
+      "limitation": "Suggested regions are unvalidated capture guidance, not extracted values. Inspect the crop, retry real OCR, and review every conflict; never infer text hidden by glare or a cropped label."
+    },
+    {
+      "sampleId": "CF-002",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/10.jpg",
+      "sourceSha256": "61d17743670bb425275e861ccdfec072e33af556ab96d6f1043bf872fed73537",
+      "frame": {
+        "width": 2967,
+        "height": 2922
+      },
+      "method": "heading-guided-focus-v1",
+      "suggestions": [
+        {
+          "id": "CF-002:focus:CF-002:line-49",
+          "panelId": "CF-002",
+          "imageUrl": "datasets/openfoodfacts-india/real-labels/8901262260121/10.jpg",
+          "rect": {
+            "x0": 0.7382261177750898,
+            "y0": 0.5175808811766142,
+            "x1": 1,
+            "y1": 0.6210279951816166
+          },
+          "field": "netQuantity",
+          "label": "Retry net quantity region",
+          "headingIds": [
+            "CF-002:line-49"
+          ],
+          "headingTexts": [
+            "Net Content: 500m"
+          ],
+          "sourceFrame": {
+            "width": 2967,
+            "height": 2922,
+            "source": "frozen-offline-raw-original-frame"
+          },
+          "contextLineIds": [],
+          "reason": "literal_heading_with_unresolved_same_line_value",
+          "method": "heading-guided-focus-v1"
+        }
+      ],
+      "withheld": [],
+      "limitation": "Suggested regions are unvalidated capture guidance, not extracted values. Inspect the crop, retry real OCR, and review every conflict; never infer text hidden by glare or a cropped label."
+    },
+    {
+      "sampleId": "CF-003",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8906014888868/5.jpg",
+      "sourceSha256": "603169c4bae57c270a514d744a0f03ac4a8d4da25d1da095ba2037f8c78d2c88",
+      "frame": {
+        "width": 2206,
+        "height": 2506
+      },
+      "method": "heading-guided-focus-v1",
+      "suggestions": [
+        {
+          "id": "CF-003:focus:CF-003:line-7",
+          "panelId": "CF-003",
+          "imageUrl": "datasets/openfoodfacts-india/real-labels/8906014888868/5.jpg",
+          "rect": {
+            "x0": 0.001845794359554728,
+            "y0": 0.15902216577187406,
+            "x1": 0.207813309974705,
+            "y1": 0.2207661305250212
+          },
+          "field": "packDate",
+          "label": "Retry packed/manufactured date region",
+          "headingIds": [
+            "CF-003:line-7"
+          ],
+          "headingTexts": [
+            "PACKED ON:"
+          ],
+          "sourceFrame": {
+            "width": 2206,
+            "height": 2506,
+            "source": "frozen-offline-raw-original-frame"
+          },
+          "contextLineIds": [],
+          "reason": "literal_heading_with_unresolved_same_line_value",
+          "method": "heading-guided-focus-v1"
+        }
+      ],
+      "withheld": [],
+      "limitation": "Suggested regions are unvalidated capture guidance, not extracted values. Inspect the crop, retry real OCR, and review every conflict; never infer text hidden by glare or a cropped label."
+    },
+    {
+      "sampleId": "CF-004",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8906055442586/4.jpg",
+      "sourceSha256": "35d575f4a33160549dca7d4c22ce188a8df2fc0b644128a5155d9416d72ffde3",
+      "frame": {
+        "width": 2250,
+        "height": 3000
+      },
+      "method": "heading-guided-focus-v1",
+      "suggestions": [],
+      "withheld": [
+        {
+          "reason": "no_literal_local_declaration_heading_recapture_or_select_manually"
+        }
+      ],
+      "limitation": "Suggested regions are unvalidated capture guidance, not extracted values. Inspect the crop, retry real OCR, and review every conflict; never infer text hidden by glare or a cropped label."
+    },
+    {
+      "sampleId": "CF-005",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8904083301837/3.jpg",
+      "sourceSha256": "b9cd89914094ebe8f591b9c5b29e5451872720c63c9ee15461926d1dd72302d2",
+      "frame": {
+        "width": 1916,
+        "height": 2685
+      },
+      "method": "heading-guided-focus-v1",
+      "suggestions": [
+        {
+          "id": "CF-005:focus:CF-005:line-21",
+          "panelId": "CF-005",
+          "imageUrl": "datasets/openfoodfacts-india/real-labels/8904083301837/3.jpg",
+          "rect": {
+            "x0": 0.587143872250116,
+            "y0": 0.8176508700145382,
+            "x1": 0.8343839026960609,
+            "y1": 0.964468398144596
+          },
+          "field": "netQuantity",
+          "label": "Retry net quantity region",
+          "headingIds": [
+            "CF-005:line-21"
+          ],
+          "headingTexts": [
+            "Net Quantity"
+          ],
+          "sourceFrame": {
+            "width": 1916,
+            "height": 2685,
+            "source": "frozen-offline-raw-original-frame"
+          },
+          "contextLineIds": [],
+          "reason": "literal_heading_with_unresolved_same_line_value",
+          "method": "heading-guided-focus-v1"
+        }
+      ],
+      "withheld": [],
+      "limitation": "Suggested regions are unvalidated capture guidance, not extracted values. Inspect the crop, retry real OCR, and review every conflict; never infer text hidden by glare or a cropped label."
+    },
+    {
+      "sampleId": "CF-006",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/11.jpg",
+      "sourceSha256": "34b8b602484c492408dd2921d1a657e8f030a97706da41deac04c110f7354120",
+      "frame": {
+        "width": 3474,
+        "height": 4453
+      },
+      "method": "heading-guided-focus-v1",
+      "suggestions": [
+        {
+          "id": "CF-006:focus:CF-006:line-30",
+          "panelId": "CF-006",
+          "imageUrl": "datasets/openfoodfacts-india/real-labels/8901764082405/11.jpg",
+          "rect": {
+            "x0": 0.36213804453916504,
+            "y0": 0.7579248251553019,
+            "x1": 0.7424537950639581,
+            "y1": 0.9860267594505817
+          },
+          "field": "netQuantity",
+          "label": "Retry net quantity region",
+          "headingIds": [
+            "CF-006:line-30"
+          ],
+          "headingTexts": [
+            "NET QUANTITY:"
+          ],
+          "sourceFrame": {
+            "width": 3474,
+            "height": 4453,
+            "source": "frozen-offline-raw-original-frame"
+          },
+          "contextLineIds": [
+            "CF-006:line-34"
+          ],
+          "reason": "literal_heading_with_unresolved_same_line_value",
+          "method": "heading-guided-focus-v1"
+        }
+      ],
+      "withheld": [],
+      "limitation": "Suggested regions are unvalidated capture guidance, not extracted values. Inspect the crop, retry real OCR, and review every conflict; never infer text hidden by glare or a cropped label."
+    },
+    {
+      "sampleId": "CF-007",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8901764082405/13.jpg",
+      "sourceSha256": "1f0025ed0036b861d1ff901f4df776cea6d78c4aafb775555bfd02d7ea5fce5c",
+      "frame": {
+        "width": 2400,
+        "height": 3200
+      },
+      "method": "heading-guided-focus-v1",
+      "suggestions": [
+        {
+          "id": "CF-007:focus:CF-007:line-36",
+          "panelId": "CF-007",
+          "imageUrl": "datasets/openfoodfacts-india/real-labels/8901764082405/13.jpg",
+          "rect": {
+            "x0": 0.5845332263022336,
+            "y0": 0.6605226461671049,
+            "x1": 0.7299614534666466,
+            "y1": 0.8354450662352388
+          },
+          "field": "netQuantity",
+          "label": "Retry net quantity region",
+          "headingIds": [
+            "CF-007:line-36"
+          ],
+          "headingTexts": [
+            "NET QUANTITY:"
+          ],
+          "sourceFrame": {
+            "width": 2400,
+            "height": 3200,
+            "source": "frozen-offline-raw-original-frame"
+          },
+          "contextLineIds": [
+            "CF-007:line-39"
+          ],
+          "reason": "literal_heading_with_unresolved_same_line_value",
+          "method": "heading-guided-focus-v1"
+        }
+      ],
+      "withheld": [],
+      "limitation": "Suggested regions are unvalidated capture guidance, not extracted values. Inspect the crop, retry real OCR, and review every conflict; never infer text hidden by glare or a cropped label."
+    },
+    {
+      "sampleId": "CF-008",
+      "sourcePath": "datasets/openfoodfacts-india/real-labels/8902579001360/14.jpg",
+      "sourceSha256": "a7bebcea106e822d878184f0a88a223d4360c0e578366ed3d1c197968bf1bbab",
+      "frame": {
+        "width": 2154,
+        "height": 4080
+      },
+      "method": "heading-guided-focus-v1",
+      "suggestions": [],
+      "withheld": [
+        {
+          "reason": "no_literal_local_declaration_heading_recapture_or_select_manually"
+        }
+      ],
+      "limitation": "Suggested regions are unvalidated capture guidance, not extracted values. Inspect the crop, retry real OCR, and review every conflict; never infer text hidden by glare or a cropped label."
+    }
+  ]
+}

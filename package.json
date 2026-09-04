@@ -1,7 +1,7 @@
 {
   "name": "niyamlens",
   "private": true,
-  "version": "0.4.2",
+  "version": "0.4.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,7 @@
     "backend:start": "supabase start",
     "backend:status": "supabase status",
     "workspace:setup": "node --env-file-if-exists=.env.local tools/setup-workspace.mjs",
-    "build": "vite build",
+    "build": "node tools/validate-build-config.mjs && vite build",
     "preview": "vite preview",
     "test": "node --test tests/*.test.mjs",
     "qa:ui": "node tools/qa-ui.mjs",

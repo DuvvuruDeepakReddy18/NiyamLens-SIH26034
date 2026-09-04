@@ -1,0 +1,13 @@
+.report-downloads { margin: 16px auto; padding: 16px 20px; width: min(1100px, calc(100% - 32px)); border: 1px solid #cbdcda; border-radius: 12px; background: #f4faf8; color: #173c43; }
+.report-download-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.report-download-actions button, .report-download-actions a { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 9px 13px; border: 1px solid #b8d0ca; border-radius: 8px; background: #fff; color: #16463f; font-size: 12px; font-weight: 650; text-decoration: none; cursor: pointer; }
+.report-download-actions button:hover, .report-download-actions a:hover { background: #e5f3ed; }
+.report-download-actions button:disabled, .report-download-actions a[aria-disabled] { opacity: .55; cursor: wait; }
+.report-download-actions button:focus-visible, .report-download-actions a:focus-visible { outline: 3px solid #007b65; outline-offset: 3px; }
+.report-download-actions small, .report-download-ready small { color: #4c6664; font-size: 11px; line-height: 1.6; }
+.report-save-status { margin: 13px 0 0; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.report-save-status.has-error { color: #8c3600; }
+.report-download-ready { display: grid; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #cee0da; }
+.report-download-ready strong { display: block; font-size: 12px; overflow-wrap: anywhere; }
+.report-download-ready span { display: block; margin-top: 4px; font-size: 11px; color: #4c6664; }
+@media (max-width: 600px) { .report-downloads { padding: 13px; }.report-download-actions { align-items: stretch; }.report-download-actions button, .report-download-actions a { flex: 1 1 130px; }.report-download-actions small { flex-basis: 100%; } }

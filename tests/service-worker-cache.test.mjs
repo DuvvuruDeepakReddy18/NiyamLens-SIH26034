@@ -25,7 +25,7 @@ function workerHarness({ fetchImpl = async () => new Response('network'), matchI
     caches: {
       match: matchImpl,
       open: async (name) => { calls.open.push(name); if (openError) throw openError; return cache },
-      keys: async () => ['niyamlens-shell-v9', 'niyamlens-shell-v10', 'unrelated-cache'],
+      keys: async () => ['niyamlens-shell-v9', 'niyamlens-shell-v10', 'niyamlens-shell-v11', 'unrelated-cache'],
       delete: async (name) => { calls.delete.push(name); return true },
     },
     fetch: async (request) => { calls.fetch.push(request); return fetchImpl(request) },
@@ -126,13 +126,13 @@ test('network HTTP errors are returned unchanged and never cached', async () => 
   assert.equal(harness.calls.put.length, 0)
 })
 
-test('cache v10 retains lazy optional Paddle assets and removes only old app caches', async () => {
+test('cache v11 retains lazy optional Paddle assets and removes only old app caches', async () => {
   const harness = workerHarness()
   await harness.dispatchLifecycle('install')
-  assert.deepEqual(harness.calls.open, ['niyamlens-shell-v10'])
+  assert.deepEqual(harness.calls.open, ['niyamlens-shell-v11'])
   assert(harness.calls.addAll.flat().includes('/'))
   assert(!harness.calls.addAll.flat().some((asset) => asset.includes('/paddle-v1/')))
   await harness.dispatchLifecycle('activate')
-  assert.deepEqual(harness.calls.delete, ['niyamlens-shell-v9'])
+  assert.deepEqual(harness.calls.delete, ['niyamlens-shell-v9', 'niyamlens-shell-v10'])
   assert.equal(harness.calls.claimed, 1)
 })

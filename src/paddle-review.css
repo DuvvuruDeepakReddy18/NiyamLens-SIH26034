@@ -15,4 +15,5 @@
 .proposal-photo .value-box { stroke: #007dc2; fill: #008cff22; }
 .paddle-proposals label { display: flex; align-items: flex-start; gap: 8px; margin-top: 16px; line-height: 1.6; font-size: 13px; }
 .paddle-proposals input { margin-top: 4px; flex-shrink: 0; }
+.focus-suggestion-box { stroke: #d86a08; fill: #ffad0022; stroke-width: 2; vector-effect: non-scaling-stroke; }
 @media (max-width: 550px) { .paddle-proposals article { grid-template-columns: 1fr; } .paddle-review { padding: 14px; } }

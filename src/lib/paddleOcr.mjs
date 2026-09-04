@@ -1,6 +1,7 @@
 import { boundedOcr, OCR_LIMITS, ocrController, throwIfAborted } from './ocrLifecycle.mjs'
 import { OCR_OUTPUT_LIMITS, validateOcrHistory, validateOcrWords, appendOcrHistory } from './ocrHistory.mjs'
 import { createFocusedVariants } from './focusOcr.mjs'
+import { planPaddleFocus } from './ocrFocusGuidance.mjs'
 
 export const PADDLE_MODEL = 'PP-OCRv6_small@paddleocr-js-0.4.2'
 export const PADDLE_PATH = '/ocr/paddle-v1/'
@@ -103,8 +104,10 @@ export async function runPaddleOcr({ evidenceItems, signal, onProgress = () => {
       const parsed = parsePaddleOutput(output[0], item.id, frame)
       const words = frame.mapWords ? frame.mapWords(parsed.words) : parsed.words
       validateOcrWords(words)
-      items.push({ id: item.id, imageUrl: item.analysisUrl, previewUrl: frame.previewUrl || item.analysisUrl, crop: frame.crop || null, source: frame.source, width: frame.width, height: frame.height, ...parsed,
-        ocrPasses: [{ id: `${item.id}:paddle-${frame.crop ? 'focus' : 'original'}`, text: parsed.text, confidence: parsed.confidence, provider: 'paddleocr-js', model: PADDLE_MODEL, strategy: frame.crop ? 'local-alternative-officer-focus' : 'local-alternative-original' }], ocrWords: words })
+      const reading = { id: item.id, imageUrl: item.analysisUrl, previewUrl: frame.previewUrl || item.analysisUrl, crop: frame.crop || null, source: frame.source, width: frame.width, height: frame.height, ...parsed,
+        ocrPasses: [{ id: `${item.id}:paddle-${frame.crop ? 'focus' : 'original'}`, text: parsed.text, confidence: parsed.confidence, provider: 'paddleocr-js', model: PADDLE_MODEL, strategy: frame.crop ? 'local-alternative-officer-focus' : 'local-alternative-original' }], ocrWords: words }
+      reading.focusGuidance = planPaddleFocus(reading)
+      items.push(reading)
       validateOcrHistory(items)
     }
     if (!items.some(item => item.text.trim())) throw new Error('Paddle OCR found no readable text. Previous evidence was preserved.')

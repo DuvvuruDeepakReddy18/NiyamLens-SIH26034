@@ -10,7 +10,8 @@ docs/
 datasets/
 reports/
 tests/
-tools/
+tools/*
+!tools/validate-build-config.mjs
 supabase/
 qa-*.png
 *.log

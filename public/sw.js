@@ -1,4 +1,4 @@
-const CACHE = 'niyamlens-shell-v10'
+const CACHE = 'niyamlens-shell-v11'
 const OFFLINE_ASSETS = [
   '/',
   '/icon.svg',

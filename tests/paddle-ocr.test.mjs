@@ -38,6 +38,7 @@ test('Paddle runner disposes the engine, has real provider provenance and no inv
   assert.equal(output.reliability, null)
   assert.equal(output.items[0].ocrPasses[0].text, 'NET QTY. 100 g')
   assert.equal(output.items[0].ocrPasses[0].provider, 'paddleocr-js')
+  assert.equal(output.items[0].focusGuidance.method, 'heading-guided-focus-v1')
   assert.equal(panel.ocrText, 'ORIGINAL')
 })
 
@@ -65,6 +66,8 @@ test('focused Paddle maps overlay boxes to the full panel and records crop prove
   assert.deepEqual(item.lines[0].box, box)
   assert.equal(item.ocrPasses[0].strategy, 'local-alternative-officer-focus')
   assert.deepEqual(item.crop, crop)
+  assert.equal(item.focusGuidance.suggestions.length, 0)
+  assert.match(item.focusGuidance.withheld[0].reason, /already_focused/)
   const next = preparePaddleAppend({ evidenceItems: [panel], text: '', rawOcrText: '', output, runId: 'crop-run' })
   assert.match(next.rawOcrText, /PADDLE FOCUSED RAW OCR/)
 })

@@ -15,7 +15,6 @@ import {
   Download,
   ExternalLink,
   FileCheck2,
-  FileJson,
   Gauge,
   History,
   ImagePlus,
@@ -61,6 +60,10 @@ import { runLocalOcr } from './lib/ocrRunner.mjs'
 import { runPaddleOcr, preparePaddleAppend, createPaddleFocusInput } from './lib/paddleOcr.mjs'
 import { reconstructOcrReadingOrder, reviewableDeclarationProposals } from './lib/ocrReadingOrder.mjs'
 import PaddleReview from './PaddleReview.jsx'
+import PaddleFocusGuidance from './PaddleFocusGuidance.jsx'
+import { resolvePaddleFocusSuggestion } from './lib/ocrFocusGuidance.mjs'
+import OcrPassSelection from './OcrPassSelection.jsx'
+import { prepareOcrPassSelection } from './lib/ocrPassSelection.mjs'
 import { abortError, boundedOcr, throwIfAborted } from './lib/ocrLifecycle.mjs'
 import { createFocusedVariants, appendFocusedTranscript } from './lib/focusOcr.mjs'
 import { appendOcrHistory, validateOcrHistory } from './lib/ocrHistory.mjs'
@@ -69,6 +72,7 @@ import { mergeCloudRecord } from './lib/workspaceClient.mjs'
 import { WorkspaceGate, SharedOperations } from './Workspace.jsx'
 import FieldVerification from './FieldVerification.jsx'
 import PlacementReview from './PlacementReview.jsx'
+import ReportDownloads from './ReportDownloads.jsx'
 import './placement.css'
 import { analyzeImageQuality, detectReferenceCard, matchDeclarationRegions, mergeOcrPassTexts, webXrDepthSupport } from './lib/vision.mjs'
 
@@ -647,6 +651,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   const [focusSelection, setFocusSelection] = useState(null)
   const [focusResult, setFocusResult] = useState(null)
   const [paddlePreview, setPaddlePreview] = useState(null)
+  const [paddleGuidance, setPaddleGuidance] = useState([])
   useEffect(() => () => { activeJob.current?.abort(); activeJob.current = null; auditGeneration.current += 1 }, [])
 
   const cancelActiveJob = () => {
@@ -660,7 +665,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   const activeEvidence = evidenceItems.find((item) => item.id === activeEvidenceId) || evidenceItems[0] || null
   useEffect(() => { setFocusSelection(null); setFocusResult(null) }, [activeEvidence?.id, activeEvidence?.analysisUrl])
   const paddleImageIdentity = evidenceItems.map(item => `${item.id}:${item.analysisUrl}`).join('|')
-  useEffect(() => { setPaddlePreview(null) }, [paddleImageIdentity])
+  useEffect(() => { setPaddlePreview(null); setPaddleGuidance([]) }, [paddleImageIdentity])
   const extraction = useMemo(() => extractDeclarations(text), [text])
   const rawRegions = useMemo(() => matchDeclarationRegions(extraction, ocrWords), [extraction, ocrWords])
   const provenance = useMemo(() => ocrProvenance({ meta, rawOcrText, auditChain }), [meta, rawOcrText, auditChain])
@@ -687,7 +692,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     if (!draft || activeJob.current || processing || ocrState.running || saving) { setDraftMessage('Finish or cancel the current operation before restoring a draft.'); return }
     if (challenge?.active && draft.challengeId !== challenge.id) { setDraftMessage('This draft predates the blind challenge. It cannot be used as blind-run evidence. Discard it explicitly or exit the challenge to recover it.'); return }
     auditGeneration.current += 1
-    setFocusResult(null); setFocusSelection(null); setPaddlePreview(null)
+    setFocusResult(null); setFocusSelection(null); setPaddlePreview(null); setPaddleGuidance([])
     setInspectionId(draft.inspectionId); setStartedAt(draft.startedAt); setEvidenceItems(draft.evidenceItems); setActiveEvidenceId(draft.activeEvidenceId)
     setText(draft.text); setRawOcrText(draft.rawOcrText || ''); setMeta({ ...INITIAL_META, ...restoreEvidencePolicy(draft) }); setOcrWords(draft.ocrWords || []); auditRef.current = draft.auditChain || []; setAuditChain(auditRef.current); setDraft(null); setDraftMessage('Draft restored under the current evidence policy; verify before sealing.')
   }
@@ -1167,24 +1172,29 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     finally { if (activeJob.current === controller) { activeJob.current = null; setProcessing(false) } }
   }
 
-  const runAlternativeOcr = async (focused = false) => {
+  const runAlternativeOcr = async (focused = false, suggestion = null) => {
     if (!evidenceItems.length || activeJob.current) return
-    if (focused && (!activeEvidence || !focusSelection || focusSelection.panelId !== activeEvidence.id || focusSelection.imageUrl !== activeEvidence.analysisUrl)) return
+    if (suggestion && (!focused || paddlePreview)) return
+    if (focused && !suggestion && (!activeEvidence || !focusSelection || focusSelection.panelId !== activeEvidence.id || focusSelection.imageUrl !== activeEvidence.analysisUrl)) return
     const controller = new AbortController()
     activeJob.current = controller
     const current = () => activeJob.current === controller && !controller.signal.aborted
     try {
+      const resolvedFocus = suggestion ? resolvePaddleFocusSuggestion({ suggestions: paddleGuidance, suggestionId: suggestion.id, evidenceItems }) : null
+      const selectedSuggestion = resolvedFocus?.suggestion || null
+      const focusPanel = resolvedFocus?.panel || activeEvidence
+      const selection = selectedSuggestion || focusSelection
       setPaddlePreview(null)
       setOcrState({ running: true, progress: 1, label: 'Preparing optional local Paddle OCR', error: '' })
-      await recordAudit('alternative_ocr_requested', { provider: 'paddleocr-js', panels: focused ? 1 : evidenceItems.length, imagesLeaveDevice: false, crop: focused ? focusSelection.rect : null })
-      const output = await runPaddleOcr({ evidenceItems: focused ? [activeEvidence] : evidenceItems, ...(focused ? { inputFactory: item => createPaddleFocusInput(item, focusSelection.rect) } : {}), signal: controller.signal, onProgress: state => { if (current()) setOcrState(state) } })
+      await recordAudit('alternative_ocr_requested', { provider: 'paddleocr-js', panels: focused ? 1 : evidenceItems.length, imagesLeaveDevice: false, crop: focused ? selection.rect : null, focusMethod: selectedSuggestion ? 'heading-guided-focus-v1-officer-selected' : focused ? 'officer-selected-rectangle' : null, headingIds: selectedSuggestion?.headingIds || [] })
+      const output = await runPaddleOcr({ evidenceItems: focused ? [focusPanel] : evidenceItems, ...(focused ? { inputFactory: item => createPaddleFocusInput(item, selection.rect) } : {}), signal: controller.signal, onProgress: state => { if (current()) setOcrState(state) } })
       if (!current()) return
       const proposals = []; const warnings = []
       for (const item of output.items) {
         try { proposals.push(...reviewableDeclarationProposals(reconstructOcrReadingOrder(item.lines)).proposals.map(proposal => ({ ...proposal, panelId: item.id }))) }
         catch (error) { warnings.push(error.message) }
       }
-      setPaddlePreview({ output, proposals, layoutWarning: warnings.join(' '), runId: crypto.randomUUID() })
+      setPaddlePreview({ output, proposals, layoutWarning: warnings.join(' '), runId: crypto.randomUUID(), guidedSuggestionId: selectedSuggestion?.id || null })
       setOcrState({ running: false, progress: 100, label: 'Paddle preview ready — earlier evidence is unchanged', error: '' })
     } catch (error) {
       if (current()) setOcrState({ running: false, progress: 0, label: 'Alternative OCR unavailable; previous evidence preserved', error: error.name === 'AbortError' ? '' : error.message })
@@ -1204,10 +1214,33 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       setText(next.text); setRawOcrText(next.rawOcrText); setEvidenceItems(next.evidenceItems); setOcrWords(next.words)
       setMeta(previous => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(next.evidenceItems.flatMap(item => item.ocrPasses || [])), ocrCompletedAt: new Date().toISOString(), ocrSource: 'local-paddle', ocrReliabilityReason: 'Alternative engine reading appended. Raw transcripts and selected layout derivations remain separate. No validated inspection-wide accuracy score is available.' }))
       applyExtraction(extractDeclarations(next.text))
+      if (paddlePreview.guidedSuggestionId) setPaddleGuidance(previous => previous.filter(item => item.id !== paddlePreview.guidedSuggestionId))
+      else if (paddlePreview.output.items.some(item => !item.crop)) setPaddleGuidance(paddlePreview.output.items.flatMap(item => item.focusGuidance?.suggestions || []))
       setPaddlePreview(null)
       setOcrState({ running: false, progress: 100, label: 'Paddle reading appended. Reverify each field and resolve any conflicts.', error: '' })
     } catch (error) { if (current()) setOcrState(state => ({ ...state, error: error.message })) }
     finally { if (activeJob.current === controller) { activeJob.current = null; setProcessing(false) } }
+  }
+
+  const applyRawPassSelection = async ({ selections, reason }) => {
+    if (activeJob.current || saved || saving || paddlePreview) return false
+    const controller = new AbortController()
+    activeJob.current = controller
+    const current = () => activeJob.current === controller && !controller.signal.aborted
+    try {
+      setProcessing(true)
+      const next = prepareOcrPassSelection({ evidenceItems, selections, reason })
+      await recordAudit('working_ocr_passes_selected', { ...next.auditPayload, previousWorkingText: text })
+      if (!current()) return false
+      setText(next.text)
+      setMeta(previous => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(evidenceItems.flatMap(item => item.ocrPasses || [])), ocrSource: 'officer-selected-raw-passes', ocrCompletedAt: previous.ocrCompletedAt, ocrReliabilityReason: 'An officer selected existing raw readings for the working transcript. Excluded readings remain in raw history; no new OCR inference or accuracy score is claimed.' }))
+      applyExtraction(extractDeclarations(next.text))
+      setOcrState({ running: false, progress: 100, label: 'Working readings selected. Raw history preserved; reverify every decisive field.', error: '' })
+      return true
+    } catch (error) {
+      if (current()) setOcrState(state => ({ ...state, error: error.message }))
+      return false
+    } finally { if (activeJob.current === controller) { activeJob.current = null; setProcessing(false) } }
   }
 
   const buildRecord = (chain = auditChain) => ({
@@ -1376,6 +1409,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
             <p className="connected-ocr-disclosure"><LockKeyhole size={13} /> Browser OCR is the private default. Connected OCR sends processed panels to Google Vision only when you click it and requires workspace sign-in. Sealing in a managed workspace uploads evidence to private storage. Reliability percentages below are unvalidated heuristics, not accuracy probabilities.</p>
             {ocrState.error && <div className="inline-warning"><AlertTriangle size={17} />{ocrState.error}</div>}
             {paddlePreview && <PaddleReview key={paddlePreview.runId} preview={paddlePreview} onAppend={appendAlternativeOcr} onDismiss={() => setPaddlePreview(null)} />}
+            <PaddleFocusGuidance suggestions={paddleGuidance} onScan={suggestion => runAlternativeOcr(true, suggestion)} pendingPreview={Boolean(paddlePreview)} />
             <DeclarationCoverage extraction={extraction} reliability={provenance.reliability} engineConfidence={provenance.engineConfidence} reliabilityReason={meta.ocrReliabilityReason} hasOcrRun={provenance.hasRun} />
             <textarea
               className="evidence-editor"
@@ -1388,6 +1422,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
             />
             <ExtractionWorkbench extraction={extraction} onApply={applyExtraction} barcodeState={barcodeState} regions={regions} onSelectRegion={(id) => { const region = regions.find((item) => item.id === id); if (region) setActiveEvidenceId(region.panelId); setActiveRegionId(id) }} meta={meta} />
             {rawOcrText && <details><summary>Original OCR transcript (not edited)</summary><pre className="transcript-original">{rawOcrText}</pre></details>}
+            <OcrPassSelection evidenceItems={evidenceItems} onApply={applyRawPassSelection} disabled={Boolean(paddlePreview) || saved || saving || processing || ocrState.running} />
             <FieldVerification extraction={extraction} meta={meta} onChange={updateMeta} />
             <PlacementReview extraction={extraction} meta={meta} evidenceItems={evidenceItems} onChange={updateMeta} result={result} />
             <div className="translation-panel">
@@ -1827,13 +1862,6 @@ function RulesLibrary() {
 }
 
 function ReportModal({ record, onClose }) {
-  const [exporting, setExporting] = useState(false)
-  const [exportError, setExportError] = useState('')
-  const [wordReport, setWordReport] = useState(null)
-  const currentReportId = useRef(record?.id)
-  currentReportId.current = record?.id
-  useEffect(() => { setWordReport(null); setExportError(''); setExporting(false) }, [record?.id])
-  useEffect(() => () => { if (wordReport?.url) URL.revokeObjectURL(wordReport.url) }, [wordReport])
   if (!record) return null
   const audit = auditPresentation(record)
   const provenance = ocrProvenance(record)
@@ -1841,40 +1869,16 @@ function ReportModal({ record, onClose }) {
     ? record.evidenceItems
     : record.imageUrl ? [{ id: 'legacy', name: record.fileName || 'Package evidence', analysisUrl: record.imageUrl, sha256: '' }] : []
   const calibratedPanels = Object.entries(record.meta.panelMeasurements || {}).filter(([, measurement]) => measurement.referencePx || measurement.glyphPx)
-  const download = () => {
-    const blob = new Blob([JSON.stringify(record, null, 2)], { type: 'application/json' })
-    const anchor = document.createElement('a')
-    anchor.href = URL.createObjectURL(blob)
-    anchor.download = `${record.id}-evidence.json`
-    anchor.click()
-    URL.revokeObjectURL(anchor.href)
-  }
-  const downloadWord = async () => {
-    setExporting(true); setExportError('')
-    try {
-      const { buildInspectionDocx } = await import('./lib/reportDocument.mjs')
-      const blob = await buildInspectionDocx(record)
-      if (currentReportId.current !== record.id) return
-      const url = URL.createObjectURL(blob)
-      // A visible, fresh user gesture avoids browsers blocking asynchronous automatic downloads.
-      setWordReport({ url, id: record.id, name: `${record.id}-inspection.docx`, size: blob.size })
-    } catch (error) { setExportError(`Word report could not be generated: ${error.message}`) }
-    finally { setExporting(false) }
-  }
-
   return (
     <div className="report-modal" role="dialog" aria-modal="true" aria-label="Evidence report">
       <div className="report-toolbar no-print">
         <BrandMark compact />
         <div>
-          <button type="button" onClick={download}><FileJson size={16} /> Export JSON</button>
-          <button type="button" onClick={downloadWord} disabled={exporting}><Download size={16} /> {exporting ? 'Preparing Word report…' : 'Export Word (.docx)'}</button>
           <button type="button" onClick={() => window.print()}><Printer size={16} /> Print / PDF</button>
           <button type="button" className="close-report" onClick={onClose}><X size={18} /> Close</button>
         </div>
       </div>
-      {exportError && <p className="inline-warning no-print" role="alert">{exportError}</p>}
-      {wordReport?.id === record.id && <p className="word-ready no-print" role="status">Word report generated ({Math.ceil(wordReport.size / 1024)} KB). <a href={wordReport.url} download={wordReport.name}>Save generated Word report</a></p>}
+      <ReportDownloads key={record.id} record={record} />
       <article className="evidence-report">
         <header>
           <BrandMark />

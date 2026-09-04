@@ -1,0 +1,22 @@
+.ocr-pass-selection { margin: 16px 0; min-width: 0; }
+.ocr-pass-toggle { width: 100%; text-align: left; border: 1px solid #b9cdc8; border-radius: 10px; padding: 13px 16px; color: #174638; background: #f4f9f7; cursor: pointer; font-weight: 650; }
+.ocr-pass-body { padding: 18px; border: 1px solid #c9d8d1; border-radius: 10px; margin-top: 8px; background: #f8fbf9; min-width: 0; }
+.ocr-pass-body h3, .ocr-pass-body h4 { margin: 4px 0 10px; }
+.ocr-pass-body p, .ocr-pass-body small { font-size: 13px; line-height: 1.6; color: #41564f; }
+.ocr-pass-body fieldset { padding: 0; border: 0; min-width: 0; }
+.ocr-pass-body legend { font-weight: 650; margin: 10px 0; }
+.ocr-pass-warning { padding: 12px; border: 1px solid #e4c688; background: #fff6de; border-radius: 8px; }
+.ocr-pass-panel { border-top: 1px solid #d2dfd7; padding: 16px 0; min-width: 0; }
+.ocr-pass-photo { display: block; width: 100%; max-height: 320px; object-fit: contain; background: white; border-radius: 8px; }
+.ocr-pass-reading { margin: 12px 0; }
+.ocr-pass-body summary { cursor: pointer; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.ocr-pass-body pre { max-height: 240px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px; border: 1px solid #dbe5e0; border-radius: 8px; background: white; font-size: 12px; }
+.ocr-pass-reading label, .ocr-pass-ack { display: flex; align-items: flex-start; gap: 9px; font-size: 13px; line-height: 1.6; margin: 10px 0; }
+.ocr-pass-reading input, .ocr-pass-ack input { margin-top: 4px; flex-shrink: 0; }
+.ocr-pass-reason { display: grid; gap: 8px; font-size: 13px; font-weight: 600; margin: 14px 0; }
+.ocr-pass-reason textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 85px; padding: 10px; border: 1px solid #b9cdc8; border-radius: 7px; font: inherit; font-weight: 400; }
+.ocr-pass-preview { margin: 14px 0; }
+.ocr-pass-body .primary-action { margin: 12px 0; white-space: normal; }
+.ocr-pass-body small { display: block; margin-top: 12px; }
+.ocr-pass-body button:disabled, .ocr-pass-toggle:disabled { cursor: not-allowed; opacity: .6; }
+@media (max-width: 550px) { .ocr-pass-body { padding: 12px; } }
