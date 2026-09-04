@@ -5,13 +5,25 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      # npm 11 removed the retired quick-audit fallback used by Node 22's npm 10.
+      # https://github.com/npm/cli/commit/080a0f2d3f09a81f0a5b2992431e0bc7feb8d701
+      - name: Pin npm audit client
+        timeout-minutes: 3
+        run: |
+          npm install --global npm@11.13.0 --no-audit --no-fund --ignore-scripts --fetch-timeout=30000 --fetch-retries=2 --fetch-retry-mintimeout=2000 --fetch-retry-maxtimeout=5000
+          npm --version
+      - run: npm ci --no-audit --no-fund
       - run: npm test
+      - name: Test audit gate failure handling
+        run: node --test .github/scripts/audit-production.test.mjs
       - run: npm run build
-      - run: npm audit --omit=dev --audit-level=high
+      - name: Audit production dependencies
+        timeout-minutes: 4
+        run: node .github/scripts/audit-production.mjs
