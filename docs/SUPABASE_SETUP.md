@@ -1,6 +1,6 @@
 # NiyamLens shared-workspace setup
 
-Prepared 4 September 2026. No hosted Supabase project was created and no cloud credentials were added. The existing production site is unchanged. The `codex/managed-cloud-release` branch is the release candidate; consult the dated release record for its verified preview and backup status. A preview without these credentials remains in explicitly labelled local-workspace mode.
+Updated 4 September 2026. A hosted Supabase project and a connected, staged Vercel build now exist. The public production domain remains unchanged; real Auth/Storage acceptance and first-user setup are pending. Read [the activation checkpoint](CLOUD_ACTIVATION_2026-09-04.md) before running any setup command: the schema is already installed manually, but CLI migration history is not yet recorded. This guide also describes reproducible setup for a separate, genuinely new project.
 
 ## What works without a project
 
@@ -24,6 +24,8 @@ See [Supabase password authentication](https://supabase.com/docs/guides/auth/pas
 ## 2. Apply the schema
 
 From the repository directory, after selecting the new project:
+
+**Existing NiyamLens hosted project:** stop here and follow the migration-history warning in the activation checkpoint. Do not rerun these migrations as though its database were empty. The commands below are for a new database whose schema has not already been installed.
 
 ```powershell
 npx supabase login
@@ -104,7 +106,7 @@ Add the same five environment names to the intended Vercel environment. Keep the
 
 The repository includes API routes and function timeouts. Image bytes upload directly to private Supabase Storage using exact-path upload tokens; metadata requests go through Vercel. The server subsequently verifies byte count, allowed type and SHA-256 before a case can be sealed. Upload recovery is **per file**, not byte-level resumable upload.
 
-Do not replace the current production site until the acceptance checks below pass against a staging project. No automatic deployment was performed in this implementation pass.
+Do not replace the current production site until the acceptance checks below pass. The current staged application uses the intended production database; it is not an isolated staging project. Its four required Vercel Production variables are already configured; the optional Google Vision key is not. See the activation checkpoint for the staged deployment, observed checks and remaining gates.
 
 ## Acceptance checks before team use
 

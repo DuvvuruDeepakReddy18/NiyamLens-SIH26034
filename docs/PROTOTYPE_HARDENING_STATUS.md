@@ -2,7 +2,7 @@
 
 4 September 2026 — SIH26034 / NiyamLens
 
-This is an implementation update, **not a claim that the system is production-certified or automatically accurate on every real package**. A hosted Supabase project has not been configured. The managed release is backed up on GitHub on `codex/managed-cloud-release` and deployed as a protected Vercel preview; production remains unchanged until real Auth/Storage acceptance checks pass. See `RELEASE_VERIFICATION_2026-09-04.md` for the exact source, preview and test evidence.
+This is an implementation update, **not a claim that the system is production-certified or automatically accurate on every real package**. A hosted Supabase project is now configured and reachable from a staged Vercel deployment. The public domain remains unchanged until first-user setup and real Auth/Storage acceptance checks pass. The managed release is backed up on GitHub on `codex/managed-cloud-release`. See [the current activation checkpoint](CLOUD_ACTIVATION_2026-09-04.md) for exact hosted status, including the unresolved npm advisory-service timeout; `RELEASE_VERIFICATION_2026-09-04.md` preserves the earlier preview verification.
 
 ## Implemented
 
@@ -52,7 +52,7 @@ The separate `tools/qa-workspace-ui.mjs` exercises compiled managed-mode sign-in
 
 ## Still required before calling it production-ready
 
-- Create/configure a real Supabase project and verify the hosted acceptance checks in `SUPABASE_SETUP.md`.
+- Finish first-user setup and verify hosted acceptance in `SUPABASE_SETUP.md` against the configured Supabase project. Read the activation checkpoint before any migration command or promotion.
 - Validate OCR and per-field error rates on a representative held-out collection of real Indian labels. This pass does not improve or remeasure the previously reported real-label benchmark. Displayed reliability numbers remain heuristics, not calibrated probabilities.
 - Validate font measurements across devices/surfaces with known physical reference measurements. A confirmation checkbox is an officer assertion, not a laboratory calibration.
 - Have a qualified domain reviewer approve the versioned legal rules. Food-law coverage, specialist classifications and ambiguous exemptions are not automatically resolved by this software.

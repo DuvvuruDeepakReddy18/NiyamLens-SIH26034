@@ -1,6 +1,6 @@
 # Managed-workspace release candidate — 4 September 2026
 
-This release candidate adds the managed-cloud implementation. It does **not** claim that Supabase is connected or that a full shared-workspace service is live.
+**Historical pre-activation snapshot.** This record describes the earlier unconfigured preview. Supabase has since been connected on a new staged build; read [CLOUD_ACTIVATION_2026-09-04.md](CLOUD_ACTIVATION_2026-09-04.md) for current status. A fully verified shared-workspace service is still not claimed live.
 
 ## Release verification
 
