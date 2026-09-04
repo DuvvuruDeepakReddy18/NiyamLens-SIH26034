@@ -1,0 +1,26 @@
+[
+  {
+    "sampleId": "CF-001",
+    "mode": "chrome-vercel-preview-paddle-whole-image",
+    "sourcePath": "datasets/openfoodfacts-india/real-labels/8901262260121/6.jpg",
+    "sourceSha256": "9d2187d0603d8781814e24320b452d596dc826a50ba29f0a7643f6d43b0c619b",
+    "transcriptKind": "raw-ocr-unedited",
+    "manuallyEdited": false,
+    "rawText": "Amul\nPASTEURISED HOMOGENISE\nTONED MILK\nNet Content:\nPO BALARAM\n500mL\n785135\nTD CHANDITALA\nWENGAL-712 702\nMRP:22.00\nITD.VLL JIBTYA\n(inclusive all taxes)\nBANKURA\nNUTRITIONAL INFORMATION pe\nUse db-date\n57.8\nTotal Carbohydrak\nICTS(P)LTD.\nEnergy, kcal\n3.0\nAdded Sugr.;\nO PO MAKALPUR,\nTotal fat, g\nHESTENGAL-712 305\n2.0\nSaturated Fat, g\nProtein,g\nTrans Fat, g\nCalcium mg\n0\nXRPOLE\nKeep Undef Refrigeration\n103\n£ssat\nKNO4JE\n:04/07/19\n10012021000071\nLic. No.\nFOR BEST RESULTS, STORE\nCONTINUOUSLY UNDER REFRIGERATION\nPFP\nBELOW 8°C UNTIL “USE-BY DATE\"\nBY\nFor Batch No. & \"Use-by date\" see seai areastam\nLOPERATIVE MILK\n ANAND-388-001\nby ate\nyor ledback\n3\nCa Executive at.\nol fbe(6 --9 PM)\n8901262260121\n0,\nFigot Plant-Gandhine\nAsand -38001\nGPC8/PWRVGNR/14/2011",
+    "error": null,
+    "metadata": {
+      "date": "2026-09-04",
+      "source": "Read from the actual visible Paddle OCR preview pre element in Chrome; no handwritten correction or layout proposal was appended.",
+      "engine": "@paddleocr/paddleocr-js 0.4.2, PP-OCRv6 small",
+      "commit": "b5b0b86e9a759a95e0a0a144608ba0badc856886",
+      "deploymentUrl": "https://niyamlens-sih26034-opet1rruw-duvvurudeepakreddy18s-projects.vercel.app",
+      "manualCrop": false,
+      "manualRotation": false,
+      "manuallySelectedLayoutProposals": 0,
+      "photosRun": 1,
+      "coverageNote": "One previously used development photograph, not a full-corpus or held-out accuracy result. Historical offline-engine scores are separate executions.",
+      "timingNote": "No timing claim: browser automation upload response was delayed.",
+      "provenanceBoundary": "Observed tool/browser run and preserved raw DOM text, not independently attested capture authenticity."
+    }
+  }
+]

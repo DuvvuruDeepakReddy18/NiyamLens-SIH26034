@@ -29,11 +29,21 @@ This release pass reopened that saved case in Chrome and generated its actual im
 
 ## Push and live gates
 
-Use the exact pushed commit's GitHub Actions run to verify clean-checkout Node 22 results. Local success is not a substitute. This report is prepared with the release changes; final commit/check URLs are provided in the task handoff.
+Release implementation commit **`b5b0b86e9a759a95e0a0a144608ba0badc856886`** was pushed successfully and verified against the remote branch head. [Commit](https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034/commit/b5b0b86e9a759a95e0a0a144608ba0badc856886).
 
-The previous branch head `1a53740` had a successful Vercel GitHub status. During this pass the connected Vercel team was accessible, but its project listing returned empty and the saved project ID returned 404. No replacement project was created and no production deployment was forced. A new GitHub-triggered deployment, if produced, must be checked independently.
+The exact commit's [GitHub Actions run 33869453524](https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034/actions/runs/33869453524) completed successfully at 11:46:22 UTC. The clean Ubuntu/Node 22 checkout installed from the lockfile, passed **318/318 application tests** and **5/5 audit-gate tests**, built successfully, verified source and built Paddle hashes and passed the fail-closed production dependency audit. This is remote CI evidence, not merely a local run.
 
-The local Chrome build states **Cloud not configured**. Live login, signed Storage transfer, cross-account RLS, synchronization and connected Google Vision remain separate acceptance gates. No synthetic user, quota stress or cloud migration was applied to production in this pass.
+The connected Vercel tool listed the team but returned no projects and 404 for the saved project ID. GitHub's deployment integration nevertheless created a successful **Preview** deployment for the exact implementation commit (deployment record `6263587832`, completed 11:46:09 UTC). [Preview](https://niyamlens-sih26034-opet1rruw-duvvurudeepakreddy18s-projects.vercel.app). No replacement project was created, no main-branch merge was made and no production promotion was forced.
+
+Chrome opened the deployed RC5 preview successfully. A real-photo upload completed with the original SHA-256 `9d2187d0603d8781814e24320b452d596dc826a50ba29f0a7643f6d43b0c619b`, and the UI confirmed a locally saved draft. The browser upload automation returned very late; its timing is not an application upload-performance measurement.
+
+The preview also completed actual whole-image Paddle inference using its deployed assets. The original 56-line transcript was read from the visible preview before explicit append and is retained in [chrome-preview-paddle-raw.json](chrome-preview-paddle-raw.json). The MRP was `22.00`, but `Net Content:` and `500mL` were separated by an unrelated line, and quantity conflict remained visible. The UI showed three declaration signals and no invented inspection-wide confidence. A reload offered **Restore draft**; restoration displayed the retained raw transcript and the same quantity conflict. No OCR text, physical-verification assertion or layout suggestion was manually corrected. This is a one-known-photo workflow test, not a general accuracy claim.
+
+The restored preview inspection was sealed as **`NLM-20260904-a6ccb79d-6299-46aa-89ff-79efff8a23fb`**, titled `Amul`. Its report remained **MANUAL REVIEW**, preserved original and working transcripts separately, and displayed **Local audit chain verified — 5 recorded events**. This was a local IndexedDB test record on the preview origin, not a cloud case or a legal determination.
+
+Unauthenticated external HTTP checks of `/api/health`, `/api/cases` and `/api/evidence` received non-JSON HTTP 302 responses at the preview access layer. They did not exercise authenticated application authorization and are not counted as passing backend integration.
+
+Both the local build **and this deployed preview** state **Cloud not configured**. Live login, signed Storage transfer, cross-account RLS, synchronization and connected Google Vision remain unverified and are not live on this preview. No synthetic user, quota stress or cloud migration was applied to production in this pass.
 
 ## Remaining acceptance work
 
