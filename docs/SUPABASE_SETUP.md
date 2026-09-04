@@ -17,7 +17,7 @@ In Authentication settings:
 - Disable public sign-ups. Only administrators should create or invite accounts.
 - Set a minimum password length of at least 12 characters.
 - Set the Site URL to the intended application URL and allow its exact password-recovery redirect URL. For local testing, allow `http://127.0.0.1:5173`.
-- Configure an email sender/SMTP before relying on invitation or password-recovery delivery to a team. Test delivery; code alone does not guarantee it.
+- Configure an email sender/SMTP before relying on invitation or password-recovery delivery to a team. Test delivery; code alone does not guarantee it. The current hosted pilot's provider choice, private setup steps and pending acceptance checks are in [team email setup](TEAM_EMAIL_SETUP.md).
 
 See [Supabase password authentication](https://supabase.com/docs/guides/auth/passwords).
 

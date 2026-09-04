@@ -65,18 +65,49 @@ Read-only deployed checks on the new origin:
 | `/api/evidence` | 401, sign-in required |
 | `/api/assignments` | 401, sign-in required |
 
-All four responses included `Cache-Control: no-store` and `X-Content-Type-Options: nosniff`. Vercel's authorized deployment transport was used without a NiyamLens session; these checks do not establish cross-role authorization or private Storage retrieval. Chrome rendered the new secure-workspace sign-in screen. Owner sign-in/fresh-cloud acceptance is pending.
+All four responses included `Cache-Control: no-store` and `X-Content-Type-Options: nosniff`. Vercel's authorized deployment transport was used without a NiyamLens session; these checks do not establish cross-role authorization or private Storage retrieval. Chrome initially rendered the new secure-workspace sign-in screen. The subsequent authenticated fresh-cloud check below closes the one-owner retrieval gate.
 
 The new exact HTTPS origin was added to the existing Supabase redirect allowlist and read back; there are now two exact stage URLs, no new wildcard. The existing default Site URL and older allowed origin were preserved. No reset email was sent. This narrowly permits explicit new-stage recovery redirects; final public-domain Auth configuration remains a separate gate.
 
 Deployment used `--prod --skip-domain` to obtain managed configuration without promoting the public site. The public URL <https://niyamlens-sih26034.vercel.app/> was independently inspected afterward and still points to `dpl_HuQQppi67JvjrsfQ7xjmtMqNvnFU`, not this release. Generated Vercel team aliases are not a public-domain acceptance result.
 
+## Authenticated fresh-cloud acceptance — 4 September, 21:23 IST
+
+After the owner signed in privately, Chrome on the exact `bqda9qfmx` stage displayed the administrator role and **Authenticated workspace · server-verified permissions**, with one case and zero queued changes. No password, session token or browser storage was inspected or transferred.
+
+Observed sequence: **Inspection history → Verify cloud copy** on case `NLM-20260904-eccae07d-8675-4cb1-805e-b843ccaa907e` (Amul). The in-progress status explicitly said it was fetching server metadata and hash-checking original/analysis images with no cached fallback. It completed with:
+
+> Fresh cloud copy checked — Server version 1 · 2 original/analysis images downloaded and SHA-256 checked · 4 Sept 2026, 9:23 pm.
+
+The report identified the intended case and visibly rendered `6.jpg`, labelled **Package evidence panel 1**, original digest prefix `9d2187d0603d878181…`. Its server receipt remained version 1, received 4 September at 20:09 IST, payload hash `c1989169252434d695e1e1cff853fef2a2ece6c46018facb2e3e3b5fc1ee6e7a`. The existing two raw Paddle readings and separately selected working reading remained in the report. The verdict remained **MANUAL REVIEW** and the outbox returned to zero queued changes. No new case, OCR pass, correction, review, upload or server mutation was submitted by this check.
+
+Independent read-only code review found no success path that bypasses the fresh metadata request or both registered image digests. The 15 cloud-client tests passed again. The UI badge is created only after `openRecord(source: 'cloud')` completes and current-user/request cancellation checks pass. Unlike the older-origin acceptance, this action exercised the latest origin's hardened evidence GET path and explicitly bypassed local image bytes; no browser cache/database was erased to manufacture the result.
+
+This is a live **one-administrator, one-case private retrieval** acceptance. The receipt's payload hash is shape-checked and displayed, not recomputed from the hydrated report or independently authenticated. Fresh means newly requested, not necessarily a newer server version. This does not establish multi-user isolation, clean-device recovery, export/save round-trip, complete backup restoration, OCR accuracy, physical authenticity or statutory compliance. No public-domain promotion was performed.
+
+## Team-account preparation — 4 September
+
+The owner supplied four distinct email addresses for two primary-workspace officers, one primary-workspace supervisor, and a control-workspace officer. Their mapping is stored only in the Git/hosting-ignored local roster; the addresses are omitted from this shareable report. No account, invitation, workspace, membership or password was created or changed during preflight.
+
+During initial preflight, the live Supabase **Authentication → Emails → SMTP Settings** page showed **Enable custom SMTP** switched off. The [official SMTP documentation](https://supabase.com/docs/guides/auth/auth-smtp) states that the default sender restricts delivery to project-team addresses and currently limits sending to two messages per hour. The later saved custom-SMTP configuration is recorded below; actual invitation/recovery delivery still needs testing. Do not grant infrastructure dashboard access to app test users to bypass delivery restrictions. No send failure or successful delivery is claimed because no invitation was attempted.
+
+After email delivery and account creation are approved, verify exact existing Auth/workspace UUIDs before adding memberships. Keep the owner's primary administrator membership unchanged. The safe control-workspace plan uses the owner as its first administrator, then grants the fourth test identity only an officer membership there. Keep the supervisor out of the control workspace and the control officer out of the primary workspace. Provision sequentially; existing membership roles/suspension are never overwritten automatically.
+
 ## Real gates not yet closed
 
-1. Sign-in and fresh-cloud retrieval on the exact new managed staging origin.
-2. Approved distinct officer/supervisor/other-organization identities and cases, hosted permission matrix, real concurrent review/assignment and browser offline/retry checks.
-3. Two independent humans' reference labels for the 24 remaining candidates (plus sampling/coverage review); then frozen full-browser pilot results.
-4. Consistent real database/object export, protected off-site copy and service-level restore in a separately approved disposable project. In-memory tests do not restore Supabase Auth or Storage.
-5. Native Word save/read-back acceptance, final public-domain Auth configuration and deliberate public promotion only after acceptance.
+Email setup follow-up: selected Brevo Free transactional SMTP as a temporary pilot route. The owner privately created/entered its key and saved. Chrome verified persisted enabled SMTP and the non-secret provider settings without exposing credentials. Following explicit approval, the default Site URL was changed from the older `ojawbw6dc` stage to the latest `bqda9qfmx` root, saved, reloaded and read back; both redirect-allowlist entries and the public alias remained unchanged.
 
-No teammate identities, invitations, role changes, live database changes, recovery emails, or live backup restore were invented/performed to bypass those gates. The existing public alias is not to be promoted automatically.
+The first recipient's exact-email search, committed with Enter, settled with no matching Auth users. The first invitation attempt returned `POST /invite`, HTTP 500, `525 "5.7.1 Unauthorized IP address"` on 4 September at 23:27:39. Brevo showed SMTP IP blocking active, API IP blocking inactive, zero authorized addresses and one blocked Amazon address (`3.25.0.105`) at 23:28.
+
+After fresh owner approval, only that address was authorized. Read-back showed one authorized address, zero unauthorized addresses, SMTP blocking still active and API blocking still inactive. A new exact-recipient lookup remained empty; exactly one retry then succeeded. Supabase displayed `Sent invite email`, created the intended Auth identity as **Waiting for verification**, and logged `POST /invite`, HTTP 200, `user invited: request completed`, at 23:38:25. Its exact Auth UUID remains only in the private ignored roster. This is accepted sending/account creation, not proof of inbox arrival, unchanged-link behavior or successful sign-in. No other recipient was invited.
+
+A subsequent read-only database invariant check returned one row: primary workspace `fec1146e-67d3-4cac-94e9-cf624fefa41e` (`NiyamLens team`), one matching active owner-admin, one matching invited Auth identity and zero memberships for that recipient. After separate action-time approval, a serializable, table-locked transaction rechecked exact-name/canonical-name uniqueness, expected workspace UUID, both Auth UUIDs, the owner's sole active-admin row and the recipient's global zero-membership state. It inserted one active `officer` row without upsert. The returned row showed the intended workspace/recipient, `officer`, `active=true` and a non-empty display name. An independent postcondition query then returned owner active-admin `1`, recipient active-officer `1`, recipient membership total `1`. No other membership or owner access changed.
+
+[The setup runbook](../../docs/TEAM_EMAIL_SETUP.md) records both attempts, the narrow IP authorization and remaining acceptance gates. Brevo's shared API/SMTP allowlist has security side effects; do not disable protection or widen access automatically. Inbox delivery, unchanged-link behavior, recipient acceptance and role isolation remain unverified. The tracking page exposed only anonymization, not a verified no-rewrite control, and was left unchanged. No full email-delivery acceptance or production sign-off is claimed.
+
+1. Approved distinct officer/supervisor/other-organization identities and cases, hosted permission matrix, real concurrent review/assignment and browser offline/retry checks.
+2. Two independent humans' reference labels for the 24 remaining candidates (plus sampling/coverage review); then frozen full-browser pilot results.
+3. Consistent real database/object export, protected off-site copy and service-level restore in a separately approved disposable project. In-memory tests do not restore Supabase Auth or Storage.
+4. Native Word save/read-back acceptance, final public-domain Auth configuration and deliberate public promotion only after acceptance.
+
+No teammate identity, recipient delivery or acceptance was fabricated. The failed first attempt, successful retry, saved Auth settings and one approved Officer membership are recorded above. No other role grant, live schema edit, recovery email or live backup restore was used to bypass the remaining gates. The existing public alias is not to be promoted automatically.
