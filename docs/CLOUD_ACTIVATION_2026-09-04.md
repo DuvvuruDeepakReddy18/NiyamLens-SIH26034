@@ -1,5 +1,7 @@
 # Hosted activation checkpoint — 4 September 2026
 
+Later update: [0.4.3 staged release and live checks](../reports/fix-gaps-2026-09-04/HOSTED-RELEASE.md). Its CI and dependency audit now pass. The historical checkpoint below records the earlier setup; owner sign-in and authenticated hosted acceptance are still pending.
+
 Last checked: 14:17 IST. **The backend is connected on a staged deployment; a fully verified team service is not yet released.** The first Auth account has now been invited, and its active administrator membership in `NiyamLens team` has been verified. The owner still needs to accept the email invitation and set their own password; successful delivery and sign-in are not yet confirmed.
 
 ## Created and configured
