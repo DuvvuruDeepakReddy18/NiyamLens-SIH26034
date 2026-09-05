@@ -1,0 +1,14 @@
+{
+  "kind": "public-RC7-anonymous-Chrome-rendering-only",
+  "startedAt": "2026-09-05T14:44:48.227Z",
+  "checks": [
+    "signed-out 1440px login renders without horizontal overflow",
+    "signed-out 390px login renders without horizontal overflow"
+  ],
+  "errors": [],
+  "bundleSha256": "eeece0a1ea4ecca198329f1629b2e8c2b0b401be8d0a0519874d817cdbc170ea",
+  "limitations": [
+    "No sign-in, hosted OCR, private records, email sending or new hosted multi-account validation."
+  ],
+  "finishedAt": "2026-09-05T14:44:50.524Z"
+}

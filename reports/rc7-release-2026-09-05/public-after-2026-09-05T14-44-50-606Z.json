@@ -1,0 +1,38 @@
+{
+  "phase": "after",
+  "startedAt": "2026-09-05T14:44:50.606Z",
+  "sourceCommit": "3f9ef45250cb4336900f40199018df28decaab9c",
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "bytes": 781,
+      "elapsedMs": 151,
+      "sha256": "86b0ba96e2f82d7014eae8e35d947c3e5be79f4af5abd29a4022146f439e4dbd"
+    },
+    {
+      "path": "/assets/index-DLqs9TZ3.js",
+      "status": 200,
+      "bytes": 787605,
+      "elapsedMs": 186,
+      "sha256": "eeece0a1ea4ecca198329f1629b2e8c2b0b401be8d0a0519874d817cdbc170ea"
+    },
+    {
+      "path": "/api/health",
+      "status": 200,
+      "bytes": 36,
+      "elapsedMs": 538,
+      "sha256": "a0057c650aa45f3da4883f1b5dfb544141ff9069fa4d4d8793ebd205313de3e9"
+    },
+    {
+      "path": "/api/cases",
+      "status": 401,
+      "bytes": 46,
+      "elapsedMs": 254,
+      "sha256": "8baee91709aa311ea12ae4674f400fe236bdff3a1336e5878da85fc44e61dc14"
+    }
+  ],
+  "error": null,
+  "scope": "Anonymous homepage/bundle/database-readiness/access-denial checks only; not hosted OCR, officer permissions, field accuracy or load testing.",
+  "finishedAt": "2026-09-05T14:44:51.738Z"
+}
