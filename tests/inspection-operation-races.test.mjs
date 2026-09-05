@@ -23,6 +23,8 @@ const declarations = names.map(name => {
   assert.ok(boundary >= 0, `Cannot locate declaration end: ${name}`)
   return rest.slice(0, boundary + '\n  }'.length)
 }).join('\n')
+const pendingPreviewExpression = app.match(/  const ocrPreviewPending = ([^\r\n]+)/)?.[1]
+assert.ok(pendingPreviewExpression, 'Missing exact App pending-preview expression; update the source harness after a refactor.')
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done }); return { promise, resolve } }
 const photo = id => ({ id, name: `${id}.jpg`, analysisUrl: `image:${id}`, originalUrl: `original:${id}`, sha256: 'a'.repeat(64), quality: { score: 80 }, width: 100, height: 100 })
 const demo = { imageUrl: 'controlled.svg', fileName: 'controlled.svg', text: 'CONTROLLED TEXT', meta: {} }
@@ -35,6 +37,7 @@ async function harness({ empty = false, pauseType = '', pauseOccurrence = 1, fai
     meta: { officerNote: 'keep', panelMeasurements: { 'old-photo': { referencePx: 20 } } },
     ocrWords: [{ panelId: 'old-photo' }], auditChain: oldChain,
     barcodeState: { message: 'ean · detected', candidate: { evidenceId: 'old-photo', format: 'ean_13' } },
+    focusResult: null, paddlePreview: null,
   }
   const entered = deferred(); const release = deferred(); let occurrences = 0
   const context = {
@@ -60,10 +63,12 @@ async function harness({ empty = false, pauseType = '', pauseOccurrence = 1, fai
     invalidatePanelMeasurement: id => { state.measurementInvalidated = id },
     updatePanelMeasurement: (key, value) => { state.measurementUpdated = { key, value } },
   }
+  const setters = []
   for (const key of ['InspectionId', 'StartedAt', 'Saved', 'AuditChain', 'Processing', 'OcrState', 'EvidenceItems', 'ActiveEvidenceId', 'OcrWords', 'Text', 'RawOcrText', 'Meta', 'BarcodeState']) {
     const stateKey = key[0].toLowerCase() + key.slice(1)
-    context[`set${key}`] = value => { state[stateKey] = typeof value === 'function' ? value(state[stateKey]) : value }
+    context[`set${key}`] = value => { setters.push(key); state[stateKey] = typeof value === 'function' ? value(state[stateKey]) : value }
   }
+  Object.defineProperty(context, 'ocrPreviewPending', { get: runInNewContext(`() => (${pendingPreviewExpression})`, context, { timeout: 1000 }) })
   const handlers = runInNewContext(`${declarations}\n({${names.join(',')}})`, context, { timeout: 1000, filename: 'App.jsx-extracted-operation-closures.js' })
   const cancel = async task => {
     await entered.promise
@@ -72,7 +77,7 @@ async function harness({ empty = false, pauseType = '', pauseOccurrence = 1, fai
     await task
     await context.auditQueue.current
   }
-  return { context, state, handlers, entered, release, cancel, oldChain }
+  return { context, state, handlers, entered, release, cancel, oldChain, setters }
 }
 
 function assertPreserved(h, expectedPhotoCount = 1) {
@@ -131,6 +136,28 @@ test('successful first multi-panel capture publishes every panel with a fresh co
   assert.deepEqual(h.context.auditRef.current.map(event => event.type), ['inspection_started', 'evidence_captured', 'evidence_captured'])
   assert.equal(await verifyAuditChain(h.context.auditRef.current), true)
 })
+
+for (const preview of ['focusResult', 'paddlePreview']) {
+  test(`pending ${preview} blocks source additions, replacements, controlled packets and image transforms`, async () => {
+    const requests = [
+      ['handleFiles', [{ id: 'added' }]], ['handleFiles', [{ id: 'replacement' }], { replaceId: 'old-photo' }],
+      ['applyDemo', demo], ['transformActiveEvidence', { rotation: 90 }],
+      ['rectifyActiveEvidence', []], ['rectifyFromBarcode'],
+    ]
+    for (const [handler, ...args] of requests) {
+      const h = await harness()
+      const pending = { pending: true }
+      h.context[preview] = pending
+      await h.handlers[handler](...args)
+      assertPreserved(h)
+      assert.equal(h.context[preview], pending, `${handler}: pending preview must not be discarded`)
+      assert.equal(h.setters.length, 0, `${handler}: no source/state writes before preview decision`)
+      assert.equal(h.context.activeJob.current, null, `${handler}: no acquired source-operation lock`)
+      assert.deepEqual(h.context.auditRef.current.map(event => event.type), ['old_observation'], `${handler}: no audit mutation`)
+      assert.equal(await verifyAuditChain(h.state.auditChain), true)
+    }
+  })
+}
 
 for (const [handler, pauseType, argument] of [
   ['transformActiveEvidence', 'image_preprocessing_changed', { rotation: 90 }],

@@ -20,7 +20,7 @@ import { prepareOcrPassSelection } from '../src/lib/ocrPassSelection.mjs'
 // provenance helpers; synchronous state-setter doubles and a mocked OCR runner.
 // These do NOT claim React/browser rendering or image-recognition coverage.
 const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
-const names = ['cancelActiveJob', 'recordAudit', 'restoreDraft', 'applyExtraction', 'appendFocusResult', 'runAlternativeOcr', 'appendAlternativeOcr', 'applyRawPassSelection']
+const names = ['cancelActiveJob', 'recordAudit', 'restoreDraft', 'applyExtraction', 'runOcr', 'runConnectedOcr', 'runFocusedOcr', 'appendFocusResult', 'runAlternativeOcr', 'appendAlternativeOcr', 'applyRawPassSelection']
 const declarations = names.map(name => {
   const start = app.indexOf(`  const ${name} =`)
   assert.ok(start >= 0, `Missing App closure ${name}; update the source harness after a refactor.`)
@@ -30,6 +30,8 @@ const declarations = names.map(name => {
 }).join('\n')
 const cleanup = app.match(/  useEffect\(\(\) => \(\) => (\{[^\n]*activeJob\.current\?\.abort\(\)[^\n]*\}), \[\]\)/)?.[1]
 assert.ok(cleanup, 'Missing exact App unmount cleanup; update the source harness after a refactor.')
+const pendingPreviewExpression = app.match(/  const ocrPreviewPending = ([^\r\n]+)/)?.[1]
+assert.ok(pendingPreviewExpression, 'Missing exact App pending-preview expression; update the source harness after a refactor.')
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done }); return { promise, resolve } }
 const clone = value => JSON.parse(JSON.stringify(value))
 const oldWord = { panelId: 'p1', text: 'ORIGINAL', lineText: 'ORIGINAL RAW', confidence: 80, bbox: { x0: 1, y0: 1, x1: 40, y1: 12 }, pageWidth: 100, pageHeight: 80 }
@@ -45,7 +47,7 @@ const paddleOutput = { provider: 'paddleocr-js', model: PADDLE_MODEL, reliabilit
 }] }
 const proposal = { panelId: 'p1', text: 'PACKED ON: 02/08/2026', sourceIds: paddleParsed.lines.map(line => line.id) }
 
-async function harness({ pauseType = '', failType = '', pauseRunner = false, failRunner = false } = {}) {
+async function harness({ pauseType = '', failType = '', pauseRunner = false, failRunner = false, pendingPreviews = true } = {}) {
   const oldChain = await appendAuditEvent([], 'old_observation', {}, 'officer')
   const state = {
     inspectionId: 'old-id', startedAt: '2026-09-01T00:00:00.000Z', evidenceItems: [clone(photo)], activeEvidenceId: 'p1',
@@ -58,10 +60,11 @@ async function harness({ pauseType = '', failType = '', pauseRunner = false, fai
     paddleGuidance: [],
     draft: { inspectionId: 'draft-id', startedAt: '2026-09-02T00:00:00.000Z', evidenceItems: [{ ...clone(photo), id: 'draft-panel', analysisUrl: 'image:draft' }], activeEvidenceId: 'draft-panel', text: 'DRAFT TEXT', rawOcrText: 'DRAFT RAW', meta: {}, ocrWords: [], auditChain: [] },
   }
+  if (!pendingPreviews) { state.focusResult = null; state.paddlePreview = null }
   const initial = clone(state); const entered = deferred(); const release = deferred()
   const runnerEntered = deferred(); const runnerRelease = deferred(); const calls = []
   const context = {
-    ...state, challenge: null, activeEvidence: state.evidenceItems[0], actor: { id: 'officer' }, qualityBlocked: false,
+    ...state, challenge: null, workspace: { offlineOnly: false }, activeEvidence: state.evidenceItems[0], actor: { id: 'officer' }, qualityBlocked: false,
     activeJob: { current: null }, auditRef: { current: oldChain }, auditQueue: { current: Promise.resolve() }, auditGeneration: { current: 0 },
     AbortController, crypto, abortError, INITIAL_META: {}, invalidateCapturedEvidence, restoreEvidencePolicy,
     appendFocusedTranscript, appendOcrHistory, validateOcrHistory, preparePaddleAppend, fieldCandidates, extractDeclarations,
@@ -85,6 +88,9 @@ async function harness({ pauseType = '', failType = '', pauseRunner = false, fai
     const stateKey = key[0].toLowerCase() + key.slice(1)
     context[`set${key}`] = value => { setters.push(key); state[stateKey] = typeof value === 'function' ? value(state[stateKey]) : value }
   }
+  // Evaluate the exact shipped expression against the harness closure values.
+  // Request tests start with no previews; append tests keep real seeded output.
+  Object.defineProperty(context, 'ocrPreviewPending', { get: runInNewContext(`() => (${pendingPreviewExpression})`, context, { timeout: 1000 }) })
   const handlers = runInNewContext(`${declarations}\n({${names.join(',')}, unmount: () => ${cleanup}})`, context, { timeout: 1000, filename: 'App.jsx-extracted-paddle-publication-closures.js' })
   return { state, initial, context, handlers, entered, release, runnerEntered, runnerRelease, calls, setters, oldChain }
 }
@@ -95,7 +101,7 @@ function assertEvidencePreserved(h) {
 
 const rawPassRequest = { selections: [{ panelId: 'p1', passId: 'crop-pass' }], reason: 'Compared both readings against the photograph; the complete unit is supported in the crop.' }
 async function rawSelectionHarness(options = {}) {
-  const h = await harness(options)
+  const h = await harness({ ...options, pendingPreviews: false })
   const captured = [{ ...clone(photo), ocrText: 'Net Content:\n500m\nMRP:22.00\n\nNet Content:\n500ml\nMRP:22.00', ocrPasses: [
     { id: 'old-pass', text: 'Net Content:\n500m\nMRP:22.00', confidence: 99 },
     { id: 'crop-pass', text: 'Net Content:\n500ml\nMRP:22.00', confidence: 81, provider: 'paddleocr-js', strategy: 'local-alternative-officer-focus' },
@@ -201,10 +207,10 @@ test('working raw-pass selection cannot drop another panel with readable OCR', a
 })
 
 test('working raw-pass selection cannot run while saved, saving, previewing or another job holds its lock', async () => {
-  for (const blockedBy of ['saved', 'saving', 'paddlePreview', 'activeJob']) {
+  for (const blockedBy of ['saved', 'saving', 'paddlePreview', 'focusResult', 'activeJob']) {
     const h = await rawSelectionHarness()
     if (blockedBy === 'activeJob') h.context.activeJob.current = new AbortController()
-    else h.context[blockedBy] = blockedBy === 'paddlePreview' ? clone(h.initial.paddlePreview) : true
+    else h.context[blockedBy] = ['paddlePreview', 'focusResult'].includes(blockedBy) ? { pending: true } : true
     assert.equal(await h.handlers.applyRawPassSelection(rawPassRequest), false)
     assertEvidencePreserved(h)
     assert.equal(h.setters.length, 0)
@@ -226,7 +232,7 @@ test('working raw-pass selection blocks draft restore while its audit is pending
 })
 
 test('guided retry resolves the current crop, not a stale event rectangle, and preserves raw evidence', async () => {
-  const h = await harness()
+  const h = await harness({ pendingPreviews: false })
   const guidance = { id: 'guide-1', panelId: 'p1', imageUrl: photo.analysisUrl, method: 'heading-guided-focus-v1', field: 'netQuantity', rect: { x0: .1, y0: .1, x1: .9, y1: .9 }, sourceFrame: { width: 100, height: 80 }, headingIds: ['heading-1'] }
   h.context.paddlePreview = null
   h.context.paddleGuidance = [guidance]
@@ -245,6 +251,7 @@ test('guided retry rejects a changed image and cannot discard a pending preview'
   assert.equal(h.calls.length, 0)
   assert.ok(h.state.paddlePreview)
   h.context.paddlePreview = null
+  h.context.focusResult = null
   await h.handlers.runAlternativeOcr(true, { id: 'guide-1' })
   assert.equal(h.calls.length, 0)
   assert.match(h.state.ocrState.error, /image changed/)
@@ -323,6 +330,42 @@ test('Paddle append retains selected layout mapping but never places joined sugg
   assert.equal(event.payload.reviewedRows[0].method, 'officer-selected-geometric-row')
 })
 
+test('fresh crop-first append populates unconfirmed package suggestions without altering its OCR or source', async () => {
+  const h = await harness({ pauseType: 'ocr_completed' })
+  const captured = [{ ...clone(photo), ocrText: '', ocrPasses: [], ocrWords: [] }]
+  const rawCrop = 'COMMON NAME: OATS\nNET QTY. 100 g\nINGREDIENTS: OATS'
+  const result = { ...clone(h.context.focusResult), output: { items: [{ ...clone(h.context.focusResult.output.items[0]), ocrText: rawCrop, ocrPasses: [{ id: 'focus-pass', text: rawCrop, confidence: 87 }] }] } }
+  for (const [key, value] of Object.entries({ evidenceItems: captured, text: '', rawOcrText: '', ocrWords: [], paddlePreview: null, focusResult: result, meta: { ...h.context.meta, productName: '', category: 'general', quantity: '', unit: '', fieldReviews: {}, classificationConfirmed: false, rule3ApplicabilityConfirmed: false } })) {
+    h.context[key] = h.state[key] = value
+    h.initial[key] = clone(value)
+  }
+  h.context.activeEvidence = captured[0]
+  const pending = h.handlers.appendFocusResult()
+  await h.entered.promise
+  assertEvidencePreserved(h)
+  assert.equal(h.state.meta.quantity, '', 'Suggestions cannot publish before the completed audit')
+  h.release.resolve()
+  await pending
+  assert.equal(h.state.meta.quantity, 100)
+  assert.equal(h.state.meta.unit, 'g')
+  assert.equal(h.state.meta.productName, 'OATS')
+  assert.equal(h.state.meta.category, 'food')
+  assert.equal(h.state.meta.classificationConfirmed, false)
+  assert.equal(h.state.meta.rule3ApplicabilityConfirmed, false)
+  assert.deepEqual(clone(h.state.meta.fieldReviews), {})
+  assert.equal(h.state.meta.ocrConfidence, null)
+  assert.equal(h.state.meta.ocrEngineConfidence, null)
+  assert.equal(h.state.evidenceItems[0].originalUrl, photo.originalUrl)
+  assert.equal(h.state.evidenceItems[0].analysisUrl, photo.analysisUrl)
+  assert.equal(h.state.evidenceItems[0].ocrPasses.length, 1)
+  assert.equal(h.state.evidenceItems[0].ocrPasses[0].text, rawCrop)
+  assert.ok(h.state.rawOcrText.endsWith(rawCrop))
+  assert.ok(h.state.text.endsWith(rawCrop))
+  assert.equal(h.state.focusResult, null)
+  assert.equal(h.state.auditChain.at(-1).payload.strategy, 'officer-selected-focus-append')
+  assert.equal(await verifyAuditChain(h.state.auditChain), true)
+})
+
 for (const handler of ['appendFocusResult', 'appendAlternativeOcr']) {
   test(`${handler}: stale image preview cannot publish to a replacement image`, async () => {
     const h = await harness()
@@ -336,7 +379,7 @@ for (const handler of ['appendFocusResult', 'appendAlternativeOcr']) {
 
 for (const action of ['cancel', 'unmount']) {
   test(`Paddle request audit ${action}: runner never starts and no preview becomes evidence`, async () => {
-    const h = await harness({ pauseType: 'alternative_ocr_requested' })
+    const h = await harness({ pauseType: 'alternative_ocr_requested', pendingPreviews: false })
     const task = h.handlers.runAlternativeOcr(); await h.entered.promise
     if (action === 'cancel') h.handlers.cancelActiveJob(); else h.handlers.unmount()
     const setterCount = h.setters.length
@@ -347,7 +390,7 @@ for (const action of ['cancel', 'unmount']) {
   })
 
   test(`Paddle runner ${action}: late progress and output cannot replace preserved evidence/preview`, async () => {
-    const h = await harness({ pauseRunner: true })
+    const h = await harness({ pauseRunner: true, pendingPreviews: false })
     const task = h.handlers.runAlternativeOcr(); await h.runnerEntered.promise
     if (action === 'cancel') h.handlers.cancelActiveJob(); else h.handlers.unmount()
     const setterCount = h.setters.length
@@ -361,14 +404,14 @@ for (const action of ['cancel', 'unmount']) {
 }
 
 test('Paddle request audit failure does not run recognition or change evidence', async () => {
-  const h = await harness({ failType: 'alternative_ocr_requested' })
+  const h = await harness({ failType: 'alternative_ocr_requested', pendingPreviews: false })
   await h.handlers.runAlternativeOcr()
   assertEvidencePreserved(h); assert.equal(h.calls.length, 0)
   assert.equal(h.state.paddlePreview, null); assert.match(h.state.ocrState.error, /Injected audit failure/)
 })
 
 test('Paddle runner failure cannot claim completion or leave a stale preview', async () => {
-  const h = await harness({ failRunner: true })
+  const h = await harness({ failRunner: true, pendingPreviews: false })
   await h.handlers.runAlternativeOcr()
   assertEvidencePreserved(h); assert.equal(h.state.paddlePreview, null)
   assert.match(h.state.ocrState.error, /Injected OCR failure/)
@@ -376,7 +419,7 @@ test('Paddle runner failure cannot claim completion or leave a stale preview', a
 })
 
 test('successful Paddle preview is separate from evidence and has no completed OCR provenance until append', async () => {
-  const h = await harness()
+  const h = await harness({ pendingPreviews: false })
   await h.handlers.runAlternativeOcr()
   assertEvidencePreserved(h)
   assert.deepEqual(clone(h.state.paddlePreview.output), paddleOutput)
@@ -385,17 +428,40 @@ test('successful Paddle preview is separate from evidence and has no completed O
 })
 
 test('focused Paddle request checks current image identity and carries exact officer crop to its runner', async () => {
-  const h = await harness()
+  const h = await harness({ pendingPreviews: false })
   await h.handlers.runAlternativeOcr(true)
   assertEvidencePreserved(h)
   assert.equal(h.calls.length, 1); assert.equal(h.calls[0].evidenceItems.length, 1)
   const input = await h.calls[0].inputFactory(photo)
   assert.deepEqual(clone(input.rect), h.initial.focusSelection.rect)
   assert.deepEqual(clone(h.state.auditChain.at(-1).payload.crop), h.initial.focusSelection.rect)
-  const stale = await harness(); stale.context.focusSelection = { ...stale.context.focusSelection, imageUrl: 'image:stale' }
+  const stale = await harness({ pendingPreviews: false }); stale.context.focusSelection = { ...stale.context.focusSelection, imageUrl: 'image:stale' }
   await stale.handlers.runAlternativeOcr(true)
   assert.equal(stale.calls.length, 0)
 })
+
+for (const preview of ['focusResult', 'paddlePreview']) {
+  test(`every whole-panel, manual-region and guided scan refuses a pending ${preview} without audit or state changes`, async () => {
+    const requests = [
+      ['runOcr', 'standard'], ['runOcr', 'deep'], ['runConnectedOcr'], ['runFocusedOcr'],
+      ['runAlternativeOcr', false], ['runAlternativeOcr', true],
+      ['runAlternativeOcr', true, { id: 'guide-1' }],
+      ['runAlternativeOcr', false, null, 'dark-ink'], ['runAlternativeOcr', true, null, 'dark-ink-90'],
+    ]
+    for (const [handler, ...args] of requests) {
+      const h = await harness({ pendingPreviews: false })
+      h.context[preview] = { pending: true }
+      const pendingBefore = h.context[preview]
+      await h.handlers[handler](...args)
+      assert.equal(h.context[preview], pendingBefore, `${handler}: pending preview cannot be discarded`)
+      assertEvidencePreserved(h)
+      assert.equal(h.setters.length, 0, `${handler}: no state setters before the preview decision`)
+      assert.equal(h.calls.length, 0, `${handler}: no recognition before the preview decision`)
+      assert.equal(h.context.activeJob.current, null, `${handler}: no acquired job lock`)
+      assert.deepEqual(clone(h.state.auditChain), clone(h.oldChain), `${handler}: no new audit event`)
+    }
+  })
+}
 
 test('idle draft restore invalidates queued audit generation and clears OCR previews', async () => {
   const h = await harness({ pauseType: 'officer_note' })

@@ -11,7 +11,7 @@ const QUALITY_COPY = {
 
 const normalizeIndex = (value) => ((value % 4) + 4) % 4
 
-export default function PackageEvidenceViewer({ evidenceItems, activeEvidenceId, processing = false, sealed = false, onSelectEvidence, onCapture }) {
+export default function PackageEvidenceViewer({ evidenceItems, activeEvidenceId, processing = false, sealed = false, locked = false, onSelectEvidence, onCapture }) {
   const coverage = useMemo(() => evidenceCoverage(evidenceItems), [evidenceItems])
   const activeIndex = coverage.findIndex((item) => item.evidence?.id === activeEvidenceId)
   const [selected, setSelected] = useState(activeIndex >= 0 ? activeIndex : 0)
@@ -26,8 +26,15 @@ export default function PackageEvidenceViewer({ evidenceItems, activeEvidenceId,
     setRotation(activeIndex * -90)
   }, [activeIndex])
   useEffect(() => () => clearDragListeners.current?.(), [])
+  useEffect(() => {
+    if (!locked) return
+    clearDragListeners.current?.()
+    drag.current = null
+    cuboid.current?.style.setProperty('--package-y', `${selected * -90}deg`)
+  }, [locked, selected])
 
   const choose = (index) => {
+    if (locked) return
     const next = normalizeIndex(index)
     setSelected(next)
     setRotation(next * -90)
@@ -35,6 +42,7 @@ export default function PackageEvidenceViewer({ evidenceItems, activeEvidenceId,
   }
 
   const beginDrag = (event) => {
+    if (locked) return
     if (event.pointerType === 'mouse' && event.button !== 0) return
     clearDragListeners.current?.()
     const origin = { x: event.clientX, rotation, selected }
@@ -90,6 +98,7 @@ export default function PackageEvidenceViewer({ evidenceItems, activeEvidenceId,
                 key={face.id}
                 className={`${selected === index ? 'active' : ''} ${face.covered ? quality[1] : 'missing'}`}
                 onClick={() => choose(index)}
+                disabled={locked}
                 aria-pressed={selected === index}
               >
                 <StatusIcon size={15} />
@@ -104,10 +113,12 @@ export default function PackageEvidenceViewer({ evidenceItems, activeEvidenceId,
       <div className="package-stage">
         <div
           className="package-scene"
-          tabIndex="0"
+          tabIndex={locked ? -1 : 0}
+          aria-disabled={locked}
           role="group"
           aria-label={`Package panel navigator. Selected: ${active.label}. Use left and right arrow keys to rotate.`}
           onKeyDown={(event) => {
+            if (locked) return
             if (event.key === 'ArrowLeft') { event.preventDefault(); choose(selected - 1) }
             if (event.key === 'ArrowRight') { event.preventDefault(); choose(selected + 1) }
             if (event.key === 'Enter' && active.evidence) onSelectEvidence?.(active.evidence.id)

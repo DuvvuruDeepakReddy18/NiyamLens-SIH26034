@@ -718,7 +718,7 @@ function ExtractionWorkbench({ extraction, onApply, barcodeState, regions = [], 
   )
 }
 
-function VerdictPanel({ result, onSave, onReport, saved, saving, evidenceCount }) {
+function VerdictPanel({ result, onSave, onReport, saved, saving, evidenceCount, pendingPreview = false }) {
   const config = STATUS[result.status]
   const Icon = config.icon
   return (
@@ -765,7 +765,7 @@ function VerdictPanel({ result, onSave, onReport, saved, saving, evidenceCount }
       </div>
 
       <div className="verdict-actions">
-        <button type="button" className="primary-action" onClick={onSave} disabled={saved || saving || !evidenceCount}>
+        <button type="button" className="primary-action" onClick={onSave} disabled={saved || saving || !evidenceCount || pendingPreview}>
           {saving ? <LoaderCircle className="spin" size={17} /> : saved ? <Check size={17} /> : <Archive size={17} />}
           {saving ? 'Sealing evidence…' : saved ? 'Inspection saved' : 'Finalize inspection'}
         </button>
@@ -773,6 +773,7 @@ function VerdictPanel({ result, onSave, onReport, saved, saving, evidenceCount }
           <FileCheck2 size={17} /> Evidence report
         </button>
       </div>
+      {pendingPreview && <p role="status">Review the pending OCR preview before finalizing. Unappended readings are not part of this report.</p>}
       <div className="evidence-integrity"><ShieldCheck size={14} />{evidenceCount || 0} captured panel{evidenceCount === 1 ? '' : 's'} · IndexedDB evidence register</div>
       {!evidenceCount && <p className="legal-caveat">Capture a package photograph before finalizing. A text-only assessment is not image-supported evidence.</p>}
       <p className="legal-caveat">Decision support only. A Legal Metrology officer must verify the applicable rule version and physical evidence.</p>
@@ -826,6 +827,13 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   const [focusResult, setFocusResult] = useState(null)
   const [paddlePreview, setPaddlePreview] = useState(null)
   const [paddleGuidance, setPaddleGuidance] = useState([])
+  const ocrPreviewPending = Boolean(focusResult || paddlePreview)
+  const focusCardRef = useRef(null)
+  useEffect(() => {
+    if (!focusSelection) return
+    focusCardRef.current?.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
+    focusCardRef.current?.focus({ preventScroll: true })
+  }, [focusSelection])
   useEffect(() => () => { activeJob.current?.abort(); activeJob.current = null; auditGeneration.current += 1 }, [])
 
   const cancelActiveJob = () => {
@@ -958,13 +966,14 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const openEvidencePicker = (replaceId = '') => {
+    if (activeJob.current || saved || saving || ocrPreviewPending) return
     pendingRetakeId.current = replaceId
     if (fileInput.current) fileInput.current.value = ''
     fileInput.current?.click()
   }
 
   const handleFiles = async (fileList, { replaceId = '' } = {}) => {
-    if (activeJob.current || saved || saving) return
+    if (activeJob.current || saved || saving || ocrPreviewPending) return
     const replaced = replaceId ? evidenceItems.find((item) => item.id === replaceId) : null
     if (replaceId && !replaced) { setOcrState((current) => ({ ...current, error: 'The panel selected for replacement is no longer available.' })); return }
     const files = Array.from(fileList || []).slice(0, replaceId ? 1 : Math.max(0, 4 - evidenceItems.length))
@@ -1026,7 +1035,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const applyDemo = async (demo) => {
-    if (activeJob.current || saved || saving) return
+    if (activeJob.current || saved || saving || ocrPreviewPending) return
     const controller = new AbortController()
     activeJob.current = controller
     const id = `test-${Date.now()}`
@@ -1084,7 +1093,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const transformActiveEvidence = async (changes) => {
-    if (!activeEvidence || activeJob.current || activeEvidence.id.startsWith('test-')) return
+    if (!activeEvidence || activeJob.current || activeEvidence.id.startsWith('test-') || ocrPreviewPending) return
     const controller = new AbortController()
     activeJob.current = controller
     try {
@@ -1105,7 +1114,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const rectifyActiveEvidence = async (points) => {
-    if (!activeEvidence || activeJob.current || activeEvidence.id.startsWith('test-')) return
+    if (!activeEvidence || activeJob.current || activeEvidence.id.startsWith('test-') || ocrPreviewPending) return
     const controller = new AbortController()
     activeJob.current = controller
     try {
@@ -1127,6 +1136,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const removeEvidence = (id) => {
+    if (activeJob.current || saved || saving || ocrPreviewPending) return
     const remaining = evidenceItems.filter((item) => item.id !== id)
     setEvidenceItems(remaining)
     if (activeEvidenceId === id) setActiveEvidenceId(remaining[0]?.id || '')
@@ -1147,6 +1157,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const updateEvidenceRole = (id, panelRole) => {
+    if (activeJob.current || saved || saving || ocrPreviewPending) return
     setEvidenceItems((current) => current.map((item) => item.id === id ? { ...item, panelRole } : item))
     recordAudit('evidence_role_changed', { evidenceId: id, panelRole })
   }
@@ -1181,7 +1192,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const rectifyFromBarcode = async () => {
-    if (!activeEvidence || !barcodeState.candidate || barcodeState.candidate.evidenceId !== activeEvidence.id || activeJob.current) return
+    if (!activeEvidence || !barcodeState.candidate || barcodeState.candidate.evidenceId !== activeEvidence.id || activeJob.current || ocrPreviewPending) return
     const controller = new AbortController()
     activeJob.current = controller
     try {
@@ -1234,7 +1245,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const runOcr = async (scanMode = 'standard') => {
-    if (!evidenceItems.length || qualityBlocked || ocrState.running || activeJob.current) return
+    if (!evidenceItems.length || qualityBlocked || ocrState.running || activeJob.current || ocrPreviewPending) return
     const controller = new AbortController()
     activeJob.current = controller
     const current = () => activeJob.current === controller && !controller.signal.aborted
@@ -1262,7 +1273,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
 
   const runConnectedOcr = async () => {
     if (workspace?.offlineOnly) return
-    if (!evidenceItems.length || qualityBlocked || ocrState.running || activeJob.current) return
+    if (!evidenceItems.length || qualityBlocked || ocrState.running || activeJob.current || ocrPreviewPending) return
     const controller = new AbortController()
     activeJob.current = controller
     const current = () => activeJob.current === controller && !controller.signal.aborted
@@ -1339,7 +1350,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const runFocusedOcr = async () => {
-    if (qualityBlocked || !activeEvidence || !focusSelection || activeJob.current || focusSelection.imageUrl !== activeEvidence.analysisUrl || focusSelection.panelId !== activeEvidence.id) return
+    if (qualityBlocked || !activeEvidence || !focusSelection || activeJob.current || ocrPreviewPending || focusSelection.imageUrl !== activeEvidence.analysisUrl || focusSelection.panelId !== activeEvidence.id) return
     const controller = new AbortController()
     activeJob.current = controller
     const current = () => activeJob.current === controller && !controller.signal.aborted
@@ -1376,6 +1387,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       setText(next.text); setRawOcrText(next.rawOcrText); setEvidenceItems(nextItems)
       setOcrWords((words) => [...words, ...item.ocrWords])
       setMeta((previous) => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(nextItems.flatMap((panel) => panel.ocrPasses || [])), ocrCompletedAt: new Date().toISOString(), ocrSource: 'local-focus', ocrReliabilityReason: 'Focused OCR covers only the selected crop. No full-inspection score is inferred; verify every field against its original panel.' }))
+      applyExtraction(extractDeclarations(next.text))
       setFocusResult(null)
       setOcrState({ running: false, progress: 100, label: 'Crop OCR appended without rewriting earlier text. Reverify fields and resolve conflicts.', error: '' })
     } catch (error) { if (current()) setOcrState((state) => ({ ...state, error: error.message })) }
@@ -1383,7 +1395,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const runAlternativeOcr = async (focused = false, suggestion = null, retryMode = null) => {
-    if (!evidenceItems.length || qualityBlocked || activeJob.current) return
+    if (!evidenceItems.length || qualityBlocked || activeJob.current || ocrPreviewPending) return
     if (suggestion && (!focused || paddlePreview)) return
     if (focused && !suggestion && (!activeEvidence || !focusSelection || focusSelection.panelId !== activeEvidence.id || focusSelection.imageUrl !== activeEvidence.analysisUrl)) return
     const controller = new AbortController()
@@ -1430,7 +1442,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const applyRawPassSelection = async ({ selections, reason }) => {
-    if (activeJob.current || saved || saving || paddlePreview) return false
+    if (activeJob.current || saved || saving || ocrPreviewPending) return false
     const controller = new AbortController()
     activeJob.current = controller
     const current = () => activeJob.current === controller && !controller.signal.aborted
@@ -1472,6 +1484,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   const save = async () => {
     if (saved) return
     try {
+      if (ocrPreviewPending) throw new Error('Append or dismiss the pending OCR preview before finalizing this inspection.')
       validateSealableEvidence({ evidenceItems, text, processing, ocrRunning: ocrState.running })
       setSaving(true)
       const finalChain = await recordAudit('inspection_sealed', { inspectionId, status: result.status, score: result.score, evidencePanels: evidenceItems.length })
@@ -1531,29 +1544,30 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
                   handleFiles(event.target.files, { replaceId })
                 }}
               />
-              <button type="button" className="upload-button" onClick={() => openEvidencePicker()} disabled={evidenceItems.length >= 4 || processing}>
+              <button type="button" className="upload-button" onClick={() => openEvidencePicker()} disabled={evidenceItems.length >= 4 || processing || ocrPreviewPending}>
                 {processing ? <LoaderCircle className="spin" size={18} /> : <Upload size={18} />}
                 {evidenceItems.length ? `Add package panel (${evidenceItems.length}/4)` : 'Capture / upload package'}
               </button>
               <button type="button" className="barcode-button" onClick={scanBarcode} disabled={!activeEvidence}><Barcode size={16} /> Read barcode</button>
-              {barcodeState.candidate?.evidenceId === activeEvidence?.id && barcodeState.candidate?.cornerPoints?.length === 4 && <button type="button" className="barcode-button" onClick={rectifyFromBarcode} disabled={processing}><Layers3 size={16} /> Flatten from barcode</button>}
+              {barcodeState.candidate?.evidenceId === activeEvidence?.id && barcodeState.candidate?.cornerPoints?.length === 4 && <button type="button" className="barcode-button" onClick={rectifyFromBarcode} disabled={processing || ocrPreviewPending}><Layers3 size={16} /> Flatten from barcode</button>}
             </div>
             <CaptureChecklist evidenceItems={evidenceItems} />
-            <CaptureCoach hasImage={Boolean(evidenceItems.length)} hasText={Boolean(text.trim())} extraction={extraction} onFocus={(target) => { setActiveRegionId(target.id); setFocusRequest({ id: crypto.randomUUID(), fieldId: target.id }) }} />
+            <CaptureCoach hasImage={Boolean(evidenceItems.length)} hasText={Boolean(text.trim())} extraction={extraction} disabled={saved || saving || processing || ocrState.running || Boolean(draft)} pendingPreview={ocrPreviewPending} onFocus={(target) => { setFocusSelection(null); setActiveRegionId(target.id); setFocusRequest({ id: crypto.randomUUID(), fieldId: target.id }) }} />
             {evidenceItems.length > 0 && <PackageEvidenceViewer
               evidenceItems={evidenceItems}
               activeEvidenceId={activeEvidence?.id || ''}
               processing={processing || ocrState.running}
+              locked={saved || saving || processing || ocrState.running || Boolean(draft) || ocrPreviewPending}
               sealed={saved}
-              onSelectEvidence={setActiveEvidenceId}
+              onSelectEvidence={(id) => { if (!activeJob.current && !ocrPreviewPending) setActiveEvidenceId(id) }}
               onCapture={() => openEvidencePicker()}
             />}
-            {evidenceItems.length > 0 && <CalibrationBoard
+            {evidenceItems.length > 0 && <fieldset className="studio-lock" disabled={ocrPreviewPending}><CalibrationBoard
               evidenceItems={evidenceItems}
               activeEvidence={activeEvidence}
               meta={meta}
               onMeasure={updatePanelMeasurement}
-              onActive={setActiveEvidenceId}
+              onActive={(id) => { if (!activeJob.current && !ocrPreviewPending) setActiveEvidenceId(id) }}
               onRemove={removeEvidence}
               onRetake={(id) => openEvidencePicker(id)}
               onQualityAcknowledge={acknowledgeImageQuality}
@@ -1562,7 +1576,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               onRectify={rectifyActiveEvidence}
               onRoleChange={updateEvidenceRole}
               processing={processing}
-              locked={saved || saving || processing || ocrState.running || Boolean(draft)}
+              locked={saved || saving || processing || ocrState.running || Boolean(draft) || ocrPreviewPending}
               regions={regions}
               activeRegionId={activeRegionId}
               onRegionSelect={setActiveRegionId}
@@ -1571,27 +1585,29 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               depthState={depthState}
               onFocusSelect={(rect) => { setFocusSelection({ panelId: activeEvidence.id, imageUrl: activeEvidence.analysisUrl, rect }); setFocusResult(null) }}
               focusRequest={focusRequest}
-            />}
-            {focusSelection && <section className="focus-ocr-card" aria-label="Focused OCR rescan">
+            /></fieldset>}
+            {focusSelection && <section ref={focusCardRef} tabIndex={-1} className="focus-ocr-card" aria-label="Focused OCR rescan">
               <h4>Read one declaration at full resolution</h4>
               <p>Include the heading, value and unit. Three real OCR passes keep conflicting readings visible. This does not replace the original photo or certify the result.</p>
-              <button type="button" className="secondary-action" onClick={runFocusedOcr} disabled={qualityBlocked}>Scan selected region</button>
-              <button type="button" className="secondary-action" onClick={() => runAlternativeOcr(true)} disabled={qualityBlocked}>Try Paddle on selected region</button>
+              <button type="button" className="secondary-action" onClick={runFocusedOcr} disabled={qualityBlocked || ocrState.running || ocrPreviewPending}>Scan selected region</button>
+              <button type="button" className="secondary-action" onClick={() => runAlternativeOcr(true)} disabled={qualityBlocked || ocrState.running || ocrPreviewPending}>Try Paddle on selected region</button>
+              {ocrPreviewPending && <p role="status">Append or dismiss the pending preview before scanning again. Your current transcript has not changed.</p>}
               {focusResult && <>
                 <img src={focusResult.preview} alt="Selected declaration crop used for OCR" />
                 <small>Source: {focusResult.source} · merged crop reading below; unedited passes in details.</small>
                 <pre>{focusResult.output.items[0].ocrText}</pre>
                 <details><summary>Inspect all three raw OCR passes</summary>{focusResult.output.items[0].ocrPasses.map((pass) => <div key={pass.id}><b>{pass.id.split(':')[1]}</b><pre>{pass.text || '(no text)'}</pre></div>)}</details>
                 <button type="button" className="primary-action" onClick={appendFocusResult}>Append crop OCR to evidence</button>
+                <button type="button" className="secondary-action" onClick={() => setFocusResult(null)}>Dismiss crop preview</button>
                 <p>Earlier text and corrections are retained. Field, placement and measurement confirmations are reset. A partial crop cannot establish full-package compliance.</p>
               </>}
             </section>}
             {!challenge?.active && !workspace && <details className="test-aids">
               <summary><Sparkles size={14} /> Controlled test packets</summary>
               <div className="demo-actions">
-                <button type="button" onClick={() => applyDemo(DEMOS.risky)} disabled={processing || ocrState.running}>Violation packet</button>
-                <button type="button" onClick={() => applyDemo(DEMOS.compliant)} disabled={processing || ocrState.running}>Compliant packet</button>
-                <button type="button" onClick={() => applyDemo(DEMOS.exempt)} disabled={processing || ocrState.running}>Rule 26 exemption packet</button>
+                <button type="button" onClick={() => applyDemo(DEMOS.risky)} disabled={processing || ocrState.running || ocrPreviewPending}>Violation packet</button>
+                <button type="button" onClick={() => applyDemo(DEMOS.compliant)} disabled={processing || ocrState.running || ocrPreviewPending}>Compliant packet</button>
+                <button type="button" onClick={() => applyDemo(DEMOS.exempt)} disabled={processing || ocrState.running || ocrPreviewPending}>Rule 26 exemption packet</button>
               </div>
             </details>}
           </section>
@@ -1605,16 +1621,16 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               complete={Boolean(text.trim())}
             />
             <div className="ocr-toolbar">
-              <button type="button" className="ocr-button" onClick={() => runOcr('standard')} disabled={!evidenceItems.length || qualityBlocked || ocrState.running}>
+              <button type="button" className="ocr-button" onClick={() => runOcr('standard')} disabled={!evidenceItems.length || qualityBlocked || ocrState.running || ocrPreviewPending}>
                 {ocrState.running ? <LoaderCircle className="spin" size={17} /> : <ScanLine size={17} />}
                 {ocrState.running ? 'Reading label…' : 'Run browser OCR'}
               </button>
               <details className="ocr-advanced"><summary>More OCR options</summary><div className="ocr-advanced-actions">
-              <button type="button" className="deep-ocr-button" onClick={() => runOcr('deep')} disabled={!evidenceItems.length || qualityBlocked || ocrState.running}>
+              <button type="button" className="deep-ocr-button" onClick={() => runOcr('deep')} disabled={!evidenceItems.length || qualityBlocked || ocrState.running || ocrPreviewPending}>
                 <SearchCheck size={17} /> Deep scan small text
               </button>
-              <button type="button" className="deep-ocr-button" onClick={() => runAlternativeOcr(false)} disabled={!evidenceItems.length || qualityBlocked || ocrState.running} title="Optional local PP-OCRv6 small model. First use loads additional assets; output is previewed before append. Not a validated accuracy upgrade."><Layers3 size={17} /> Try Paddle OCR · local</button>
-              <button type="button" className="connected-ocr-button" onClick={runConnectedOcr} disabled={!evidenceItems.length || qualityBlocked || ocrState.running || workspace?.offlineOnly} title="Explicitly sends processed panels to the configured Google Vision backend">
+              <button type="button" className="deep-ocr-button" onClick={() => runAlternativeOcr(false)} disabled={!evidenceItems.length || qualityBlocked || ocrState.running || ocrPreviewPending} title="Optional local PP-OCRv6 small model. First use loads additional assets; output is previewed before append. Not a validated accuracy upgrade."><Layers3 size={17} /> Try Paddle OCR · local</button>
+              <button type="button" className="connected-ocr-button" onClick={runConnectedOcr} disabled={!evidenceItems.length || qualityBlocked || ocrState.running || ocrPreviewPending || workspace?.offlineOnly} title="Explicitly sends processed panels to the configured Google Vision backend">
                 <WandSparkles size={17} /> Connected OCR
               </button>
               <label className="ocr-language">
@@ -1627,7 +1643,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
                 </select>
               </label>
               </div><small>Alternative engines preserve raw readings. Connected OCR needs a configured provider and explicit upload consent.</small>
-              <PaddleStampRecovery disabled={!evidenceItems.length || qualityBlocked || ocrState.running || Boolean(paddlePreview)} hasRegion={Boolean(activeEvidence && focusSelection?.panelId === activeEvidence.id && focusSelection?.imageUrl === activeEvidence.analysisUrl)} onRun={(focused, mode) => runAlternativeOcr(focused, null, mode)} />
+              <PaddleStampRecovery disabled={!evidenceItems.length || qualityBlocked || ocrState.running || ocrPreviewPending} hasRegion={Boolean(activeEvidence && focusSelection?.panelId === activeEvidence.id && focusSelection?.imageUrl === activeEvidence.analysisUrl)} onRun={(focused, mode) => runAlternativeOcr(focused, null, mode)} />
               </details>
               <div className="ocr-progress">
                 <div><span style={{ width: `${ocrState.progress}%` }} /></div>
@@ -1639,7 +1655,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
             <p className="connected-ocr-disclosure"><LockKeyhole size={13} /> Browser OCR is the private default. Connected OCR sends processed panels to Google Vision only when you click it and requires workspace sign-in. Sealing in a managed workspace uploads evidence to private storage. Reliability percentages below are unvalidated heuristics, not accuracy probabilities.</p>
             {ocrState.error && <div className="inline-warning"><AlertTriangle size={17} />{ocrState.error}</div>}
             {paddlePreview && <PaddleReview key={paddlePreview.runId} preview={paddlePreview} currentText={text} onAppend={appendAlternativeOcr} onDismiss={() => setPaddlePreview(null)} />}
-            <PaddleFocusGuidance suggestions={paddleGuidance} onScan={suggestion => runAlternativeOcr(true, suggestion)} pendingPreview={Boolean(paddlePreview)} />
+            <PaddleFocusGuidance suggestions={paddleGuidance} onScan={suggestion => runAlternativeOcr(true, suggestion)} pendingPreview={ocrPreviewPending} />
             <DeclarationCoverage extraction={extraction} reliability={provenance.reliability} engineConfidence={provenance.engineConfidence} reliabilityReason={meta.ocrReliabilityReason} hasOcrRun={provenance.hasRun} />
             <textarea
               className="evidence-editor"
@@ -1653,7 +1669,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
             <ExtractionWorkbench extraction={extraction} onApply={applyExtraction} barcodeState={barcodeState} regions={regions} evidenceItems={evidenceItems} activeFieldId={activeRegionId} onSelectRegion={(id) => { const region = regions.find((item) => item.id === id); if (region) setActiveEvidenceId(region.panelId); setActiveRegionId(id) }} meta={meta} />
             <EvidenceTracePanel fieldId={activeRegionId} extraction={extraction} regions={regions} evidenceItems={evidenceItems} result={result} meta={meta} onLocate={(id) => { const region = regions.find((item) => item.id === id); if (region) setActiveEvidenceId(region.panelId); setActiveRegionId(id) }} />
             {rawOcrText && <details><summary>Original OCR transcript (not edited)</summary><pre className="transcript-original">{rawOcrText}</pre></details>}
-            <OcrPassSelection evidenceItems={evidenceItems} onApply={applyRawPassSelection} disabled={Boolean(paddlePreview) || saved || saving || processing || ocrState.running} />
+            <OcrPassSelection evidenceItems={evidenceItems} onApply={applyRawPassSelection} disabled={ocrPreviewPending || saved || saving || processing || ocrState.running} />
             {text.trim() && <FieldVerification extraction={extraction} meta={meta} onChange={updateMeta} />}
             {text.trim() && <PlacementReview extraction={extraction} meta={meta} evidenceItems={evidenceItems} onChange={updateMeta} result={result} />}
             <details className="optional-notes"><summary>Optional interpretation note</summary><div className="translation-panel">
@@ -1765,6 +1781,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
           result={result}
           saved={saved}
           saving={saving}
+          pendingPreview={ocrPreviewPending}
           evidenceCount={evidenceItems.length}
           onSave={save}
           onReport={() => onOpenReport(buildRecord())}

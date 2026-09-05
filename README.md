@@ -4,7 +4,9 @@ NiyamLens is a local-first inspection system for packaged-commodity declarations
 
 The product is designed around the question a judge will ask: **can it survive a random packet in real time?** The Blind Challenge route disables controlled fixtures, starts a sealed timer and records every material action.
 
-## Current readiness — RC6 released 5 September 2026
+## Current readiness — RC7 candidate, 5 September 2026
+
+The [RC7 capture-first and review-integrity update](docs/RC7_RELEASE_2026-09-05.md) adds pre-OCR declaration selection, protected preview transitions, stale-review fixes and safer compound-token parsing. Version 0.4.5 / evaluation pack `LMPC-RC-2026.09-RC7`; 640 local regression tests pass. Recognition remains 1/10 directly and 6/10 with automated layout selection on eight known development photos—not blind accuracy. Public release status is recorded in the RC7 report. The RC6 records below are historical.
 
 Live OCR follow-up: [measured recovery update](docs/OCR_RECOVERY_UPDATE_2026-09-05.md), source `6c9d185`, CI-passed and deployed. On the same eight development photos, original-colour Paddle plus selected layout suggestions improved from 5/10 to 6/10 eligible fields. Optional dark-stamp modes recover different readings but are not a general accuracy upgrade. The earlier RC6 evidence below retains its historical scope.
 

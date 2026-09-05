@@ -1,10 +1,11 @@
 import { PLACEMENT_FIELDS } from './lib/placement.mjs'
+import { updatePlacementReview } from './lib/placementReviewState.mjs'
 
 // Officer observations are linked to both a captured panel and the exact reading.
 // These controls do not claim to detect the legal PDP automatically.
 export default function PlacementReview({ extraction, meta, evidenceItems, onChange, result }) {
   const panels = <><option value="">Select captured panel</option>{evidenceItems.map((item, i) => <option key={item.id} value={item.id}>Panel {i + 1} · {item.name}</option>)}</>
-  const review = (field, change) => onChange('placementReviews', { ...meta.placementReviews, [field.id]: { state: 'unreviewed', ...meta.placementReviews?.[field.id], ...change, value: field.value } })
+  const review = (field, change) => onChange('placementReviews', { ...meta.placementReviews, [field.id]: updatePlacementReview(field, meta.placementReviews?.[field.id], change) })
   const spacing = meta.quantitySpacing || {}
   const changeSpacing = (key, value) => onChange('quantitySpacing', { ...spacing, [key]: value, value: extraction.byId.netQuantity?.value || '', ...(key !== 'confirmed' ? { confirmed: false } : {}) })
   return <details className="evidence-verification placement-review">
@@ -15,9 +16,10 @@ export default function PlacementReview({ extraction, meta, evidenceItems, onCha
     {extraction.fields.filter((field) => PLACEMENT_FIELDS.includes(field.id) && !(field.id === 'unitSalePrice' && result?.checks.some((check) => check.id === 'unitSalePrice' && check.status === 'info'))).map((field) => {
       const observed = meta.placementReviews?.[field.id] || {}
       const stale = observed.state && observed.state !== 'unreviewed' && observed.value !== field.value
+      const invalid = !field.value || field.conflict || ['invalid', 'conflict'].includes(field.validation?.status)
       return <div className="field-review-row" key={field.id}>
         <label>{field.label}<br /><b>{field.conflict ? 'Conflicting values — resolve first' : field.value || 'Not detected / may be inapplicable'}</b></label>
-        <select aria-label={`${field.label} placement`} value={stale ? 'unreviewed' : observed.state || 'unreviewed'} onChange={(e) => review(field, { state: e.target.value })}><option value="unreviewed">Not located</option><option value="inside_pdp" disabled={!field.value || field.conflict}>On verified PDP</option><option value="outside_pdp" disabled={!field.value || field.conflict}>Outside verified PDP</option><option value="unreadable">Unreadable / retake</option></select>
+        <select aria-label={`${field.label} placement`} value={stale ? 'unreviewed' : observed.state || 'unreviewed'} onChange={(e) => review(field, { state: e.target.value })}><option value="unreviewed">Not located</option><option value="inside_pdp" disabled={invalid}>On verified PDP</option><option value="outside_pdp" disabled={invalid}>Outside verified PDP</option><option value="unreadable">Unreadable / retake</option></select>
         <select className="placement-full" aria-label={`${field.label} source panel`} value={observed.panelId || ''} onChange={(e) => review(field, { panelId: e.target.value, state: 'unreviewed' })}>{panels}</select>
         <input aria-label={`${field.label} placement note`} maxLength={2000} value={observed.reason || ''} onChange={(e) => review(field, { reason: e.target.value })} placeholder="Where on the panel? Record at least 12 characters of evidence." />
         {stale && <small role="status">Reading changed. Reconfirm placement for the new value.</small>}

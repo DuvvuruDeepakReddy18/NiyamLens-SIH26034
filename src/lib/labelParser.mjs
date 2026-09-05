@@ -31,6 +31,21 @@ const QUANTITY_HEADING = /\bNET[ \t]*(?:QTY|QUANTITY|WT|WEIGHT|VOL(?:UME)?|CONTE
 const UNIT_PRICE_HEADING = /\b(?:UNIT[ \t]+SALE[ \t]+PRICE|UNIT[ \t]+PRICE|USP)\b/gi
 const PACKING_HEADING = /\b(?:MFG|MFD|MANUFACTURED|PACKED|PKD|IMPORTED)\b\.?(?:[ \t]+(?:ON|DATE)\b\.?)?/gi
 const UNIT_TOKEN = '(KG|KGS|G|GM|GMS|GRAMS?|ML|L|LTR|LITRES?|LITERS?|ℓ|PCS?|PIECES?|N|NOS)'
+// A valid numeric prefix is not necessarily one complete declaration. Keep
+// ranges, alternate prices and compound quantities unresolved rather than
+// silently selecting their first amount. Named later headings remain separate
+// declarations; no arithmetic or missing heading is inferred from this guard.
+function hasNumericContinuation(suffix, { rupeeTerminator = false } = {}) {
+  let rest = suffix.trimStart()
+  // The conventional "40/-" rupee terminator is not a division expression.
+  // Only strip that exact punctuation at a boundary, never "/-80".
+  if (rupeeTerminator) rest = rest.replace(/^\/-(?=$|[ \t;(])/, '').trimStart()
+  // A printed separator before a different, explicitly named stamp field or
+  // a complete tax qualifier is punctuation, not an unheaded second value.
+  // Dangling operators and numeric continuations still fail closed.
+  if (/^[&–—-][ \t]+(?:(?:M[ \t]*\.?[ \t]*R[ \t]*\.?[ \t]*P(?=\b|\d)|MAXIMUM[ \t]+RETAIL[ \t]+PRICE\b|NET[ \t]*(?:QTY|QUANTITY|WT|WEIGHT|CONTENTS?|VOLUME)\b|UNIT[ \t]+(?:SALE[ \t]+)?PRICE\b|USP\b|BATCH\b|PACKED\b|MFD\b|MFG\b|PKD\b)|\(?[ \t]*(?:INCLUSIVE|INCL\.?)\s+OF\s+ALL\s+TAXES[ \t]*\)?[.;]?[ \t]*$)/i.test(rest)) return false
+  return /^(?:[\/+×÷&–—−-]|x(?=[ \t]*(?:₹|RS\.?|INR)?[ \t]*\d)|(?:AND|OR|TO)\b(?=[ \t]*(?:₹|RS\.?|INR)?[ \t]*[+-]?[ \t]*[\d,.])|(?:₹|RS\.?|INR)?[ \t]*(?:\d|[.,](?=[ \t]*\d)))/i.test(rest)
+}
 function valuesAfterHeadings(line, regex, parse) {
   const found = [...line.matchAll(new RegExp(regex.source, regex.flags))]
   return found.map((match, i) => parse(line.slice(match.index + match[0].length, found[i + 1]?.index).trim(), line))
@@ -48,7 +63,8 @@ export function parseLabelNumbers(text) {
       const match = /^[ \t]*[:]?\s*(?:₹|RS\.?|INR)?[ \t]*[:]?\s*([+-]?[ \t]*[\d,.]+)/i.exec(tail)
       const token = match?.[1]?.replace(/[ \t]/g, '') || ''
       const parsed = parsePositiveNumber(token, 2)
-      const valid = Boolean(parsed) && !/^[A-Z\d,.+\-]/i.test(tail.slice(match?.[0]?.length || 0))
+      const trailing = tail.slice(match?.[0]?.length || 0)
+      const valid = Boolean(parsed) && !/^[\p{L}\p{N}_,.+\-]/u.test(trailing) && !hasNumericContinuation(trailing, { rupeeTerminator: true })
       return candidate(valid ? parsed.normalized : token, evidence, { amount: valid ? parsed.number : null, minorUnits: valid ? parsed.minorUnits : null }, valid, valid ? 'Price amount parsed; legal applicability is evaluated separately.' : 'Missing or invalid price: grouping, sign and precision require correction.')
     }))
     // A standalone quantity heading may be immediately followed by one whole
@@ -66,16 +82,16 @@ export function parseLabelNumbers(text) {
       const parsed = parsePositiveNumber(match?.[1]?.replace(/[ \t]/g, ''))
       const unit = normalizeUnit(match?.[2])
       const trailing = tail.slice(match?.[0]?.length || 0).trimStart()
-      const composite = /^[\/+×x\-]/i.test(trailing)
+      const composite = /^[\/+×x\-]/i.test(trailing) || hasNumericContinuation(trailing)
       const valid = Boolean(parsed && unit) && !composite && (unit !== 'pcs' || Number.isInteger(parsed.number))
       return candidate(valid ? `${parsed.number} ${unit}` : tail.slice(0, 100), evidence, { quantity: valid ? parsed.number : null, unit }, valid, valid ? 'Positive net quantity parsed.' : 'Quantity must be a finite positive value with a supported unit.')
     }))
     const parseUnitPrice = (source, evidence) => {
       const tail = source.replace(/^[ \t]*:[ \t]*/, '').trim()
-      const match = /^(?:₹|RS\.?|INR)?\s*([+-]?[\d,.]+)\s*\/\s*(?:(\d+)\s*)?(KG|G|ML|L|UNIT|PCS?)\b/i.exec(tail)
+      const match = /^(?:₹|RS\.?|INR)?\s*([+-]?[\d,.]+)\s*\/\s*(?:(\d+)\s*)?(KG|G|ML|L|UNIT|PCS?)(?![\p{L}\p{N}_])/iu.exec(tail)
       const amount = parsePositiveNumber(match?.[1], 2)
       const denominator = match?.[2] ? Number(match[2]) : 1
-      const valid = Boolean(amount && match && Number.isSafeInteger(denominator) && denominator > 0)
+      const valid = Boolean(amount && match && Number.isSafeInteger(denominator) && denominator > 0) && !hasNumericContinuation(tail.slice(match?.[0]?.length || 0))
       return candidate(`UNIT SALE PRICE ${tail}`.trim(), evidence, { amount: valid ? amount.number : null, minorUnits: valid ? amount.minorUnits : null, unit: normalizeUnit(match?.[3]), denominator }, valid, valid ? 'Unit-price amount and denominator parsed.' : 'A numeric unit sale price and explicit denominator are required.')
     }
     const headed = valuesAfterHeadings(line, UNIT_PRICE_HEADING, parseUnitPrice)
@@ -98,8 +114,8 @@ export function parsePackingDates(text) {
     // accept a clipped DD/MM/Y as MM/YY (02/08/2 -> February 2008), or accept
     // the prefix of an extra component. A trailing separator is unresolved,
     // even when it could be punctuation; never repair an OCR date by omission.
-    const numeric = /^(?:(\d{1,2})\s*[\/.-]\s*)?(\d{1,2})\s*[\/.-]\s*(\d{4}|\d{2})\b(?![ \t]*[\/.-])/.exec(tail)
-    const named = /^(?:(\d{1,2})\s+)?([A-Z]+)\s+(\d{4}|\d{2})\b(?![ \t]*[\/.-])/i.exec(tail)
+    const numeric = /^(?:(\d{1,2})\s*[\/.-]\s*)?(\d{1,2})\s*[\/.-]\s*(\d{4}|\d{2})\b(?![\p{L}\p{N}_])(?![ \t]*[\/.-])/u.exec(tail)
+    const named = /^(?:(\d{1,2})\s+)?([A-Z]+)\s+(\d{4}|\d{2})\b(?![\p{L}\p{N}_])(?![ \t]*[\/.-])/iu.exec(tail)
     const match = numeric || named
     const day = Number(match?.[1] || 1)
     const name = named?.[2].toUpperCase()
@@ -107,7 +123,7 @@ export function parsePackingDates(text) {
     const yearRaw = match?.[3] || ''
     const year = Number(yearRaw.length === 2 ? `20${yearRaw}` : yearRaw)
     const date = new Date(Date.UTC(year, month - 1, day))
-    const valid = Boolean(match) && year >= 1900 && year <= 2199 && month >= 1 && month <= 12 && day >= 1 && date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+    const valid = Boolean(match) && !hasNumericContinuation(tail.slice(match?.[0]?.length || 0)) && year >= 1900 && year <= 2199 && month >= 1 && month <= 12 && day >= 1 && date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
     return candidate(match?.[0] || tail, evidence, { year, month, day: match?.[1] ? day : null }, valid, valid ? 'Calendar-valid date; product-specific date rules may still require review.' : 'Date is not a valid calendar date.')
     }).filter(Boolean))
   }

@@ -16,6 +16,13 @@ test('missing and conflicting declarations have explicit source-focused recovery
   assert.equal(rows[1].issue, 'Not detected')
   assert.ok(rows.every(row => row.needsCapture))
 })
+
+test('pre-OCR capture targets cannot imply detection, absence or recovered values', () => {
+  const rows = captureTargets(extractDeclarations('MRP 40\nNET QTY 100 g'), { hasReading: false })
+  assert.equal(rows.length, 3)
+  assert.ok(rows.every(row => row.issue === 'Not read yet' && row.value === '' && row.needsCapture))
+  assert.deepEqual(rows.map(row => row.id), ['mrp', 'netQuantity', 'packDate'])
+})
 test('review filtering never hides stale, unsupported absence or unreadable evidence', () => {
   const field = { id: 'mrp', detected: true, value: '40.00' }
   const meta = { fieldReviews: { mrp: { state: 'confirmed', value: '40.00', reason: 'Back panel visually checked' } } }

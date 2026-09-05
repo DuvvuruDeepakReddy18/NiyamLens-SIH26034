@@ -234,7 +234,7 @@ test('invalid OCR history fails before any private image upload', async () => {
 })
 
 test('an old or missing queued rule pack is retained and blocked before all uploads', async () => {
-  for (const rulePack of ['LMPC-OLD', undefined]) {
+  for (const rulePack of ['LMPC-OLD', 'LMPC-RC-2026.09-RC6', undefined]) {
     const { api } = setup(); const source = { ...record(), rulePack }; let calls = 0
     await withFetch(async () => { calls++; return json({}) }, async () => {
       await assert.rejects(api.transport({ kind: 'seal', payload: source }), { status: 409, code: 'RULE_PACK_MISMATCH', message: /original seal is retained/ })

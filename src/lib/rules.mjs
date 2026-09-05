@@ -5,7 +5,8 @@ import { finiteNumber, validateInspectionMetadata, INSPECTION_LIMITS } from './i
 import { evaluateRule3Applicability, rule3ApplicabilityCheck } from './applicability.mjs'
 
 export const RULE_PACK = {
-  id: 'LMPC-RC-2026.09-RC6',
+  // RC7 versions stricter OCR token boundaries; it is not a new legal opinion.
+  id: 'LMPC-RC-2026.09-RC7',
   title: 'Legal Metrology (Packaged Commodities) Rules, 2011',
   status: 'Prototype rule pack — officer verification required',
   sources: [

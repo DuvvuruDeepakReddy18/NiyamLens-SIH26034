@@ -3,11 +3,11 @@ const targets = [
   ['netQuantity', 'Net quantity', 'Include “net quantity” or “net weight”, its number and unit. Keep nutrition serving sizes outside the crop.'],
   ['packDate', 'Pack date', 'Include MFD/PKD and the whole date. Do not substitute an expiry date or batch number.'],
 ]
-export function captureTargets(extraction) {
+export function captureTargets(extraction, { hasReading = true } = {}) {
   return targets.map(([id, label, guidance]) => {
     const field = extraction?.byId?.[id]
-    const issue = field?.conflict ? 'Conflicting readings' : ['invalid', 'conflict'].includes(field?.validation?.status) ? 'Incomplete reading' : !field?.value ? 'Not detected' : 'Compare with photo'
-    return { id, label, guidance, issue, value: field?.value || '', needsCapture: issue !== 'Compare with photo' }
+    const issue = !hasReading ? 'Not read yet' : field?.conflict ? 'Conflicting readings' : ['invalid', 'conflict'].includes(field?.validation?.status) ? 'Incomplete reading' : !field?.value ? 'Not detected' : 'Compare with photo'
+    return { id, label, guidance, issue, value: hasReading ? field?.value || '' : '', needsCapture: issue !== 'Compare with photo' }
   })
 }
 export function fieldReviewComplete(field, meta) {

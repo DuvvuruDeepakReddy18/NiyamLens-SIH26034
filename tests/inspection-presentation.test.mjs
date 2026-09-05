@@ -47,3 +47,37 @@ test('image-quality gate accepts only a decision bound to the current transforme
   assert.equal(qualityDecisionRequired([{ ...item, rotation: 90 }], { 'panel-a': { identity: qualityIdentity(item) } }), true)
   assert.equal(qualityDecisionRequired([{ ...item, quality: { status: 'good' } }], {}), false)
 })
+
+test('progress never completes verification for unreadable or invalid declarations', () => {
+  const result = { checks: [{ id: 'mrp' }] }
+  for (const state of ['unreadable', 'not_captured']) {
+    const progress = fieldReviewProgress(extraction, { classificationConfirmed: true, fieldReviews: { mrp: { state, value: '40.00', reason: 'Retake the source panel first.' } } }, result)
+    assert.equal(progress.reviewed, 0)
+    assert.equal(progress.complete, false)
+  }
+  for (const change of [{ conflict: true }, { validation: { status: 'invalid' } }, { validation: { status: 'conflict' } }]) {
+    const progress = fieldReviewProgress({ ...extraction, fields: [{ ...extraction.fields[0], ...change }] }, { classificationConfirmed: true, fieldReviews: { mrp: { state: 'confirmed', value: '40.00', reason: 'A previously confirmed reading.' } } }, result)
+    assert.equal(progress.reviewed, 0)
+    assert.equal(progress.complete, false)
+  }
+})
+
+test('trace clearly flags a stale confirmation while retaining the original review', () => {
+  const saved = { state: 'confirmed', value: '39.00', reason: 'Front panel visually checked.' }
+  const trace = evidenceTrace({ fieldId: 'mrp', extraction, meta: { fieldReviews: { mrp: saved } } })
+  assert.equal(trace.review, saved)
+  assert.equal(trace.reviewPresentation.complete, false)
+  assert.match(trace.reviewPresentation.label, /changed|reconfirm/i)
+  assert.doesNotMatch(trace.reviewPresentation.label, /^confirmed$/i)
+  assert.match(trace.reviewPresentation.detail, /39\.00/)
+})
+
+test('trace does not present incomplete confirmation or absence as complete', () => {
+  const trace = evidenceTrace({ fieldId: 'mrp', extraction, meta: { fieldReviews: { mrp: { state: 'confirmed', value: '40.00', reason: '' } } } })
+  assert.equal(trace.reviewPresentation.complete, false)
+  assert.match(trace.reviewPresentation.label, /note|required|pending/i)
+  const absentExtraction = { fields: [{ id: 'mrp', label: 'MRP', value: '', detected: false }] }
+  const absent = evidenceTrace({ fieldId: 'mrp', extraction: absentExtraction, meta: { fieldReviews: { mrp: { state: 'absent', value: '', reason: 'All sides checked on the physical package.' } } } })
+  assert.equal(absent.reviewPresentation.complete, false)
+  assert.match(absent.reviewPresentation.label, /pending|panels/i)
+})

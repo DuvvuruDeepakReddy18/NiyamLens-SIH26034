@@ -1,4 +1,5 @@
 import { FIELD_RULES } from './inspectionSafety.mjs'
+import { fieldReviewComplete } from './captureCoach.mjs'
 
 export const qualityIdentity = (item) => item
   ? `${item.sha256 || item.id}:${item.rotation || 0}:${item.contrast || 100}:${item.grayscale ? 1 : 0}`
@@ -18,12 +19,21 @@ export const EVIDENCE_FACES = [
   { id: 'quantity_barcode', label: 'Net quantity and barcode', short: 'Qty + barcode', angle: -270 },
 ]
 
-const usableReview = (field, review, allPanelsCaptured) => {
-  if (!review || review.value !== field.value || review.state === 'unreviewed') return false
-  const note = String(review.reason || '').trim()
-  if (review.state === 'confirmed') return Boolean(field.value && note)
-  if (review.state === 'absent') return !field.detected && allPanelsCaptured === true && note.length >= 12
-  return ['unreadable', 'not_captured'].includes(review.state) && Boolean(note)
+export function fieldReviewPresentation(field, meta = {}) {
+  const review = meta.fieldReviews?.[field.id]
+  const complete = fieldReviewComplete(field, meta)
+  const note = String(review?.reason || '').trim()
+  const normalized = value => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ')
+  const pending = (label, detail) => ({ complete: false, label, detail })
+  if (!review || review.state === 'unreviewed') return pending('Officer verification pending', note || 'Verify the current reading against the physical label.')
+  if (normalized(review.value) !== normalized(field.value)) return pending('Reading changed — reconfirm', `Previous review was for “${review.value || 'not detected'}”. ${note || 'Verify the current reading against the physical label.'}`)
+  if (review.state === 'unreadable') return pending('Unreadable — retake required', note || 'The reading remains unresolved; it is not a verified declaration.')
+  if (review.state === 'not_captured') return pending('Panel not captured', note || 'Photograph the relevant panel before completing this review.')
+  if (complete) return { complete: true, label: review.state === 'confirmed' ? 'Confirmed on label' : 'Physically absent — all panels checked', detail: note }
+  if (review.state === 'confirmed' && (field.conflict || ['invalid', 'conflict'].includes(field.validation?.status) || !field.value)) return pending('Invalid reading — resolve before confirmation', note || 'A conflicting or incomplete value cannot be marked verified.')
+  if (review.state === 'confirmed') return pending('Verification note required', 'Record the source panel and evidence for the current confirmation.')
+  if (review.state === 'absent') return pending('Absence review pending', 'A missing OCR reading is not proof of absence. Check all physical panels and record at least 12 characters of supporting evidence.')
+  return pending('Officer verification pending', note || 'Select a supported field-review state.')
 }
 
 export function evidenceCoverage(evidenceItems = []) {
@@ -45,7 +55,7 @@ export function evidenceCoverage(evidenceItems = []) {
 export function fieldReviewProgress(extraction = { fields: [] }, meta = {}, result) {
   const emittedChecks = new Set((result?.checks || []).map((check) => check.id))
   const fields = (extraction.fields || []).filter((field) => FIELD_RULES[field.id]?.some((checkId) => emittedChecks.has(checkId)))
-  const reviewed = fields.filter((field) => usableReview(field, meta.fieldReviews?.[field.id], meta.allPanelsCaptured)).length
+  const reviewed = fields.filter((field) => fieldReviewComplete(field, meta)).length
   return { reviewed, total: fields.length, complete: fields.length > 0 && reviewed === fields.length && meta.classificationConfirmed === true }
 }
 
@@ -82,5 +92,5 @@ export function evidenceTrace({ fieldId, extraction, regions = [], evidenceItems
   const ruleIds = FIELD_RULES[fieldId]
   const checks = (result?.checks || []).filter((check) => ruleIds.includes(check.id))
   const review = meta.fieldReviews?.[fieldId] || null
-  return { field, region, panel, panelIndex, ruleIds, checks, review }
+  return { field, region, panel, panelIndex, ruleIds, checks, review, reviewPresentation: fieldReviewPresentation(field, meta) }
 }

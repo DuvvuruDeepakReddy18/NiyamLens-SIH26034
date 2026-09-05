@@ -1,0 +1,143 @@
+{
+  "release": "0.4.5",
+  "rulePack": "LMPC-RC-2026.09-RC7",
+  "createdAt": "2026-09-05T14:38:08.507Z",
+  "evidence": {
+    "capture": {
+      "path": "reports/capture-first-2026-09-05/chrome-2026-09-05T14-32-51-544Z.json",
+      "sha256": "71b99fcebd5787a493ce231cf3b5f10e58e48d89b9d630f1b771a553501686a2"
+    },
+    "review": {
+      "path": "reports/review-state-2026-09-05/component-chrome-2026-09-05T14-20-29-102Z.json",
+      "sha256": "236377eeafba81071373b26d5def68094d70af23d45b7ec95ea54934ed668d7c"
+    },
+    "recognition": {
+      "path": "reports/readiness-2026-09-05/paddle-review-browser-2026-09-05T14-32-37-364Z.json",
+      "sha256": "1e105002758ade84124dce07e8800a78c71158d6733515670e0a825c297430d4"
+    },
+    "rejectedExperiment": {
+      "path": "reports/readiness-2026-09-05/paddle-resolution-focus960-2026-09-05T14-13-39-915Z.json",
+      "sha256": "9b406029351a3331c014c35bc0f29172a32890d6861aebcca1f4c65957db174c"
+    }
+  },
+  "localBundleSha256": "61c80eea8329bd5c8b3cb5f402e6dd2874287752630c8d68af0e7cff7e668094",
+  "capture": {
+    "kind": "actual-Chrome-capture-first-workflow-NOT-ACCURACY",
+    "source": "CF-001",
+    "checks": [
+      "three declaration selectors available before OCR; selection moves keyboard focus to scan controls",
+      "real three-pass crop OCR remains a preview; scans/image mutations/navigation/sealing blocked; dismiss preserves empty transcript",
+      "real Paddle crop preview has no mobile overflow; raw append preserves original hash and only chosen preview enters draft; no confirmations fabricated"
+    ],
+    "errors": [],
+    "readings": [
+      {
+        "mode": "focused-tesseract-three-pass-dismissed",
+        "rawTextSha256": "eef0852ba42f35a52ab5da6ba404c30e95a46988135167c1fde87e877fbb3e79",
+        "characters": 455
+      },
+      {
+        "mode": "focused-paddle-original-no-layout-selection",
+        "rawTextSha256": "8e224150eacb6bdb7a49a9c566649f5f65e3794a3b7cf0fdab5a12367eae6750",
+        "characters": 806
+      }
+    ]
+  },
+  "review": {
+    "kind": "synthetic-React-component-Chrome-regression-NOT-OCR-OR-FIELD-VALIDATION",
+    "checks": [
+      "actual React note edit cannot rebind a stale placement decision",
+      "trace explicitly marks prior field confirmation stale",
+      "explicit placement reconfirmation remains possible",
+      "unreadable evidence leaves verification incomplete",
+      "invalid reading disables decisive placement choices"
+    ],
+    "errors": []
+  },
+  "recognition": {
+    "kind": "actual-browser-development-paddle-review-TEST-SELECTION-NOT-HUMAN-VALIDATION",
+    "photos": 8,
+    "raw": [
+      {
+        "exact": 1,
+        "eligible": 10
+      }
+    ],
+    "selectedWorking": {
+      "kind": "actual-appended-derived-working-candidates-NOT-RAW-ACCURACY",
+      "humanReviewed": false,
+      "completePhotos": 8,
+      "plannedPhotos": 8,
+      "failedPhotos": 0,
+      "exactCandidateMatches": 6,
+      "readableDenominator": 10,
+      "perField": {
+        "mrp": {
+          "readableDenominator": 3,
+          "exactCandidateMatches": 1,
+          "wrongValidCandidates": 0,
+          "unresolvedReadable": 2,
+          "missingReadable": 0,
+          "excludedLabels": 5,
+          "excludedWithValidCandidates": 0
+        },
+        "netQuantity": {
+          "readableDenominator": 5,
+          "exactCandidateMatches": 4,
+          "wrongValidCandidates": 0,
+          "unresolvedReadable": 1,
+          "missingReadable": 0,
+          "excludedLabels": 3,
+          "excludedWithValidCandidates": 0
+        },
+        "packDate": {
+          "readableDenominator": 2,
+          "exactCandidateMatches": 1,
+          "wrongValidCandidates": 0,
+          "unresolvedReadable": 1,
+          "missingReadable": 0,
+          "excludedLabels": 6,
+          "excludedWithValidCandidates": 0
+        }
+      }
+    },
+    "humanReviewed": false,
+    "isHoldout": false
+  },
+  "rejectedExperiment": {
+    "kind": "actual-Chrome-development-OCR-resolution-experiment",
+    "profile": "focus960",
+    "derivedPotential": {
+      "label": "automated-selection-derived-potential-NOT-RAW-ACCURACY",
+      "photos": 8,
+      "planned": 8,
+      "perField": {
+        "mrp": {
+          "denominator": 3,
+          "exact": 1,
+          "wrongValid": 0,
+          "unresolved": 2
+        },
+        "netQuantity": {
+          "denominator": 5,
+          "exact": 3,
+          "wrongValid": 0,
+          "unresolved": 2
+        },
+        "packDate": {
+          "denominator": 2,
+          "exact": 0,
+          "wrongValid": 0,
+          "unresolved": 2
+        }
+      }
+    },
+    "decision": "Not enabled automatically: fixed extra crop readings reduce resolved development fields by retaining conflicts."
+  },
+  "limitations": [
+    "Known development photos and AI-provisional references only; no blind/general accuracy estimate.",
+    "Automated layout checkbox selection is test behavior, not officer verification.",
+    "Component test uses synthetic props; crop workflow uses actual model inference and a real known photo.",
+    "No human field timing, independent labels, qualified legal/measurement review, or new hosted multi-account test was performed in this release."
+  ]
+}

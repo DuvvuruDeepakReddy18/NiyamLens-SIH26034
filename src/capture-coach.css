@@ -9,6 +9,8 @@
 .capture-targets span { display: block; font-size: 11px; color: #62685b; margin-bottom: 7px; }
 .capture-targets strong { display: block; overflow-wrap: anywhere; font-size: 14px; }
 .capture-targets button, .review-filter button { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; padding: 8px 10px; border: 1px solid #aecbc0; background: #fff; color: #075c49; border-radius: 6px; cursor: pointer; }
+.capture-targets button:disabled { opacity: .55; cursor: not-allowed; }
+.capture-targets button:focus-visible { outline: 3px solid #008166; outline-offset: 3px; }
 .ocr-advanced { width: 100%; padding: 10px 0; }
 .ocr-advanced > summary, .optional-notes > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: #215e50; padding: 8px 0; }
 .ocr-advanced-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0; }

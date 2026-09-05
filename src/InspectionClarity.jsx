@@ -22,11 +22,6 @@ export function InspectionProgress({ evidenceItems, extraction, provenance, meta
   )
 }
 
-const reviewLabel = (review) => {
-  if (!review || review.state === 'unreviewed') return 'Officer verification pending'
-  return review.state.replaceAll('_', ' ')
-}
-
 export function EvidenceTracePanel({ fieldId, extraction, regions, evidenceItems, result, meta, onLocate }) {
   const trace = evidenceTrace({ fieldId, extraction, regions, evidenceItems, result, meta })
   if (!trace) return (
@@ -45,7 +40,7 @@ export function EvidenceTracePanel({ fieldId, extraction, regions, evidenceItems
     { kind: 'FIELD', value: `${trace.field.label}: ${trace.field.conflict ? 'conflicting values' : trace.field.value || 'not detected'}`, detail: trace.field.validation?.message || 'Parser output · not certified' },
     { kind: 'RULE', value: trace.checks.length ? [...new Set(trace.checks.map((check) => check.rule))].join(' · ') : trace.ruleIds.join(' · '), detail: `${trace.checks.length} applicable encoded check${trace.checks.length === 1 ? '' : 's'}` },
     { kind: 'ASSESSMENT', value: trace.checks.length ? trace.checks.map((check) => `${check.label}: ${check.status}`).join(' · ') : 'No check emitted for this profile', detail: 'Rules engine output; not an officer order' },
-    { kind: 'HUMAN REVIEW', value: reviewLabel(trace.review), detail: trace.review?.reason || 'A decisive field requires verification against the physical label' },
+    { kind: 'HUMAN REVIEW', value: trace.reviewPresentation.label, detail: trace.reviewPresentation.detail },
   ]
 
   return (
