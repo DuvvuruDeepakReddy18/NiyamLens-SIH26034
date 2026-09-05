@@ -149,6 +149,11 @@ const levenshteinDistance = (left, right) => {
 }
 
 const lineSimilarity = (left, right, budget) => {
+  // Punctuation and short fragments are evidence around numeric fields too.
+  // Fuzzy matching would treat "5?" and "5", or "MRP 50?" and "MRP 50", as the same
+  // observation and silently discard a possible damaged/conflicting reading.
+  // Only exact normalized-line duplicates may collapse when digits occur.
+  if (/\d/.test(left) || /\d/.test(right)) return Number(left === right)
   const a = comparableOcrLine(left)
   const b = comparableOcrLine(right)
   if (!a || !b) return 0
@@ -189,7 +194,11 @@ export function mergeOcrPassTexts(texts = []) {
       })
       if (bestIndex >= 0 && bestSimilarity >= .78) {
         if (lineQuality(line) > lineQuality(merged[bestIndex])) merged[bestIndex] = line
-      } else if (lineQuality(line) >= 3 && !(/^.{1,8}$/.test(line) && !/\d/.test(line) && !/[A-Z]{2}/.test(line))) {
+      } else if (/\d/.test(line) || (lineQuality(line) >= 3 && !(/^.{1,8}$/.test(line) && !/[A-Z]{2}/.test(line)))) {
+        // A short numeric observation may be the entire declaration value
+        // (1L, 5g, 27, 0), or a damaged/conflicting reading that an officer must
+        // inspect. Length/noise scoring must not silently erase these tokens.
+        // Keeping a fragment does not assign it a heading or repair its text.
         merged.push(line)
         if (merged.length > 3000) throw new Error('OCR produced too many lines. Select a smaller declaration region.')
       }

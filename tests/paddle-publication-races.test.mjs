@@ -20,7 +20,7 @@ import { prepareOcrPassSelection } from '../src/lib/ocrPassSelection.mjs'
 // provenance helpers; synchronous state-setter doubles and a mocked OCR runner.
 // These do NOT claim React/browser rendering or image-recognition coverage.
 const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
-const names = ['cancelActiveJob', 'recordAudit', 'restoreDraft', 'applyExtraction', 'runOcr', 'runConnectedOcr', 'runFocusedOcr', 'appendFocusResult', 'runAlternativeOcr', 'appendAlternativeOcr', 'applyRawPassSelection']
+const names = ['cancelActiveJob', 'recordAudit', 'restoreDraft', 'applyExtraction', 'runStructuredOcr', 'runOcr', 'runConnectedOcr', 'runFocusedOcr', 'appendFocusResult', 'runAlternativeOcr', 'appendAlternativeOcr', 'applyRawPassSelection']
 const declarations = names.map(name => {
   const start = app.indexOf(`  const ${name} =`)
   assert.ok(start >= 0, `Missing App closure ${name}; update the source harness after a refactor.`)
@@ -52,7 +52,7 @@ async function harness({ pauseType = '', failType = '', pauseRunner = false, fai
   const state = {
     inspectionId: 'old-id', startedAt: '2026-09-01T00:00:00.000Z', evidenceItems: [clone(photo)], activeEvidenceId: 'p1',
     text: 'OFFICER CORRECTED TEXT', rawOcrText: 'ORIGINAL RAW', ocrWords: [clone(oldWord)], auditChain: oldChain,
-    meta: { officerNote: 'keep', ocrConfidence: 95, ocrEngineConfidence: 96, fieldReviews: { mrp: { status: 'verified' } }, placementReviews: { mrp: { confirmed: true } }, quantitySpacing: { confirmed: true }, allPanelsCaptured: true, classificationConfirmed: true, measurementConfirmed: true, widthCharacterConfirmed: true },
+    meta: { officerNote: 'keep', ocrConfidence: 95, ocrEngineConfidence: 96, fieldReviews: { mrp: { status: 'verified' } }, placementReviews: { mrp: { confirmed: true } }, quantitySpacing: { confirmed: true }, allPanelsCaptured: true, classificationConfirmed: true, rule3ApplicabilityConfirmed: true, placementPdpConfirmed: true, measurementConfirmed: true, widthCharacterConfirmed: true },
     processing: false, saved: false, saving: false, ocrState: { running: false, progress: 0, error: '' },
     focusSelection: { panelId: 'p1', imageUrl: photo.analysisUrl, rect: { x0: .1, y0: .1, x1: .9, y1: .9 } },
     focusResult: { panelId: 'p1', imageUrl: photo.analysisUrl, runId: 'focus-run', crop: { x0: .1, y0: .1, x1: .9, y1: .9 }, source: 'original-resolution', output: { items: [{ id: 'p1', ocrText: 'NET QTY. 100 g', ocrConfidence: 87, ocrWords: [clone(oldWord)], ocrPasses: [{ id: 'focus-pass', text: 'NET QTY. 100 g', confidence: 87 }] }] } },
@@ -443,7 +443,7 @@ test('focused Paddle request checks current image identity and carries exact off
 for (const preview of ['focusResult', 'paddlePreview']) {
   test(`every whole-panel, manual-region and guided scan refuses a pending ${preview} without audit or state changes`, async () => {
     const requests = [
-      ['runOcr', 'standard'], ['runOcr', 'deep'], ['runConnectedOcr'], ['runFocusedOcr'],
+      ['runStructuredOcr'], ['runOcr', 'standard'], ['runOcr', 'deep'], ['runConnectedOcr'], ['runFocusedOcr'],
       ['runAlternativeOcr', false], ['runAlternativeOcr', true],
       ['runAlternativeOcr', true, { id: 'guide-1' }],
       ['runAlternativeOcr', false, null, 'dark-ink'], ['runAlternativeOcr', true, null, 'dark-ink-90'],
@@ -462,6 +462,129 @@ for (const preview of ['focusResult', 'paddlePreview']) {
     }
   })
 }
+
+test('structured OCR publishes automatic candidates only after completion audit and invalidates every prior confirmation', async () => {
+  const h = await harness({ pauseType: 'ocr_completed', pendingPreviews: false })
+  const pending = h.handlers.runStructuredOcr()
+  await h.entered.promise
+  assertEvidencePreserved(h)
+  assert.equal(h.calls.length, 1)
+  assert.equal(h.state.ocrState.running, true)
+  assert.equal(h.state.auditChain.at(-1).type, 'ocr_requested')
+  assert.equal(h.state.auditChain.at(-1).payload.strategy, 'machine-structured-candidates-v1')
+  h.release.resolve()
+  await pending
+  assert.match(h.state.text, /MACHINE LAYOUT CANDIDATES · UNVERIFIED/)
+  assert.doesNotMatch(h.state.text, /OFFICER-SELECTED/)
+  assert.ok(h.state.text.startsWith(h.initial.text))
+  assert.ok(h.state.rawOcrText.startsWith(h.initial.rawOcrText))
+  assert.ok(h.state.rawOcrText.endsWith(paddleParsed.text))
+  assert.equal(h.state.rawOcrText.includes(proposal.text), false)
+  assert.equal(h.state.evidenceItems[0].ocrPasses[0].text, photo.ocrPasses[0].text)
+  assert.equal(h.state.evidenceItems[0].ocrPasses.at(-1).text, paddleParsed.text)
+  assert.equal(h.state.evidenceItems[0].originalUrl, photo.originalUrl)
+  assert.equal(h.state.meta.officerNote, 'keep')
+  for (const key of ['fieldReviews', 'placementReviews', 'quantitySpacing']) assert.deepEqual(clone(h.state.meta[key]), {})
+  for (const key of ['allPanelsCaptured', 'classificationConfirmed', 'rule3ApplicabilityConfirmed', 'placementPdpConfirmed', 'measurementConfirmed', 'widthCharacterConfirmed']) assert.equal(h.state.meta[key], false, key)
+  assert.equal(h.state.meta.ocrSource, 'local-paddle-structured')
+  assert.equal(h.state.meta.ocrConfidence, null)
+  assert.equal(h.state.meta.ocrEngineConfidence, null)
+  const event = h.state.auditChain.at(-1)
+  assert.equal(event.type, 'ocr_completed')
+  assert.equal(event.payload.strategy, 'machine-structured-candidates-v1')
+  assert.deepEqual(clone(event.payload.reviewedRows), [])
+  assert.equal(event.payload.candidateRows.length, 1)
+  assert.equal(event.payload.candidateRows[0].method, 'system-derived-geometric-candidate')
+  assert.equal(event.payload.candidateRows[0].requiresOfficerReview, true)
+  assert.equal(event.payload.candidateRows[0].eligibleForAutomaticVerdict, false)
+  assert.deepEqual(clone(event.payload.candidateRows[0].parts), paddleParsed.lines.map(({ id, text, box }) => ({ id, text, box })))
+  assert.equal(event.payload.rawHistoryUnchanged, true)
+  assert.equal(event.payload.reliability, null)
+  assert.equal(event.payload.engineConfidence, null)
+  assert.equal(ocrProvenance(h.state).hasRun, true)
+  assert.equal(await verifyAuditChain(h.state.auditChain), true)
+  assert.equal(h.state.ocrState.running, false)
+  assert.equal(h.context.activeJob.current, null)
+  assert.equal(h.state.paddlePreview, null, 'Automatic candidates do not pretend that a preview was accepted')
+})
+
+for (const action of ['cancel', 'unmount']) {
+  test(`structured request-audit ${action} prevents recognition and late evidence publication`, async () => {
+    const h = await harness({ pauseType: 'ocr_requested', pendingPreviews: false })
+    const pending = h.handlers.runStructuredOcr()
+    await h.entered.promise
+    if (action === 'cancel') h.handlers.cancelActiveJob(); else h.handlers.unmount()
+    const stoppedSetters = h.setters.length
+    h.release.resolve(); await pending; await h.context.auditQueue.current
+    assertEvidencePreserved(h)
+    assert.equal(h.calls.length, 0)
+    assert.equal(h.state.auditChain.some(event => event.type === 'ocr_completed' || event.type === 'ocr_requested'), false)
+    if (action === 'unmount') assert.equal(h.setters.length, stoppedSetters)
+    assert.equal(await verifyAuditChain(h.state.auditChain), true)
+  })
+
+  test(`structured runner ${action} suppresses late model progress and output`, async () => {
+    const h = await harness({ pauseRunner: true, pendingPreviews: false })
+    const pending = h.handlers.runStructuredOcr()
+    await h.runnerEntered.promise
+    if (action === 'cancel') h.handlers.cancelActiveJob(); else h.handlers.unmount()
+    const stoppedSetters = h.setters.length
+    h.calls[0].onProgress({ running: true, progress: 99, label: 'STALE MACHINE CALLBACK' })
+    h.runnerRelease.resolve(); await pending; await h.context.auditQueue.current
+    assertEvidencePreserved(h)
+    assert.notEqual(h.state.ocrState.label, 'STALE MACHINE CALLBACK')
+    assert.equal(h.state.auditChain.some(event => event.type === 'ocr_completed'), false)
+    assert.equal(h.state.paddlePreview, null)
+    if (action === 'unmount') assert.equal(h.setters.length, stoppedSetters)
+    assert.equal(await verifyAuditChain(h.state.auditChain), true)
+  })
+
+  test(`structured completion-audit ${action} prevents the prepared machine candidates from publishing`, async () => {
+    const h = await harness({ pauseType: 'ocr_completed', pendingPreviews: false })
+    const pending = h.handlers.runStructuredOcr()
+    await h.entered.promise
+    assertEvidencePreserved(h)
+    if (action === 'cancel') h.handlers.cancelActiveJob(); else h.handlers.unmount()
+    const stoppedSetters = h.setters.length
+    h.release.resolve(); await pending; await h.context.auditQueue.current
+    assertEvidencePreserved(h)
+    assert.equal(h.state.auditChain.some(event => event.type === 'ocr_completed'), false)
+    if (action === 'unmount') assert.equal(h.setters.length, stoppedSetters)
+    assert.equal(await verifyAuditChain(h.state.auditChain), true)
+  })
+}
+
+for (const failType of ['ocr_requested', 'ocr_completed']) {
+  test(`structured ${failType} failure preserves original evidence and cannot claim completion`, async () => {
+    const h = await harness({ failType, pendingPreviews: false })
+    await h.handlers.runStructuredOcr()
+    assertEvidencePreserved(h)
+    assert.equal(h.calls.length, failType === 'ocr_requested' ? 0 : 1)
+    assert.equal(h.state.auditChain.some(event => event.type === 'ocr_completed'), false)
+    assert.match(h.state.ocrState.error, /Injected audit failure/)
+    assert.equal(h.state.ocrState.running, false)
+    assert.equal(h.context.activeJob.current, null)
+    assert.equal(await verifyAuditChain(h.state.auditChain), true)
+  })
+}
+
+test('structured runner failure preserves evidence, and its job lock prevents overlapping scans', async () => {
+  const failed = await harness({ failRunner: true, pendingPreviews: false })
+  await failed.handlers.runStructuredOcr()
+  assertEvidencePreserved(failed)
+  assert.match(failed.state.ocrState.error, /Injected OCR failure/)
+  assert.equal(failed.state.auditChain.some(event => event.type === 'ocr_completed'), false)
+  assert.equal(failed.context.activeJob.current, null)
+  const h = await harness({ pauseRunner: true, pendingPreviews: false })
+  const first = h.handlers.runStructuredOcr(); await h.runnerEntered.promise
+  await h.handlers.runStructuredOcr()
+  assert.equal(h.calls.length, 1)
+  h.handlers.restoreDraft()
+  assert.match(h.state.draftMessage, /Finish or cancel/)
+  assertEvidencePreserved(h)
+  h.handlers.cancelActiveJob(); h.runnerRelease.resolve(); await first; await h.context.auditQueue.current
+  assertEvidencePreserved(h)
+})
 
 test('idle draft restore invalidates queued audit generation and clears OCR previews', async () => {
   const h = await harness({ pauseType: 'officer_note' })

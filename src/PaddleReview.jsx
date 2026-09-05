@@ -19,6 +19,7 @@ export default function PaddleReview({ preview, currentText = '', onAppend, onDi
   return <section className="paddle-review" aria-label="Paddle OCR preview">
     <header><div><span className="eyebrow">ALTERNATIVE LOCAL READING</span><h3>Inspect before appending</h3></div><button type="button" onClick={onDismiss}>Dismiss preview</button></header>
     <p>PP-OCRv6 small · real on-device recognition. This is an additional reading, not a verified accuracy upgrade. The language selector applies to Tesseract; Paddle uses its fixed bundled model. Nothing has been appended yet.</p>
+    {preview.output.detectionProfile === 'sensitive' && <p role="status"><strong>Sensitive detector retry · thresholds 0.2 / 0.4.</strong> More faint text can be detected, but extra noise and wrong readings can also appear. Compare the new raw reading with the original photograph; this is not a higher-confidence result.</p>}
     {preview.output.items.map((item, index) => <details key={item.id} open={preview.output.items.length === 1}>
       <summary>Panel {index + 1} · {item.lines.length} recognized lines · {item.source}</summary>
       {item.retryMode && <div className="paddle-retry-input"><strong>Exact OCR input · {item.retryMode.photometric} · {item.retryMode.rotation}° clockwise</strong><p>This analysis derivative is not the original photograph. Coloured text may have disappeared; the original remains unchanged.</p><img src={item.previewUrl} alt="Exact dark-ink and orientation derivative used by OCR" /></div>}

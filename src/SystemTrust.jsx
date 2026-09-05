@@ -7,7 +7,7 @@ const syncLabel = (value) => value
 export default function SystemTrust({ workspace, online, install, historyCount, lastSyncAt, onNavigate }) {
   const managed = Boolean(workspace)
   const shellState = {
-    ready: { label: 'Offline shell and OCR pack verified', copy: 'The app shell and every required Tesseract worker, runtime and language asset were matched in their independent Cache Storage sets. Optional engines and cloud operations can still require a network.', tone: 'good' },
+    ready: { label: 'Offline shell and OCR pack verified', copy: 'The app shell and required Tesseract assets were matched in Cache Storage. This verifies classic Run browser OCR, not the Paddle-based Read label fields button. Load Paddle online before use and test it offline on this device separately. Cloud operations still require a network.', tone: 'good' },
     checking: { label: 'Checking offline shell…', copy: 'Waiting for the service worker to finish installing and verifying essential cached assets.', tone: '' },
     downloading: { label: 'Downloading browser OCR pack…', copy: `${install.shellProgress.completed}/${install.shellProgress.total || '…'} required assets cached. Keep this page open.`, tone: '' },
     incomplete: { label: 'Offline shell incomplete', copy: 'The service worker is active, but one or more essential local OCR assets were not found in Cache Storage. Reconnect and reload before field use.', tone: '' },

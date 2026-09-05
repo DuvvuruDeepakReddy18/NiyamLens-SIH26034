@@ -2,10 +2,21 @@ import { boundedOcr, OCR_LIMITS, ocrController, throwIfAborted } from './ocrLife
 import { OCR_OUTPUT_LIMITS, validateOcrHistory, validateOcrWords, appendOcrHistory } from './ocrHistory.mjs'
 import { createFocusedVariants } from './focusOcr.mjs'
 import { planPaddleFocus } from './ocrFocusGuidance.mjs'
-import { buildPaddleWorkingAddition } from './paddleWorkingText.mjs'
+import { buildPaddleWorkingAddition, buildStructuredPaddleAddition } from './paddleWorkingText.mjs'
 
 export const PADDLE_MODEL = 'PP-OCRv6_small@paddleocr-js-0.4.2'
 export const PADDLE_PATH = '/ocr/paddle-v1/'
+// Fixed choices, not an open-ended model parameter surface. Lower thresholds
+// can recover faint stamps but also detect more noise; never use them by default.
+export const PADDLE_DETECTION_PROFILES = Object.freeze({
+  baseline: Object.freeze({ textDetThresh: 0.3, textDetBoxThresh: 0.6 }),
+  sensitive: Object.freeze({ textDetThresh: 0.2, textDetBoxThresh: 0.4 }),
+})
+
+function detectionThresholds(profile) {
+  if (typeof profile !== 'string' || !Object.hasOwn(PADDLE_DETECTION_PROFILES, profile)) throw new Error('Unknown Paddle detector profile. Choose baseline or sensitive.')
+  return PADDLE_DETECTION_PROFILES[profile]
+}
 
 const ORIGINAL_IMAGE = /^data:image\/(jpeg|png|webp);base64,/
 
@@ -34,7 +45,11 @@ const samePaddleSource = (left, right) => left?.schemaVersion === 1 && right?.sc
 
 // initialize:false gives us a disposable worker BEFORE the potentially slow
 // model load. No remote image service, CDN fallback or inferred accuracy score.
-export async function createPaddleEngine() {
+export async function createPaddleEngine(options = {}) {
+  if (!options || typeof options !== 'object' || Array.isArray(options) || Object.keys(options).some(key => key !== 'detectionProfile')) throw new Error('Paddle engine accepts only an allowlisted detector profile, not arbitrary model parameters.')
+  const profile = options.detectionProfile === undefined ? 'baseline' : options.detectionProfile
+  const thresholds = detectionThresholds(profile)
+  const predictionOptions = Object.freeze({ textDetLimitSideLen: 960, textDetLimitType: 'max', textDetMaxSideLimit: 2000, ...thresholds })
   const { PaddleOCR } = await import('@paddleocr/paddleocr-js')
   let ownedWorker
   const engine = await PaddleOCR.create({
@@ -45,10 +60,10 @@ export async function createPaddleEngine() {
     textDetectionModelAsset: { url: `${PADDLE_PATH}models/PP-OCRv6_small_det_onnx_infer.tar` },
     textRecognitionModelAsset: { url: `${PADDLE_PATH}models/PP-OCRv6_small_rec_onnx_infer.tar` },
     ortOptions: { backend: 'wasm', numThreads: 1, proxy: false, wasmPaths: `${PADDLE_PATH}runtime/` },
-    textDetLimitSideLen: 960, textDetLimitType: 'max', textDetMaxSideLimit: 2000,
+    ...predictionOptions,
   })
   return {
-    initialize: () => engine.initialize(), predict: input => engine.predict(input),
+    initialize: () => engine.initialize(), predict: input => engine.predict(input, predictionOptions),
     dispose: async () => {
       // SDK graceful disposal alone waits for a busy inference worker. Retain
       // ownership so cancellation also stops CPU/memory use after a hard bound.
@@ -114,15 +129,16 @@ export function parsePaddleOutput(result, panelId, frame) {
   return { text, words, lines, confidence: lines.length ? lines.reduce((sum, line) => sum + line.confidence * 100, 0) / lines.length : null }
 }
 
-export async function runPaddleOcr({ evidenceItems, signal, onProgress = () => {}, engineFactory = createPaddleEngine, inputFactory = createPaddleInput, limits = OCR_LIMITS }) {
+export async function runPaddleOcr({ evidenceItems, signal, onProgress = () => {}, engineFactory = createPaddleEngine, inputFactory = createPaddleInput, limits = OCR_LIMITS, detectionProfile = 'baseline' }) {
+  const thresholds = detectionThresholds(detectionProfile)
   if (!Array.isArray(evidenceItems) || evidenceItems.length < 1 || evidenceItems.length > 4 || evidenceItems.some(item => typeof item?.id !== 'string' || !item.id) || new Set(evidenceItems.map(item => item.id)).size !== evidenceItems.length) throw new Error('Paddle OCR requires one to four uniquely identified panels.')
   const job = ocrController(signal, limits.totalMs)
   let engine
   const update = (progress, label) => { if (!job.signal.aborted) onProgress({ running: true, progress, label, error: '' }) }
   try {
     throwIfAborted(job.signal)
-    update(2, 'Loading optional Paddle OCR locally — first load may take a minute')
-    engine = await boundedOcr(engineFactory(), { signal: job.signal, timeoutMs: limits.initializeMs, label: 'Paddle worker creation', onLateResolve: late => late?.dispose() })
+    update(2, 'Loading Paddle OCR locally — first load may take a minute')
+    engine = await boundedOcr(engineFactory(Object.freeze({ detectionProfile })), { signal: job.signal, timeoutMs: limits.initializeMs, label: 'Paddle worker creation', onLateResolve: late => late?.dispose() })
     await boundedOcr(engine.initialize(), { signal: job.signal, timeoutMs: limits.initializeMs, label: 'Paddle model initialization' })
     const items = []
     for (let index = 0; index < evidenceItems.length; index++) {
@@ -139,8 +155,10 @@ export async function runPaddleOcr({ evidenceItems, signal, onProgress = () => {
       const parsed = parsePaddleOutput(output[0], item.id, frame)
       const words = frame.mapWords ? frame.mapWords(parsed.words) : parsed.words
       validateOcrWords(words)
-      const reading = { id: item.id, imageUrl: item.analysisUrl, previewUrl: frame.previewUrl, sourceBinding, crop: frame.crop || null, retryMode: frame.retryMode || null, source: frame.source, width: frame.width, height: frame.height, ...parsed,
-        ocrPasses: [{ id: `${item.id}:paddle-${frame.crop ? 'focus' : 'original'}`, text: parsed.text, confidence: parsed.confidence, provider: 'paddleocr-js', model: PADDLE_MODEL, strategy: frame.retryMode ? `local-alternative-dark-ink-${frame.retryMode.rotation}${frame.crop ? '-focus' : ''}` : frame.crop ? 'local-alternative-officer-focus' : 'local-alternative-original' }], ocrWords: words }
+      const sourceStrategy = frame.retryMode ? `local-alternative-dark-ink-${frame.retryMode.rotation}${frame.crop ? '-focus' : ''}` : frame.crop ? 'local-alternative-officer-focus' : 'local-alternative-original'
+      const strategy = `${sourceStrategy}${detectionProfile === 'sensitive' ? '-sensitive-detector' : ''}`
+      const reading = { id: item.id, imageUrl: item.analysisUrl, previewUrl: frame.previewUrl, sourceBinding, crop: frame.crop || null, retryMode: frame.retryMode || null, detectionProfile, detectionThresholds: thresholds, source: frame.source, width: frame.width, height: frame.height, ...parsed,
+        ocrPasses: [{ id: `${item.id}:paddle-${frame.crop ? 'focus' : 'original'}`, text: parsed.text, confidence: parsed.confidence, provider: 'paddleocr-js', model: PADDLE_MODEL, strategy, detectionProfile, detectionThresholds: thresholds }], ocrWords: words }
       // Rotated preview polygons are in the retry frame, not the captured
       // analysis frame. Never offer them as a crop on a different orientation.
       reading.focusGuidance = frame.retryMode?.rotation ? { method: 'heading-guided-focus-v1', suggestions: [], withheld: [{ reason: 'rotated_retry_select_region_on_original_or_recapture' }] } : planPaddleFocus(reading)
@@ -149,7 +167,7 @@ export async function runPaddleOcr({ evidenceItems, signal, onProgress = () => {
     }
     if (!items.some(item => item.text.trim())) throw new Error('Paddle OCR found no readable text. Previous evidence was preserved.')
     throwIfAborted(job.signal)
-    return { items, model: PADDLE_MODEL, provider: 'paddleocr-js', reliability: null }
+    return { items, model: PADDLE_MODEL, provider: 'paddleocr-js', reliability: null, detectionProfile, detectionThresholds: thresholds }
   } finally {
     job.dispose()
     if (engine) await boundedOcr(Promise.resolve().then(() => engine.dispose()), { timeoutMs: 2000, label: 'Paddle cleanup' }).catch(() => {})
@@ -158,10 +176,11 @@ export async function runPaddleOcr({ evidenceItems, signal, onProgress = () => {
 
 // Pure, atomic append preparation. A caller must record its audit event before
 // publishing this state. Raw transcripts never include geometry-derived text.
-export function preparePaddleAppend({ evidenceItems, text = '', rawOcrText = '', output, runId, proposedRows = [] }) {
+export function preparePaddleAppend({ evidenceItems, text = '', rawOcrText = '', output, runId, proposedRows = [], structured = false }) {
   if (typeof text !== 'string' || typeof rawOcrText !== 'string' || typeof runId !== 'string' || !runId || runId.length > 80 || !Array.isArray(output?.items) || !output.items.length) throw new Error('Invalid alternative OCR append request.')
   if (new Set(output.items.map(item => item.id)).size !== output.items.length) throw new Error('Duplicate alternative OCR panels.')
   if (!Array.isArray(proposedRows) || proposedRows.length > 50) throw new Error('Too many layout proposals.')
+  if (typeof structured !== 'boolean' || (structured && proposedRows.length)) throw new Error('Machine candidates must be computed from the actual source geometry, not supplied as answers.')
   const nextItems = [...evidenceItems]
   for (const item of output.items) {
     const index = nextItems.findIndex(panel => panel.id === item.id)
@@ -169,8 +188,10 @@ export function preparePaddleAppend({ evidenceItems, text = '', rawOcrText = '',
     if (typeof item.text !== 'string' || item.text.length > OCR_OUTPUT_LIMITS.textPerPass) throw new Error('Invalid Paddle transcript.')
     nextItems[index] = appendOcrHistory(nextItems[index], { text: [nextItems[index].ocrText, item.text].filter(Boolean).join('\n\n'), passes: item.ocrPasses.map(pass => ({ ...pass, id: `${pass.id}:${runId}` })), words: item.ocrWords })
   }
-  const { rawAddition, workingAddition, reviewedRows, workingMappings } = buildPaddleWorkingAddition(output.items, proposedRows, evidenceItems.map(item => item.id))
+  const { rawAddition, workingAddition, reviewedRows, candidateRows, workingMappings, warnings = [] } = structured
+    ? buildStructuredPaddleAddition(output.items, evidenceItems.map(item => item.id))
+    : buildPaddleWorkingAddition(output.items, proposedRows, evidenceItems.map(item => item.id))
   if (text.length + workingAddition.length > 100000 || rawOcrText.length + rawAddition.length > 100000) throw new Error('Alternative OCR would exceed the evidence text limit.')
   validateOcrHistory(nextItems)
-  return { text: text + workingAddition, rawOcrText: rawOcrText + rawAddition, evidenceItems: nextItems, words: nextItems.flatMap(panel => panel.ocrWords || []), reviewedRows, workingMappings }
+  return { text: text + workingAddition, rawOcrText: rawOcrText + rawAddition, evidenceItems: nextItems, words: nextItems.flatMap(panel => panel.ocrWords || []), reviewedRows, candidateRows, warnings, workingMappings }
 }

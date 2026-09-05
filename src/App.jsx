@@ -74,6 +74,7 @@ import { mergeCloudRecord } from './lib/workspaceClient.mjs'
 import { WorkspaceGate, SharedOperations } from './Workspace.jsx'
 import FieldVerification from './FieldVerification.jsx'
 import CaptureCoach from './CaptureCoach.jsx'
+import MachineCandidateHistory from './MachineCandidateHistory.jsx'
 import { singleFlight } from './lib/singleFlight.mjs'
 import { beginRuleReassessment } from './lib/reassessment.mjs'
 import { archiveReviewConflict } from './lib/reviewConflict.mjs'
@@ -1244,6 +1245,31 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     await recordAudit('depth_capability_checked', state)
   }
 
+  const runStructuredOcr = async () => {
+    if (!evidenceItems.length || qualityBlocked || ocrState.running || activeJob.current || ocrPreviewPending) return
+    const controller = new AbortController()
+    activeJob.current = controller
+    const current = () => activeJob.current === controller && !controller.signal.aborted
+    try {
+      setOcrState({ running: true, progress: 1, label: 'Preparing local label reading', error: '' })
+      await recordAudit('ocr_requested', { panels: evidenceItems.length, provider: 'paddleocr-js', strategy: 'machine-structured-candidates-v1', imagesLeaveDevice: false })
+      if (!current()) return
+      const output = await runPaddleOcr({ evidenceItems, signal: controller.signal, onProgress: state => { if (current()) setOcrState(state) } })
+      if (!current()) return
+      const runId = crypto.randomUUID()
+      const next = preparePaddleAppend({ evidenceItems, text, rawOcrText, output, runId, structured: true })
+      await recordAudit('ocr_completed', { provider: 'paddleocr-js', model: output.model, detectionProfile: output.detectionProfile || 'baseline', detectionThresholds: output.detectionThresholds || null, strategy: 'machine-structured-candidates-v1', runId, reliability: null, engineConfidence: null, previousTranscriptPreserved: true, reviewedRows: [], candidateRows: next.candidateRows, workingMappings: next.workingMappings, warnings: next.warnings, requiresOfficerReview: true, rawHistoryUnchanged: true, rawPasses: output.items.map(item => ({ panelId: item.id, characters: item.text.length, lines: item.lines.length, source: item.source, crop: item.crop, detectionProfile: item.detectionProfile || 'baseline' })) })
+      if (!current()) return
+      setText(next.text); setRawOcrText(next.rawOcrText); setEvidenceItems(next.evidenceItems); setOcrWords(next.words)
+      setMeta(previous => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(next.evidenceItems.flatMap(item => item.ocrPasses || [])), ocrCompletedAt: new Date().toISOString(), ocrSource: 'local-paddle-structured', ocrReliabilityReason: 'Machine-generated heading/value candidates, not officer-verified readings. Raw characters are unchanged; spatial associations are heuristic. No validated accuracy score is available.' }))
+      applyExtraction(extractDeclarations(next.text))
+      setPaddleGuidance(output.items.flatMap(item => item.focusGuidance?.suggestions || []))
+      setOcrState({ running: false, progress: 100, label: `Label fields ready · ${next.candidateRows.length} automatic layout association(s). Verify each value against the photo; unresolved readings stay unresolved.`, error: '' })
+    } catch (error) {
+      if (current()) setOcrState({ running: false, progress: 0, label: 'Label reading unavailable; previous evidence preserved', error: error.name === 'AbortError' ? '' : error.message })
+    } finally { if (activeJob.current === controller) activeJob.current = null }
+  }
+
   const runOcr = async (scanMode = 'standard') => {
     if (!evidenceItems.length || qualityBlocked || ocrState.running || activeJob.current || ocrPreviewPending) return
     const controller = new AbortController()
@@ -1394,7 +1420,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     finally { if (activeJob.current === controller) { activeJob.current = null; setProcessing(false) } }
   }
 
-  const runAlternativeOcr = async (focused = false, suggestion = null, retryMode = null) => {
+  const runAlternativeOcr = async (focused = false, suggestion = null, retryMode = null, detectionProfile = 'baseline') => {
     if (!evidenceItems.length || qualityBlocked || activeJob.current || ocrPreviewPending) return
     if (suggestion && (!focused || paddlePreview)) return
     if (focused && !suggestion && (!activeEvidence || !focusSelection || focusSelection.panelId !== activeEvidence.id || focusSelection.imageUrl !== activeEvidence.analysisUrl)) return
@@ -1408,9 +1434,9 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       const selection = selectedSuggestion || focusSelection
       setPaddlePreview(null)
       setOcrState({ running: true, progress: 1, label: 'Preparing optional local Paddle OCR', error: '' })
-      await recordAudit('alternative_ocr_requested', { provider: 'paddleocr-js', panels: focused ? 1 : evidenceItems.length, imagesLeaveDevice: false, crop: focused ? selection.rect : null, retryMode, focusMethod: selectedSuggestion ? 'heading-guided-focus-v1-officer-selected' : focused ? 'officer-selected-rectangle' : null, headingIds: selectedSuggestion?.headingIds || [] })
+      await recordAudit('alternative_ocr_requested', { provider: 'paddleocr-js', panels: focused ? 1 : evidenceItems.length, imagesLeaveDevice: false, crop: focused ? selection.rect : null, retryMode, detectionProfile, focusMethod: selectedSuggestion ? 'heading-guided-focus-v1-officer-selected' : focused ? 'officer-selected-rectangle' : null, headingIds: selectedSuggestion?.headingIds || [] })
       const inputOptions = retryMode ? { inputFactory: item => createPaddleRetryInput(item, retryMode, focused ? selection.rect : null) } : focused ? { inputFactory: item => createPaddleFocusInput(item, selection.rect) } : {}
-      const output = await runPaddleOcr({ evidenceItems: focused ? [focusPanel] : evidenceItems, ...inputOptions, signal: controller.signal, onProgress: state => { if (current()) setOcrState(state) } })
+      const output = await runPaddleOcr({ evidenceItems: focused ? [focusPanel] : evidenceItems, ...inputOptions, detectionProfile, signal: controller.signal, onProgress: state => { if (current()) setOcrState(state) } })
       if (!current()) return
       const { proposals, warnings } = collectPaddleLayoutProposals(output.items)
       setPaddlePreview({ output, proposals, layoutWarning: warnings.join(' '), runId: crypto.randomUUID(), guidedSuggestionId: selectedSuggestion?.id || null })
@@ -1428,7 +1454,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     try {
       setProcessing(true)
       const next = preparePaddleAppend({ evidenceItems, text, rawOcrText, output: paddlePreview.output, runId: paddlePreview.runId, proposedRows })
-      await recordAudit('ocr_completed', { provider: 'paddleocr-js', model: paddlePreview.output.model, strategy: 'officer-reviewed-alternative-append', runId: paddlePreview.runId, reliability: null, engineConfidence: null, previousTranscriptPreserved: true, reviewedRows: next.reviewedRows, workingMappings: next.workingMappings, rawHistoryUnchanged: true, rawPasses: paddlePreview.output.items.map(item => ({ panelId: item.id, characters: item.text.length, lines: item.lines.length, crop: item.crop, source: item.source })) })
+      await recordAudit('ocr_completed', { provider: 'paddleocr-js', model: paddlePreview.output.model, detectionProfile: paddlePreview.output.detectionProfile || 'baseline', detectionThresholds: paddlePreview.output.detectionThresholds || null, strategy: 'officer-reviewed-alternative-append', runId: paddlePreview.runId, reliability: null, engineConfidence: null, previousTranscriptPreserved: true, reviewedRows: next.reviewedRows, workingMappings: next.workingMappings, rawHistoryUnchanged: true, rawPasses: paddlePreview.output.items.map(item => ({ panelId: item.id, characters: item.text.length, lines: item.lines.length, crop: item.crop, source: item.source })) })
       if (!current()) return
       setText(next.text); setRawOcrText(next.rawOcrText); setEvidenceItems(next.evidenceItems); setOcrWords(next.words)
       setMeta(previous => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(next.evidenceItems.flatMap(item => item.ocrPasses || [])), ocrCompletedAt: new Date().toISOString(), ocrSource: 'local-paddle', ocrReliabilityReason: 'Alternative engine reading appended. Raw transcripts and selected layout derivations remain separate. No validated inspection-wide accuracy score is available.' }))
@@ -1617,19 +1643,21 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               number="02"
               icon={ScanLine}
               title="OCR and verify structured declarations"
-              copy="All captured panels are read locally, merged and parsed into inspectable declaration evidence."
+              copy="Read the original panels locally, associate headings with values, then verify the machine candidates against the photos."
               complete={Boolean(text.trim())}
             />
             <div className="ocr-toolbar">
-              <button type="button" className="ocr-button" onClick={() => runOcr('standard')} disabled={!evidenceItems.length || qualityBlocked || ocrState.running || ocrPreviewPending}>
+              <button type="button" className="ocr-button" onClick={runStructuredOcr} disabled={!evidenceItems.length || qualityBlocked || ocrState.running || ocrPreviewPending} title="On-device Paddle recognition and unverified geometric field candidates. Load model assets online before use; the verified offline pack covers classic Run browser OCR, not Paddle.">
                 {ocrState.running ? <LoaderCircle className="spin" size={17} /> : <ScanLine size={17} />}
-                {ocrState.running ? 'Reading label…' : 'Run browser OCR'}
+                {ocrState.running ? 'Reading label…' : 'Read label fields'}
               </button>
+              <button type="button" className="deep-ocr-button" onClick={() => runOcr('standard')} disabled={!evidenceItems.length || qualityBlocked || ocrState.running || ocrPreviewPending} title="Classic Tesseract transcript scan using the language selected in More OCR options. This replaces the working transcript; raw pass history remains in captured evidence.">Run browser OCR</button>
               <details className="ocr-advanced"><summary>More OCR options</summary><div className="ocr-advanced-actions">
               <button type="button" className="deep-ocr-button" onClick={() => runOcr('deep')} disabled={!evidenceItems.length || qualityBlocked || ocrState.running || ocrPreviewPending}>
                 <SearchCheck size={17} /> Deep scan small text
               </button>
               <button type="button" className="deep-ocr-button" onClick={() => runAlternativeOcr(false)} disabled={!evidenceItems.length || qualityBlocked || ocrState.running || ocrPreviewPending} title="Optional local PP-OCRv6 small model. First use loads additional assets; output is previewed before append. Not a validated accuracy upgrade."><Layers3 size={17} /> Try Paddle OCR · local</button>
+              <button type="button" className="deep-ocr-button" onClick={() => runAlternativeOcr(false, null, null, 'sensitive')} disabled={!evidenceItems.length || qualityBlocked || ocrState.running || ocrPreviewPending} title="Lower detection thresholds can find faint stamps but also add noise. Preview the new reading before appending; previous evidence is retained."><SearchCheck size={17} /> Retry faint stamp detection</button>
               <button type="button" className="connected-ocr-button" onClick={runConnectedOcr} disabled={!evidenceItems.length || qualityBlocked || ocrState.running || ocrPreviewPending || workspace?.offlineOnly} title="Explicitly sends processed panels to the configured Google Vision backend">
                 <WandSparkles size={17} /> Connected OCR
               </button>
@@ -1642,7 +1670,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
                   <option value="eng+tam">English + Tamil</option>
                 </select>
               </label>
-              </div><small>Alternative engines preserve raw readings. Connected OCR needs a configured provider and explicit upload consent.</small>
+              </div><small>Read label fields uses the local Paddle model and geometry; first load downloads model assets. Language selection applies to classic browser OCR and deep scan. Sensitive detection adds noise and requires preview review. Connected OCR needs a configured provider and explicit upload consent.</small>
               <PaddleStampRecovery disabled={!evidenceItems.length || qualityBlocked || ocrState.running || ocrPreviewPending} hasRegion={Boolean(activeEvidence && focusSelection?.panelId === activeEvidence.id && focusSelection?.imageUrl === activeEvidence.analysisUrl)} onRun={(focused, mode) => runAlternativeOcr(focused, null, mode)} />
               </details>
               <div className="ocr-progress">
@@ -1654,6 +1682,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
             {qualityBlocked && <div className="inline-warning quality-blocked"><ShieldAlert size={17} /><span>OCR is paused because one or more panels need an explicit image-quality decision. Retake the panel or record “Continue with caution”; the choice becomes part of the audit trail.</span></div>}
             <p className="connected-ocr-disclosure"><LockKeyhole size={13} /> Browser OCR is the private default. Connected OCR sends processed panels to Google Vision only when you click it and requires workspace sign-in. Sealing in a managed workspace uploads evidence to private storage. Reliability percentages below are unvalidated heuristics, not accuracy probabilities.</p>
             {ocrState.error && <div className="inline-warning"><AlertTriangle size={17} />{ocrState.error}</div>}
+            <MachineCandidateHistory auditChain={auditChain} />
             {paddlePreview && <PaddleReview key={paddlePreview.runId} preview={paddlePreview} currentText={text} onAppend={appendAlternativeOcr} onDismiss={() => setPaddlePreview(null)} />}
             <PaddleFocusGuidance suggestions={paddleGuidance} onScan={suggestion => runAlternativeOcr(true, suggestion)} pendingPreview={ocrPreviewPending} />
             <DeclarationCoverage extraction={extraction} reliability={provenance.reliability} engineConfidence={provenance.engineConfidence} reliabilityReason={meta.ocrReliabilityReason} hasOcrRun={provenance.hasRun} />
