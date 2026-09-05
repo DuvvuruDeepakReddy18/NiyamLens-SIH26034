@@ -6,6 +6,8 @@ The product is designed around the question a judge will ask: **can it survive a
 
 ## Current readiness — RC6 released 5 September 2026
 
+New OCR work: [measured recovery update](docs/OCR_RECOVERY_UPDATE_2026-09-05.md). On the same eight development photos, original-colour Paddle plus selected layout suggestions improved from 5/10 to 6/10 eligible fields. Optional dark-stamp modes recover different readings but are not a general accuracy upgrade. See its separate release status before assuming these changes are live.
+
 Current: [verified RC6 release and remaining limits](docs/RC6_RELEASE_2026-09-05.md), [team PDF](docs/NiyamLens_RC6_Team_Handoff_2026-09-05.pdf), and [fresh-photo/timing/review assignments](docs/VALIDATION_NEXT_ACTIONS.md). Earlier implementation/OCR reports retain their historical results. Passing engineering checks does not establish real-label accuracy or legal approval.
 
 Version 0.4.4 / rule pack `LMPC-RC-2026.09-RC6` adds an explicit Rule 3 applicability gate, conservative food-package typography review, optional local Paddle OCR (whole panels and officer-selected crops), reviewable layout suggestions and hardened evidence/synchronization boundaries. Release commit `d13aad5` passed 603 tests in CI; the final local test-harness follow-up passed 604. The public release passed 68 hosted API checks, four-role Chrome acceptance and one synthetic offline-to-online seal/export workflow. See the release report for exact scopes, source hashes and unresolved field evidence.

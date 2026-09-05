@@ -10,6 +10,8 @@ import { validateCriticalFieldManifest, scoreCriticalFields, normalizeCriticalVa
 import { extractDeclarations } from '../src/lib/extraction.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const retryMode = process.argv[2] || null
+if (retryMode !== null && !['dark-ink', 'dark-ink-90'].includes(retryMode)) throw new Error('Supported app retry modes: dark-ink or dark-ink-90.')
 const hash = value => createHash('sha256').update(value).digest('hex')
 const origin = localPilotOrigin(process.env.NIYAMLENS_BASE_URL || 'http://127.0.0.1:4191/')
 const manifestBytes = await readFile(resolve(root, 'datasets/critical-fields.v1.json'))
@@ -28,10 +30,28 @@ const appBytes = Buffer.from(await (await fetch(appModule.url)).arrayBuffer())
 Object.assign(appModule, { sha256: hash(appBytes), bytes: appBytes.length })
 const startedAt = new Date().toISOString(); const stamp = startedAt.replace(/[:.]/g, '-')
 const directory = resolve(root, 'reports/readiness-2026-09-05'); await mkdir(directory, { recursive: true })
-const outputPath = resolve(directory, `paddle-review-browser-${stamp}.json`)
+const outputPath = resolve(directory, `paddle-review-browser-${retryMode ? `${retryMode}-` : ''}${stamp}.json`)
 const file = await open(outputPath, 'wx')
 const report = { schemaVersion: 1, kind: 'actual-browser-development-paddle-review-TEST-SELECTION-NOT-HUMAN-VALIDATION', startedAt, finishedAt: null, isHoldout: false, humanReviewed: false, manifestSha256: hash(manifestBytes), sourceVerification, execution: { origin, appModule, status: 'running', plannedPhotos: 8, automaticTestSelection: true, typedCorrections: false, crop: false, policy: 'Actual Chrome UI upload and Paddle recognition. Automation selects every available source-mapped checkbox solely to test its workflow, NOT to assert a human inspected it. No field confirmations or typed corrections.' }, rows: [], rawScoring: null, selectedWorkingScoring: null,
   regressionBaseline: { path: regressionBaselinePath, sha256: hash(regressionBaselineBytes) }, limitations: ['Eight previously used development photos with AI-provisional labels, not independent accuracy.', 'Selecting layout checkboxes here is explicitly automated test behavior; never report this as officer verification.', 'Selected working text is derived and separately measured; raw OCR remains immutable.', 'No legal verdict, field inspection, holdout run, mobile OCR speed or cloud workflow is validated.'] }
+report.execution.retryMode = retryMode
+
+async function recognizeStampThroughUi(page, imagePath) {
+  await page.goto(`${origin}/`, { waitUntil: 'networkidle' })
+  await page.getByText('Local workspace', { exact: true }).waitFor()
+  await page.locator('input[type="file"]').setInputFiles(imagePath)
+  await page.getByText(/panel ready for OCR/i).waitFor({ timeout: 30000 })
+  const caution = page.getByRole('button', { name: 'Continue with caution', exact: true })
+  const qualityCaution = await caution.count() > 0
+  if (qualityCaution) await caution.click()
+  await page.getByText('More OCR options', { exact: true }).click()
+  await page.getByText('Recover an overprinted or sideways dark stamp', { exact: true }).click()
+  await page.getByLabel('Stamp recovery direction').selectOption(retryMode)
+  assert.equal(await page.getByRole('button', { name: 'Read dark stamp · selected region', exact: true }).isEnabled(), false)
+  await page.getByRole('button', { name: 'Read dark stamp · whole panels', exact: true }).click()
+  await page.getByRole('region', { name: 'Paddle OCR preview' }).waitFor({ timeout: 180000 })
+  return { rawText: await page.locator('.paddle-review details > pre').first().innerText(), qualityCaution }
+}
 
 function selectedWorkingScore() {
   const perField = Object.fromEntries(CRITICAL_FIELDS.map(field => [field, { readableDenominator: 0, exactCandidateMatches: 0, wrongValidCandidates: 0, unresolvedReadable: 0, missingReadable: 0, excludedLabels: 0, excludedWithValidCandidates: 0 }]))
@@ -114,11 +134,11 @@ try {
     const row = { sampleId: sample.id, sourcePath: sample.sourcePath, sourceSha256: sample.sha256, rawText: '', workingText: '', error: null, proposals: [], selectedCount: 0, tableBefore: null, tableAfter: null, screenshots: [], pageErrors, blockedRequests, verification: null }
     try {
       assert.equal(hash(await readFile(resolve(root, sample.sourcePath))), sample.sha256)
-      const recognized = await recognizeThroughUi(page, resolve(root, sample.sourcePath), 'browser-paddle', `${origin}/`)
+      const recognized = retryMode ? await recognizeStampThroughUi(page, resolve(root, sample.sourcePath)) : await recognizeThroughUi(page, resolve(root, sample.sourcePath), 'browser-paddle', `${origin}/`)
       row.rawText = recognized.rawText; row.rawSha256 = hash(row.rawText); row.qualityCaution = recognized.qualityCaution
       const baseline = regressionBaseline.rows.find(row => row.sampleId === sample.id && row.sourceSha256 === sample.sha256)
       row.rawIdenticalToPrePreviewFix = baseline?.rawText === row.rawText
-      assert.equal(row.rawIdenticalToPrePreviewFix, true, 'The same development image must retain its unmodified raw OCR output after the display-only fix.')
+      if (!retryMode) assert.equal(row.rawIdenticalToPrePreviewFix, true, 'The unchanged original-colour pipeline must retain its raw output.')
       const digestBefore = await page.locator('.hash-readout').innerText()
       const editorBefore = await page.locator('.evidence-editor').inputValue(); assert.equal(editorBefore, '')
       row.tableBefore = await page.locator('.paddle-field-comparison table').innerText()
@@ -128,8 +148,8 @@ try {
       assert.equal(frames.error, null); assert.equal(frames.items.length, 1)
       assert.match(frames.items[0].rgbaSha256, /^[a-f0-9]{64}$/)
       row.actualPaddleInput = frames.items[0]
-      row.displayedSourceFrames = await page.locator('.proposal-closeup image').evaluateAll(async elements => Promise.all(elements.map(async element => {
-        const url = element.getAttribute('href')
+      row.displayedSourceFrames = await page.locator('.proposal-closeup image, .paddle-retry-input img').evaluateAll(async elements => Promise.all(elements.map(async element => {
+        const url = element.getAttribute('href') || element.getAttribute('src')
         if (!/^data:image\/png;base64,/.test(url)) throw new Error('Displayed source must be the exact local PNG OCR frame.')
         const blob = new Blob([Uint8Array.from(atob(url.split(',')[1]), character => character.charCodeAt(0))], { type: 'image/png' })
         const bitmap = await createImageBitmap(blob); const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
@@ -139,6 +159,7 @@ try {
         const result = { width: bitmap.width, height: bitmap.height, rgbaSha256 }; bitmap.close(); return result
       })))
       for (const displayed of row.displayedSourceFrames) assert.deepEqual(displayed, row.actualPaddleInput, 'Displayed source pixels must exactly match the real OCR input frame.')
+      if (retryMode) assert.ok(row.displayedSourceFrames.length > 0, 'Stamp mode must display its exact derivative even with no layout suggestions.')
       const choices = articles.locator('input[type=checkbox]')
       for (let index = 0; index < await choices.count(); index += 1) { if (await choices.nth(index).isEnabled()) { await choices.nth(index).check(); row.selectedCount += 1 } }
       row.tableAfter = await page.locator('.paddle-field-comparison table').innerText()
@@ -181,9 +202,11 @@ try {
       assert.equal(draft.panels[0].originalBytesSha256, sample.sha256)
       assert.equal(draft.panels[0].rawPasses.length, 1)
       assert.equal(draft.panels[0].rawPasses[0].text, row.rawText)
+      if (retryMode) assert.equal(draft.panels[0].rawPasses[0].strategy, `local-alternative-dark-ink-${retryMode === 'dark-ink-90' ? 90 : 0}`)
       assert.ok(Object.values(draft.fieldReviews || {}).every(review => review.state !== 'confirmed'))
       assert.ok(Object.values(draft.confirmations).every(value => value !== true))
       assert.deepEqual(pageErrors, [])
+      assert.deepEqual(blockedRequests, [])
       row.verification = { rawUiUnchanged: true, rawPassUnchanged: true, rawPassSha256: hash(draft.panels[0].rawPasses[0].text), originalFileSha256: draft.panels[0].originalBytesSha256, fieldReviewsUnconfirmed: true, confirmationFlagsRemainFalse: true, visibleFieldReviewStates: states, draftPersisted: true, draft: { fieldReviews: draft.fieldReviews, confirmations: draft.confirmations, ocrConfidence: draft.ocrConfidence }, workingKind: row.selectedCount ? 'officer-selected-layout-in-automated-TEST' : 'raw-Paddle-only', noTypedCorrection: true }
     } catch (error) { row.error = String(error.message || error).slice(0, 2000) }
     finally { row.elapsedMs = Math.round(performance.now() - before); await context.close() }
@@ -192,5 +215,6 @@ try {
   }
   report.execution.appModuleUnchanged = hash(Buffer.from(await (await fetch(appModule.url)).arrayBuffer())) === appModule.sha256
   report.execution.status = 'complete'; report.finishedAt = new Date().toISOString(); await checkpoint()
+  if (report.rows.some(row => row.error || row.blockedRequests.length) || !report.execution.appModuleUnchanged) process.exitCode = 1
   console.log(JSON.stringify({ outputPath, rows: report.rows.length, failed: report.rows.filter(row => row.error).length, raw: report.rawScoring.runs.map(({ exactMatchCorrect, exactMatchSamples }) => ({ exactMatchCorrect, exactMatchSamples })), derivedWorking: report.selectedWorkingScoring }, null, 2))
 } finally { await browser?.close(); await file.close() }

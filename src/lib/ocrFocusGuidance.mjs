@@ -1,5 +1,5 @@
 import { extractDeclarations } from './extraction.mjs'
-import { describeReadingOrderBox } from './ocrReadingOrder.mjs'
+import { describeReadingOrderBox, inspectReadingOrderPair } from './ocrReadingOrder.mjs'
 
 // Acquisition guidance only: these rectangles request ANOTHER recognition of
 // actual pixels. They never associate a value with a heading, edit a transcript,
@@ -59,18 +59,22 @@ function envelopeFor(heading, lines, frame) {
     if (!standalone || line.id === heading.id || !line.geometry.supported || line.field || line.blocker) return false
     if (line.geometry.height / h > OCR_FOCUS_POLICY.maxNeighbourHeightRatio || h / line.geometry.height > OCR_FOCUS_POLICY.maxNeighbourHeightRatio) return false
     const c = line.bounds
-    const sameRow = overlap(b.y0, b.y1, c.y0, c.y1) / Math.min(b.y1 - b.y0, c.y1 - c.y0) >= 0.4
-      && c.x0 >= b.x1 && c.x0 - b.x1 <= h * OCR_FOCUS_POLICY.rightGapHeights && c.x1 < nextColumn
+    // Baseline projection retains right-hand values whose axis-aligned boxes
+    // overlap at a corner on a sloping label. This requests pixels only.
+    const sameRow = line.geometry.centre[0] > heading.geometry.centre[0]
+      && inspectReadingOrderPair(heading, line).compatible && c.x1 < nextColumn
     const directlyBelow = c.y0 >= b.y1 - h * 0.2 && c.y0 - b.y1 <= h * OCR_FOCUS_POLICY.belowGapHeights && c.y1 < belowStop && sameColumn(line)
     return sameRow || directlyBelow
   })
   const padding = h * OCR_FOCUS_POLICY.paddingHeights
-  // Even when a value was missed entirely, request a small amount of real
-  // adjacent image space. This is not an inferred missing text/value.
+  // A heading-only crop cannot recover a value the detector missed. Search a
+  // bounded right-hand strip, stopped by another section/column. Do not extend
+  // an already detected context box or synthesize a missing character.
   const edges = [heading, ...context].map(line => line.bounds)
   const x0 = Math.max(0, Math.min(...edges.map(edge => edge.x0)) - padding)
   const y0 = Math.max(0, Math.min(...edges.map(edge => edge.y0)) - padding)
-  const x1 = Math.min(nextColumn, frame.width, Math.max(...edges.map(edge => edge.x1)) + padding)
+  const searchRight = standalone && !context.length ? b.x1 + h * OCR_FOCUS_POLICY.rightGapHeights : b.x1
+  const x1 = Math.min(nextColumn, frame.width, Math.max(searchRight, ...edges.map(edge => edge.x1)) + padding)
   const y1 = Math.min(belowStop, frame.height, Math.max(b.y1 + h * (standalone ? 1.5 : 0), ...edges.map(edge => edge.y1)) + padding)
   return { rect: { x0, y0, x1, y1 }, context }
 }

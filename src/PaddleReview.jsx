@@ -21,6 +21,7 @@ export default function PaddleReview({ preview, currentText = '', onAppend, onDi
     <p>PP-OCRv6 small · real on-device recognition. This is an additional reading, not a verified accuracy upgrade. The language selector applies to Tesseract; Paddle uses its fixed bundled model. Nothing has been appended yet.</p>
     {preview.output.items.map((item, index) => <details key={item.id} open={preview.output.items.length === 1}>
       <summary>Panel {index + 1} · {item.lines.length} recognized lines · {item.source}</summary>
+      {item.retryMode && <div className="paddle-retry-input"><strong>Exact OCR input · {item.retryMode.photometric} · {item.retryMode.rotation}° clockwise</strong><p>This analysis derivative is not the original photograph. Coloured text may have disappeared; the original remains unchanged.</p><img src={item.previewUrl} alt="Exact dark-ink and orientation derivative used by OCR" /></div>}
       <pre>{item.text || '(no readable text on this panel)'}</pre>
     </details>)}
     {preview.layoutWarning && <p role="status">Raw OCR is available. Layout suggestions were withheld: {preview.layoutWarning}</p>}

@@ -58,6 +58,8 @@ import { evaluateInspection, fieldCandidates, FIELD_RULES } from './lib/inspecti
 import { EMPTY_OCR, MAX_EVIDENCE_TEXT, ocrProvenance, restoreEvidencePolicy, invalidateCapturedEvidence, validateSealableEvidence, nextPageOffset } from './lib/inspectionWorkflow.mjs'
 import { runLocalOcr } from './lib/ocrRunner.mjs'
 import { runPaddleOcr, preparePaddleAppend, createPaddleFocusInput } from './lib/paddleOcr.mjs'
+import { createPaddleRetryInput } from './lib/paddleRetryInput.mjs'
+import PaddleStampRecovery from './PaddleStampRecovery.jsx'
 import { collectPaddleLayoutProposals } from './lib/paddleLayoutProposals.mjs'
 import PaddleReview from './PaddleReview.jsx'
 import PaddleFocusGuidance from './PaddleFocusGuidance.jsx'
@@ -1380,7 +1382,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     finally { if (activeJob.current === controller) { activeJob.current = null; setProcessing(false) } }
   }
 
-  const runAlternativeOcr = async (focused = false, suggestion = null) => {
+  const runAlternativeOcr = async (focused = false, suggestion = null, retryMode = null) => {
     if (!evidenceItems.length || qualityBlocked || activeJob.current) return
     if (suggestion && (!focused || paddlePreview)) return
     if (focused && !suggestion && (!activeEvidence || !focusSelection || focusSelection.panelId !== activeEvidence.id || focusSelection.imageUrl !== activeEvidence.analysisUrl)) return
@@ -1394,8 +1396,9 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       const selection = selectedSuggestion || focusSelection
       setPaddlePreview(null)
       setOcrState({ running: true, progress: 1, label: 'Preparing optional local Paddle OCR', error: '' })
-      await recordAudit('alternative_ocr_requested', { provider: 'paddleocr-js', panels: focused ? 1 : evidenceItems.length, imagesLeaveDevice: false, crop: focused ? selection.rect : null, focusMethod: selectedSuggestion ? 'heading-guided-focus-v1-officer-selected' : focused ? 'officer-selected-rectangle' : null, headingIds: selectedSuggestion?.headingIds || [] })
-      const output = await runPaddleOcr({ evidenceItems: focused ? [focusPanel] : evidenceItems, ...(focused ? { inputFactory: item => createPaddleFocusInput(item, selection.rect) } : {}), signal: controller.signal, onProgress: state => { if (current()) setOcrState(state) } })
+      await recordAudit('alternative_ocr_requested', { provider: 'paddleocr-js', panels: focused ? 1 : evidenceItems.length, imagesLeaveDevice: false, crop: focused ? selection.rect : null, retryMode, focusMethod: selectedSuggestion ? 'heading-guided-focus-v1-officer-selected' : focused ? 'officer-selected-rectangle' : null, headingIds: selectedSuggestion?.headingIds || [] })
+      const inputOptions = retryMode ? { inputFactory: item => createPaddleRetryInput(item, retryMode, focused ? selection.rect : null) } : focused ? { inputFactory: item => createPaddleFocusInput(item, selection.rect) } : {}
+      const output = await runPaddleOcr({ evidenceItems: focused ? [focusPanel] : evidenceItems, ...inputOptions, signal: controller.signal, onProgress: state => { if (current()) setOcrState(state) } })
       if (!current()) return
       const { proposals, warnings } = collectPaddleLayoutProposals(output.items)
       setPaddlePreview({ output, proposals, layoutWarning: warnings.join(' '), runId: crypto.randomUUID(), guidedSuggestionId: selectedSuggestion?.id || null })
@@ -1623,7 +1626,9 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
                   <option value="eng+tam">English + Tamil</option>
                 </select>
               </label>
-              </div><small>Alternative engines preserve raw readings. Connected OCR needs a configured provider and explicit upload consent.</small></details>
+              </div><small>Alternative engines preserve raw readings. Connected OCR needs a configured provider and explicit upload consent.</small>
+              <PaddleStampRecovery disabled={!evidenceItems.length || qualityBlocked || ocrState.running || Boolean(paddlePreview)} hasRegion={Boolean(activeEvidence && focusSelection?.panelId === activeEvidence.id && focusSelection?.imageUrl === activeEvidence.analysisUrl)} onRun={(focused, mode) => runAlternativeOcr(focused, null, mode)} />
+              </details>
               <div className="ocr-progress">
                 <div><span style={{ width: `${ocrState.progress}%` }} /></div>
                 <small>{ocrState.label}</small>

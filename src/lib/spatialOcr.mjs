@@ -147,13 +147,19 @@ export function rapidOcrLines(metadata, { panelId = 'panel-1' } = {}) {
 
 // Separate opt-in proposal path: the earlier same-row API and its transcript
 // remain unchanged. These heuristics are NOT calibrated semantic confidence.
-export const STACKED_OCR_POLICY = Object.freeze({ maxGapHeights: 1, minHorizontalOverlap: 0.8, maxAnchorOffsetHeights: 0.5 })
+export const STACKED_OCR_POLICY = Object.freeze({ maxGapHeights: 1, minHorizontalOverlap: 0.8, maxAnchorOffsetHeights: 0.5, quantityMaxHeightRatio: 4, quantityMaxPairAngleDifference: 12 })
 
 function stackedPair(heading, value) {
   if (heading.panelId !== value.panelId || !heading.geometry.supported || !value.geometry.supported) return null
-  if (Math.abs(heading.geometry.angle - value.geometry.angle) > SPATIAL_OCR_THRESHOLDS.maxPairAngleDifference) return null
+  // Quantity numerals are often typeset larger than their heading on a curved
+  // wrap. Only this review-only net-quantity path permits unequal text sizes;
+  // dates/prices, column alignment, competing text and raw strings stay strict.
+  const netQuantity = heading.headings.includes('quantity') && /^NET\s*/i.test(heading.text.trim())
+  const angleLimit = netQuantity ? STACKED_OCR_POLICY.quantityMaxPairAngleDifference : SPATIAL_OCR_THRESHOLDS.maxPairAngleDifference
+  if (Math.abs(heading.geometry.angle - value.geometry.angle) > angleLimit) return null
   const height = Math.max(heading.geometry.height, value.geometry.height)
-  if (height / Math.min(heading.geometry.height, value.geometry.height) > SPATIAL_OCR_THRESHOLDS.maxHeightRatio) return null
+  const sizeLimit = netQuantity ? STACKED_OCR_POLICY.quantityMaxHeightRatio : SPATIAL_OCR_THRESHOLDS.maxHeightRatio
+  if (height / Math.min(heading.geometry.height, value.geometry.height) > sizeLimit) return null
   const angle = radians((heading.geometry.angle + value.geometry.angle) / 2)
   const u = [Math.cos(angle), Math.sin(angle)]; const v = [-Math.sin(angle), Math.cos(angle)]
   const hx = interval(heading.box, u); const vx = interval(value.box, u)

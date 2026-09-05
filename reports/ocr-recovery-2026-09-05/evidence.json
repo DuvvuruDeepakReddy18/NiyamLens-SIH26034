@@ -1,0 +1,773 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-05T13:25:04.460Z",
+  "purpose": "Known-development diagnosis, not field accuracy or winner-readiness",
+  "datasetId": "niyamlens-critical-fields-v1",
+  "humanReviewed": false,
+  "isHoldout": false,
+  "manifestSha256": "4f869df89f6246e774189a7522e2798f5ab680b83e887eb8ddeae6c08fd977ad",
+  "modes": [
+    {
+      "mode": "original-colour",
+      "report": {
+        "path": "reports/readiness-2026-09-05/paddle-review-browser-2026-09-05T13-10-08-226Z.json",
+        "sha256": "7385f3d75689c02754189c1c19d08256ce46742a6b81e070a752212f2a591701"
+      },
+      "appModuleSha256": "71aea553f266ae42469c3ecbc1974846591085cb8c0e8c0935d472b214535dba",
+      "photos": 8,
+      "raw": [
+        {
+          "exactMatchCorrect": 1,
+          "exactMatchSamples": 10
+        }
+      ],
+      "selectedWorking": {
+        "kind": "actual-appended-derived-working-candidates-NOT-RAW-ACCURACY",
+        "humanReviewed": false,
+        "completePhotos": 8,
+        "plannedPhotos": 8,
+        "failedPhotos": 0,
+        "exactCandidateMatches": 6,
+        "readableDenominator": 10,
+        "perField": {
+          "mrp": {
+            "readableDenominator": 3,
+            "exactCandidateMatches": 1,
+            "wrongValidCandidates": 0,
+            "unresolvedReadable": 2,
+            "missingReadable": 0,
+            "excludedLabels": 5,
+            "excludedWithValidCandidates": 0
+          },
+          "netQuantity": {
+            "readableDenominator": 5,
+            "exactCandidateMatches": 4,
+            "wrongValidCandidates": 0,
+            "unresolvedReadable": 1,
+            "missingReadable": 0,
+            "excludedLabels": 3,
+            "excludedWithValidCandidates": 0
+          },
+          "packDate": {
+            "readableDenominator": 2,
+            "exactCandidateMatches": 1,
+            "wrongValidCandidates": 0,
+            "unresolvedReadable": 1,
+            "missingReadable": 0,
+            "excludedLabels": 6,
+            "excludedWithValidCandidates": 0
+          }
+        }
+      },
+      "rows": [
+        {
+          "id": "CF-001",
+          "sourceSha256": "9d2187d0603d8781814e24320b452d596dc826a50ba29f0a7643f6d43b0c619b",
+          "rawSha256": "fce7635f0357dbdf77ebc2f9a7be3cd5f8d063c7f4d86b82c24ba71aa66ae54f",
+          "workingSha256": "eedcdf27fef7681bdbe6f33519120ebd3ad422f79f5d6081823f3a4dedf8700a",
+          "selectedSuggestions": 1,
+          "fields": {
+            "mrp": {
+              "value": "22.00",
+              "status": "format_valid",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "500 ml",
+              "status": "format_valid",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-002",
+          "sourceSha256": "61d17743670bb425275e861ccdfec072e33af556ab96d6f1043bf872fed73537",
+          "rawSha256": "989730975b199a511c51a954ae3d33cdf2592386b8636377af287fe3b0af2de6",
+          "workingSha256": "7c06cfa666959654a54c66c46fcc9c3d3c85814bcf882cf9d0a2f7bd749d3cec",
+          "selectedSuggestions": 0,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": ":",
+              "status": "invalid",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-003",
+          "sourceSha256": "603169c4bae57c270a514d744a0f03ac4a8d4da25d1da095ba2037f8c78d2c88",
+          "rawSha256": "0c6f1f66954e9725e32f10ac685d0cbfe430562236d350c0873b738dee461b76",
+          "workingSha256": "5df1167f5007524fe1fb6831ff97b8a6b9aa2fc7249267725ad75592c7ef701b",
+          "selectedSuggestions": 1,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "invalid",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "02/08/2026",
+              "status": "format_valid",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-004",
+          "sourceSha256": "35d575f4a33160549dca7d4c22ce188a8df2fc0b644128a5155d9416d72ffde3",
+          "rawSha256": "967d7371640a2c7d6f6128a367916d9e50989d44c2ea81b4dc0f57ec53a7024f",
+          "workingSha256": "bf779264345bee5d5c1a45de03b3eb1a8f7fcb6be941352deee6813bcee10153",
+          "selectedSuggestions": 0,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-005",
+          "sourceSha256": "b9cd89914094ebe8f591b9c5b29e5451872720c63c9ee15461926d1dd72302d2",
+          "rawSha256": "d010063547751c4dccee8a0c1e164590840b89db9650dca3ec0b993523223279",
+          "workingSha256": "8f3087119b10de880f064035bb3b0757db7db47b192ebeef58f51950d689a42c",
+          "selectedSuggestions": 1,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "1 l",
+              "status": "format_valid",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-006",
+          "sourceSha256": "34b8b602484c492408dd2921d1a657e8f030a97706da41deac04c110f7354120",
+          "rawSha256": "784c5001ec52217acb1cea582b482419139b4088eaf2eebad518deba604d36a1",
+          "workingSha256": "346c8b638ac6b3672b0d3b044972d3f2a7fcd0e0026eb47a8e331966a5515044",
+          "selectedSuggestions": 1,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "1 l",
+              "status": "format_valid",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-007",
+          "sourceSha256": "1f0025ed0036b861d1ff901f4df776cea6d78c4aafb775555bfd02d7ea5fce5c",
+          "rawSha256": "9e581432ff014d2eaafd34a66620d829d0668e40aa89e5df01c9009904d2ffca",
+          "workingSha256": "72ee6ea2964253df88dd6d34a4b395949ae5c2adacb611c0a2f0f5a75db213cb",
+          "selectedSuggestions": 1,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "1 l",
+              "status": "format_valid",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-008",
+          "sourceSha256": "a7bebcea106e822d878184f0a88a223d4360c0e578366ed3d1c197968bf1bbab",
+          "rawSha256": "bd133c2929616f2f0adbe3e25d18e00ae229d8f41ba0bf575913361131f2968f",
+          "workingSha256": "897be186e8be51d56827f1b986b35db56014394a3ebda65e6e6c2c81124e1130",
+          "selectedSuggestions": 0,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "mode": "dark-ink",
+      "report": {
+        "path": "reports/readiness-2026-09-05/paddle-review-browser-dark-ink-2026-09-05T13-12-41-859Z.json",
+        "sha256": "a972a44b6d007885ff26a3c4dd641b29d214e89edbe4d238213ff20899a45444"
+      },
+      "appModuleSha256": "71aea553f266ae42469c3ecbc1974846591085cb8c0e8c0935d472b214535dba",
+      "photos": 8,
+      "raw": [
+        {
+          "exactMatchCorrect": 2,
+          "exactMatchSamples": 10
+        }
+      ],
+      "selectedWorking": {
+        "kind": "actual-appended-derived-working-candidates-NOT-RAW-ACCURACY",
+        "humanReviewed": false,
+        "completePhotos": 8,
+        "plannedPhotos": 8,
+        "failedPhotos": 0,
+        "exactCandidateMatches": 5,
+        "readableDenominator": 10,
+        "perField": {
+          "mrp": {
+            "readableDenominator": 3,
+            "exactCandidateMatches": 2,
+            "wrongValidCandidates": 0,
+            "unresolvedReadable": 1,
+            "missingReadable": 0,
+            "excludedLabels": 5,
+            "excludedWithValidCandidates": 0
+          },
+          "netQuantity": {
+            "readableDenominator": 5,
+            "exactCandidateMatches": 2,
+            "wrongValidCandidates": 0,
+            "unresolvedReadable": 3,
+            "missingReadable": 0,
+            "excludedLabels": 3,
+            "excludedWithValidCandidates": 1
+          },
+          "packDate": {
+            "readableDenominator": 2,
+            "exactCandidateMatches": 1,
+            "wrongValidCandidates": 0,
+            "unresolvedReadable": 1,
+            "missingReadable": 0,
+            "excludedLabels": 6,
+            "excludedWithValidCandidates": 0
+          }
+        }
+      },
+      "rows": [
+        {
+          "id": "CF-001",
+          "sourceSha256": "9d2187d0603d8781814e24320b452d596dc826a50ba29f0a7643f6d43b0c619b",
+          "rawSha256": "58a4aa575b4140e725ed01ddd8ce46d2b0fb00e51f20afb73a183d98f2ef194b",
+          "workingSha256": "23d4f81eec9e1c93d841df396dcdb93ff3ca30030802b6b5ae6b3f5f0f72f691",
+          "selectedSuggestions": 0,
+          "fields": {
+            "mrp": {
+              "value": "22.00",
+              "status": "format_valid",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "",
+              "status": "invalid",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-002",
+          "sourceSha256": "61d17743670bb425275e861ccdfec072e33af556ab96d6f1043bf872fed73537",
+          "rawSha256": "3c39db0f65fedb2d541abdf5b9ea0ab53d6fd28461f934491ac00e7929c64121",
+          "workingSha256": "77684cb625beb4a4a7c6e6a756dc4bf5f7f20f90a6532a5ae4fa7f98ff55a7ee",
+          "selectedSuggestions": 1,
+          "fields": {
+            "mrp": {
+              "value": "27",
+              "status": "format_valid",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "500 ml",
+              "status": "format_valid",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-003",
+          "sourceSha256": "603169c4bae57c270a514d744a0f03ac4a8d4da25d1da095ba2037f8c78d2c88",
+          "rawSha256": "e6e5cf224e6b260bccd4612153bab4ea515eb6aea7344408e9538cf21700a2ba",
+          "workingSha256": "ea9033319f24fb1ed66f5b57820452c5534dd293e8efa2bedb6a031c0bf5d502",
+          "selectedSuggestions": 1,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "invalid",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "02/08/2026",
+              "status": "format_valid",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-004",
+          "sourceSha256": "35d575f4a33160549dca7d4c22ce188a8df2fc0b644128a5155d9416d72ffde3",
+          "rawSha256": "d8a25cec589d7dabde314a41653a2192bd90a2b1a75c743a7d66131f56750093",
+          "workingSha256": "4034db970a49082365caf03e42fe3b6944de49935f4d50513ce2b9fd42a3bf71",
+          "selectedSuggestions": 0,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-005",
+          "sourceSha256": "b9cd89914094ebe8f591b9c5b29e5451872720c63c9ee15461926d1dd72302d2",
+          "rawSha256": "312b94535da928430694b61eb9c20005fe7f8193496a068d222b2e19eaa4c17f",
+          "workingSha256": "9a97887b7f8c391abc4e44c323a65fc5cbe3b876f717e963fc8dfb062b39f7dc",
+          "selectedSuggestions": 0,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": ":",
+              "status": "invalid",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-006",
+          "sourceSha256": "34b8b602484c492408dd2921d1a657e8f030a97706da41deac04c110f7354120",
+          "rawSha256": "e33abe2af50631148696c216a39d71610d6f60e62ba22eeeb87c7081a5b82c2a",
+          "workingSha256": "6a4479902501b96261c04c18d38f3851169265b7402b294badd6cb22e8a86dba",
+          "selectedSuggestions": 1,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "1 l",
+              "status": "format_valid",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-007",
+          "sourceSha256": "1f0025ed0036b861d1ff901f4df776cea6d78c4aafb775555bfd02d7ea5fce5c",
+          "rawSha256": "f80dc740f826a88f9bc1249a3766d59de40a0bb71ef345de073125a847f4dd19",
+          "workingSha256": "2227b0f386eaed82b3efb1263f18a5ccbaf25771e3f6656b3e5362a22faa490e",
+          "selectedSuggestions": 1,
+          "fields": {
+            "mrp": {
+              "value": ".",
+              "status": "invalid",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "1 l",
+              "status": "format_valid",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-008",
+          "sourceSha256": "a7bebcea106e822d878184f0a88a223d4360c0e578366ed3d1c197968bf1bbab",
+          "rawSha256": "f430fb07a0116564b66f44c20412fecd9e4c5c041ac1f2e8f2a601b46332cf25",
+          "workingSha256": "e6142fb5ba263e38c6b344b10c6e219d528bc536a7ca5e80d6c5eda2c278e996",
+          "selectedSuggestions": 0,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "mode": "dark-ink-90",
+      "report": {
+        "path": "reports/readiness-2026-09-05/paddle-review-browser-dark-ink-90-2026-09-05T13-17-35-762Z.json",
+        "sha256": "e20d2d78d30dc59a90a7d656a6abf95448a4e7ad9729cb6c9786fcc834a0bd9c"
+      },
+      "appModuleSha256": "71aea553f266ae42469c3ecbc1974846591085cb8c0e8c0935d472b214535dba",
+      "photos": 8,
+      "raw": [
+        {
+          "exactMatchCorrect": 2,
+          "exactMatchSamples": 10
+        }
+      ],
+      "selectedWorking": {
+        "kind": "actual-appended-derived-working-candidates-NOT-RAW-ACCURACY",
+        "humanReviewed": false,
+        "completePhotos": 8,
+        "plannedPhotos": 8,
+        "failedPhotos": 0,
+        "exactCandidateMatches": 2,
+        "readableDenominator": 10,
+        "perField": {
+          "mrp": {
+            "readableDenominator": 3,
+            "exactCandidateMatches": 1,
+            "wrongValidCandidates": 0,
+            "unresolvedReadable": 2,
+            "missingReadable": 0,
+            "excludedLabels": 5,
+            "excludedWithValidCandidates": 0
+          },
+          "netQuantity": {
+            "readableDenominator": 5,
+            "exactCandidateMatches": 0,
+            "wrongValidCandidates": 0,
+            "unresolvedReadable": 5,
+            "missingReadable": 0,
+            "excludedLabels": 3,
+            "excludedWithValidCandidates": 0
+          },
+          "packDate": {
+            "readableDenominator": 2,
+            "exactCandidateMatches": 1,
+            "wrongValidCandidates": 0,
+            "unresolvedReadable": 1,
+            "missingReadable": 0,
+            "excludedLabels": 6,
+            "excludedWithValidCandidates": 0
+          }
+        }
+      },
+      "rows": [
+        {
+          "id": "CF-001",
+          "sourceSha256": "9d2187d0603d8781814e24320b452d596dc826a50ba29f0a7643f6d43b0c619b",
+          "rawSha256": "e7e5c882180022c44a206195ef0259a950f4b9dfa98e33ca331385d27fc90459",
+          "workingSha256": "271d30222c04d95adedf2c028350d71209b7b916c4fbf61d9106c4f148bbaf6c",
+          "selectedSuggestions": 0,
+          "fields": {
+            "mrp": {
+              "value": "22.00",
+              "status": "format_valid",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "",
+              "status": "invalid",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-002",
+          "sourceSha256": "61d17743670bb425275e861ccdfec072e33af556ab96d6f1043bf872fed73537",
+          "rawSha256": "0b0fd3f314243e3e5459c583f0cb1bc74fe47973c86dc347e4c1f03ffd9db58c",
+          "workingSha256": "5326ebe1ef56004224206f71a8d338ad5f9095be55416a78a90f432466fdbd44",
+          "selectedSuggestions": 0,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": ": 500",
+              "status": "invalid",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-003",
+          "sourceSha256": "603169c4bae57c270a514d744a0f03ac4a8d4da25d1da095ba2037f8c78d2c88",
+          "rawSha256": "b35a8673b21d92470e63d6a0d4a0fe40d858f02a0f389c47e5e7df0ad213759a",
+          "workingSha256": "488879c520c3eb4bd518dd0335aaa0a82c8db481ba8048411015f56a5e46eeae",
+          "selectedSuggestions": 0,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "invalid",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "invalid",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-004",
+          "sourceSha256": "35d575f4a33160549dca7d4c22ce188a8df2fc0b644128a5155d9416d72ffde3",
+          "rawSha256": "80dfb4df7413f52089073cf473897c14ff247079ab2d939dca49a44999e6a8e1",
+          "workingSha256": "44aac53a16939c53b12c71b54cf13ba6b9334dae896052720670792576845f2d",
+          "selectedSuggestions": 0,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-005",
+          "sourceSha256": "b9cd89914094ebe8f591b9c5b29e5451872720c63c9ee15461926d1dd72302d2",
+          "rawSha256": "8e6cae952919876fcf1bf3f4f95a86801f05d48baf6f26c7d633aeac3497e6a5",
+          "workingSha256": "3da46c04f21c2765a6aaa9f8382a10f7cf760d314d2301b2c9bb87b423cf5985",
+          "selectedSuggestions": 0,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": ":",
+              "status": "invalid",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "19/10/25",
+              "status": "format_valid",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-006",
+          "sourceSha256": "34b8b602484c492408dd2921d1a657e8f030a97706da41deac04c110f7354120",
+          "rawSha256": "a44d53283540ea8d1ceeda7c685d1e4b5e820bb3c3e1534b33215ffefe33ee86",
+          "workingSha256": "b575e77f575176decf6ffe58c48fb9020558e87caee063a8d8ebf82a1477cb2b",
+          "selectedSuggestions": 0,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-007",
+          "sourceSha256": "1f0025ed0036b861d1ff901f4df776cea6d78c4aafb775555bfd02d7ea5fce5c",
+          "rawSha256": "e25a713396a92121793878d0871213b50063230797c6f3aba0fe4c9304aac1f6",
+          "workingSha256": "162c4247b0c90a8f9634aaa00acde3404d0fc5bf787bcbe9fc2b4340666040e7",
+          "selectedSuggestions": 0,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": ":",
+              "status": "invalid",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        },
+        {
+          "id": "CF-008",
+          "sourceSha256": "a7bebcea106e822d878184f0a88a223d4360c0e578366ed3d1c197968bf1bbab",
+          "rawSha256": "068fa2b7efda287a9a8bd12d108768810f37795ee9bea9180142093bc55f83be",
+          "workingSha256": "65191cda0cb4db0d4cf6a515a73798e72b9fb31051e37ce7e0f2c322745a74d4",
+          "selectedSuggestions": 0,
+          "fields": {
+            "mrp": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "netQuantity": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            },
+            "packDate": {
+              "value": "",
+              "status": "not-detected",
+              "conflict": false
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "selectedRegionWorkflow": {
+    "path": "reports/readiness-2026-09-05/stamp-recovery-ui-2026-09-05T13-21-06-944Z.json",
+    "sha256": "658bd4a242b94ee28c485a782868c225d3ba84319e46ce704c2473f41707e241",
+    "checks": [
+      "heading-guided crop executes real OCR; dismissed preview does not mutate transcripts",
+      "actual two-click region selection and 90-degree dark-ink OCR",
+      "mobile preview has no horizontal overflow",
+      "original hash, prior text and raw passes preserved in saved draft",
+      "rotated crop overlay boxes restored to full analysis coordinates",
+      "no typed corrections or field confirmations"
+    ]
+  },
+  "limitations": [
+    "All eight photographs were previously used in development; references are AI-provisional.",
+    "Checkbox selection is automated test policy, not officer verification. Raw and derived measurements are separate.",
+    "Modes are alternatives, not additive: choosing the best answer per field using the reference is not a valid combined benchmark.",
+    "Dark-ink upright mode yields one valid quantity in an excluded/illegible reference slot; it is not scored as a success or true negative.",
+    "Earlier test-harness failures remain retained: wrong case-sensitive button selector and ambiguous screenshot selector. Third workflow run passes.",
+    "An initial unrestricted-parallel unit run failed a test-file process; isolated rerun passed and the complete bounded-concurrency run passed 617/617. Cause of the process failure is not established.",
+    "Independent human labels, physical-package timing, qualified legal/measurement review and general real-label accuracy remain unproven."
+  ]
+}

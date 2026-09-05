@@ -132,15 +132,18 @@ export async function runPaddleOcr({ evidenceItems, signal, onProgress = () => {
       const frame = await boundedOcr(inputFactory(item), { signal: job.signal, timeoutMs: limits.passMs, label: 'Paddle image preparation' })
       const sourceBinding = paddleSourceBinding(item)
       if (!samePaddleSource(frame?.sourceBinding, sourceBinding) || typeof frame?.previewUrl !== 'string' || !/^data:image\/png;base64,/.test(frame.previewUrl)) throw new Error('Paddle input preview is not bound to the current evidence pixels.')
+      if (frame.retryMode && (frame.retryMode.photometric !== 'max-rgb-v1' || ![0, 90].includes(frame.retryMode.rotation))) throw new Error('Invalid Paddle retry provenance.')
       const output = await boundedOcr(engine.predict(frame.input), { signal: job.signal, timeoutMs: limits.passMs, label: 'Paddle recognition' })
       throwIfAborted(job.signal)
       if (!Array.isArray(output) || output.length !== 1) throw new Error('Paddle OCR returned an invalid page count.')
       const parsed = parsePaddleOutput(output[0], item.id, frame)
       const words = frame.mapWords ? frame.mapWords(parsed.words) : parsed.words
       validateOcrWords(words)
-      const reading = { id: item.id, imageUrl: item.analysisUrl, previewUrl: frame.previewUrl, sourceBinding, crop: frame.crop || null, source: frame.source, width: frame.width, height: frame.height, ...parsed,
-        ocrPasses: [{ id: `${item.id}:paddle-${frame.crop ? 'focus' : 'original'}`, text: parsed.text, confidence: parsed.confidence, provider: 'paddleocr-js', model: PADDLE_MODEL, strategy: frame.crop ? 'local-alternative-officer-focus' : 'local-alternative-original' }], ocrWords: words }
-      reading.focusGuidance = planPaddleFocus(reading)
+      const reading = { id: item.id, imageUrl: item.analysisUrl, previewUrl: frame.previewUrl, sourceBinding, crop: frame.crop || null, retryMode: frame.retryMode || null, source: frame.source, width: frame.width, height: frame.height, ...parsed,
+        ocrPasses: [{ id: `${item.id}:paddle-${frame.crop ? 'focus' : 'original'}`, text: parsed.text, confidence: parsed.confidence, provider: 'paddleocr-js', model: PADDLE_MODEL, strategy: frame.retryMode ? `local-alternative-dark-ink-${frame.retryMode.rotation}${frame.crop ? '-focus' : ''}` : frame.crop ? 'local-alternative-officer-focus' : 'local-alternative-original' }], ocrWords: words }
+      // Rotated preview polygons are in the retry frame, not the captured
+      // analysis frame. Never offer them as a crop on a different orientation.
+      reading.focusGuidance = frame.retryMode?.rotation ? { method: 'heading-guided-focus-v1', suggestions: [], withheld: [{ reason: 'rotated_retry_select_region_on_original_or_recapture' }] } : planPaddleFocus(reading)
       items.push(reading)
       validateOcrHistory(items)
     }

@@ -11,7 +11,7 @@ import { extractDeclarations } from '../src/lib/extraction.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const profile = process.argv[2]
-if (!['det960', 'det1536', 'det2000', 'quad960'].includes(profile)) throw new Error('Specify a fixed development profile: det960/det1536/det2000/quad960.')
+if (!['det960', 'det1536', 'det2000', 'quad960', 'ink960', 'ink90', 'focus960'].includes(profile)) throw new Error('Specify a fixed development profile: det960/det1536/det2000/quad960/ink960/ink90/focus960.')
 const origin = 'http://127.0.0.1:4191'
 const hash = bytes => createHash('sha256').update(bytes).digest('hex')
 const manifestBytes = await readFile(resolve(root, 'datasets/critical-fields.v1.json'))
@@ -20,7 +20,7 @@ if (manifest.datasetId !== 'niyamlens-critical-fields-v1' || manifest.samples.le
 const sourceVerification = await verifyCriticalSourceImages(manifest, root)
 const startedAt = new Date().toISOString(); const directory = resolve(root, 'reports/readiness-2026-09-05'); await mkdir(directory, { recursive: true })
 const outputPath = resolve(directory, `paddle-resolution-${profile}-${startedAt.replace(/[:.]/g, '-')}.json`); const file = await open(outputPath, 'wx')
-const sourcePaths = ['tools/qa-paddle-resolution-browser.mjs', 'tools/paddle-development-entry.mjs', 'src/lib/paddleOcr.mjs', 'src/lib/paddleWorkingText.mjs', 'src/lib/extraction.mjs', 'src/lib/labelParser.mjs', 'src/lib/paddleLayoutProposals.mjs', 'src/lib/ocrReadingOrder.mjs', 'src/lib/spatialOcr.mjs', 'src/lib/criticalFieldBenchmark.mjs']
+const sourcePaths = ['tools/qa-paddle-resolution-browser.mjs', 'tools/paddle-development-entry.mjs', 'src/lib/paddleOcr.mjs', 'src/lib/paddleWorkingText.mjs', 'src/lib/extraction.mjs', 'src/lib/labelParser.mjs', 'src/lib/paddleLayoutProposals.mjs', 'src/lib/ocrReadingOrder.mjs', 'src/lib/spatialOcr.mjs', 'src/lib/criticalFieldBenchmark.mjs', 'src/lib/ocrFocusGuidance.mjs', 'src/lib/focusOcr.mjs']
 const sourceHashes = Object.fromEntries(await Promise.all(sourcePaths.map(async path => [path, hash(await readFile(resolve(root, path)))])))
 const report = { kind: 'actual-Chrome-development-OCR-resolution-experiment', startedAt, finishedAt: null, profile, model: 'PP-OCRv6_small@paddleocr-js-0.4.2', sourceHashes, sourceVerification, manifestSha256: hash(manifestBytes), datasetId: manifest.datasetId, isHoldout: false, humanReviewed: false, rows: [], rawScoring: null, derivedPotential: null, limitations: ['Fixed 8 previously used development photos and AI-provisional references only; not independent accuracy.', 'Actual local Chrome model execution via a development harness, not an app UI or deployment claim.', 'No digit/unit/heading repair, reference-specific crop, product dictionary, or confidence-based selection.', 'Every fixed-profile observation remains raw and separately recorded. Derived source-once proposals are explicitly automated test policy, not human review.', 'For tiled runs all four original observations are concatenated in fixed order; contradictory OCR remains a conflict, never selected using reference answers.'] }
 function derivedScore() {

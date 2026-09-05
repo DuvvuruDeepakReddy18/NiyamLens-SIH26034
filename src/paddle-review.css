@@ -30,3 +30,9 @@
 .paddle-proposals input { margin-top: 4px; flex-shrink: 0; }
 .focus-suggestion-box { stroke: #d86a08; fill: #ffad0022; stroke-width: 2; vector-effect: non-scaling-stroke; }
 @media (max-width: 550px) { .paddle-proposals article { grid-template-columns: 1fr; } .paddle-review { padding: 14px; } }
+.paddle-stamp-recovery { margin-top: 1rem; padding: 1rem; border: 1px solid #d4dad5; border-radius: 12px; }
+.paddle-stamp-recovery summary { cursor: pointer; font-weight: 600; }
+.paddle-stamp-recovery p, .paddle-stamp-recovery small { display: block; max-width: 78ch; line-height: 1.5; }
+.paddle-stamp-recovery label { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.paddle-stamp-recovery select { max-width: 100%; padding: .6rem; }
+.paddle-retry-input img { display: block; max-width: 100%; max-height: 500px; object-fit: contain; margin: .75rem auto; }

@@ -4,7 +4,7 @@ export const normalizeUnit = unit => {
   const u = String(unit || '').toLowerCase().replace(/\./g, '')
   if (['gm', 'gms', 'gram', 'grams'].includes(u)) return 'g'
   if (['kgs', 'kilogram', 'kilograms'].includes(u)) return 'kg'
-  if (['ltr', 'litre', 'litres', 'liter', 'liters'].includes(u)) return 'l'
+  if (['ltr', 'litre', 'litres', 'liter', 'liters', 'ℓ'].includes(u)) return 'l'
   if (['pc', 'pcs', 'piece', 'pieces', 'n', 'nos', 'unit', 'units'].includes(u)) return 'pcs'
   return u
 }
@@ -23,11 +23,14 @@ export function parsePositiveNumber(token, precision = 6) {
 }
 const unique = list => [...new Map(list.map(c => [c.key, c])).values()]
 const candidate = (value, line, typed, valid, message = '') => ({ value, evidence: line.slice(0, 2000), ...typed, valid, key: valid ? JSON.stringify(typed) : `invalid:${value}`, validation: { status: valid ? 'format_valid' : 'invalid', message } })
-const MONEY_HEADING = /\b(?:M[ \t]*[.·]?[ \t]*R[ \t]*[.·]?[ \t]*P|MAXIMUM[ \t]+RETAIL[ \t]+PRICE)\b/gi
+// Compact stamps often print MRP27 without a separator. A word boundary after
+// P rejects the digit (both are word characters); explicitly allow that digit,
+// but never a larger word such as MRPENDING or a preceding batch-code letter.
+const MONEY_HEADING = /\b(?:M[ \t]*[.·]?[ \t]*R[ \t]*[.·]?[ \t]*P|MAXIMUM[ \t]+RETAIL[ \t]+PRICE)(?=\b|\d)/gi
 const QUANTITY_HEADING = /\bNET[ \t]*(?:QTY|QUANTITY|WT|WEIGHT|VOL(?:UME)?|CONTENTS?)\b\.?|\bCONTENTS?\b(?=[ \t]*:|[ \t]+[+-]?[\d,.])/gi
 const UNIT_PRICE_HEADING = /\b(?:UNIT[ \t]+SALE[ \t]+PRICE|UNIT[ \t]+PRICE|USP)\b/gi
 const PACKING_HEADING = /\b(?:MFG|MFD|MANUFACTURED|PACKED|PKD|IMPORTED)\b\.?(?:[ \t]+(?:ON|DATE)\b\.?)?/gi
-const UNIT_TOKEN = '(KG|KGS|G|GM|GMS|GRAMS?|ML|L|LTR|LITRES?|LITERS?|PCS?|PIECES?|N|NOS)'
+const UNIT_TOKEN = '(KG|KGS|G|GM|GMS|GRAMS?|ML|L|LTR|LITRES?|LITERS?|ℓ|PCS?|PIECES?|N|NOS)'
 function valuesAfterHeadings(line, regex, parse) {
   const found = [...line.matchAll(new RegExp(regex.source, regex.flags))]
   return found.map((match, i) => parse(line.slice(match.index + match[0].length, found[i + 1]?.index).trim(), line))
@@ -59,7 +62,7 @@ export function parseLabelNumbers(text) {
     const quantityLine = stackedQuantity ? `${line} ${nextLine.trim()}` : line
     netQuantity.push(...valuesAfterHeadings(quantityLine, QUANTITY_HEADING, (tail, evidence) => {
       if (stackedQuantity) evidence = `${line}\n${nextLine}`
-      const match = new RegExp(`^[ \\t]*[:]?[ \\t]*([+-]?[ \\t]*[\\d,.]+)[ \\t]*${UNIT_TOKEN}\\b`, 'i').exec(tail)
+      const match = new RegExp(`^[ \\t]*[:]?[ \\t]*([+-]?[ \\t]*[\\d,.]+)[ \\t]*${UNIT_TOKEN}(?![\\p{L}\\p{N}_])`, 'iu').exec(tail)
       const parsed = parsePositiveNumber(match?.[1]?.replace(/[ \t]/g, ''))
       const unit = normalizeUnit(match?.[2])
       const trailing = tail.slice(match?.[0]?.length || 0).trimStart()
@@ -87,7 +90,10 @@ export function parsePackingDates(text) {
   for (const line of String(text || '').slice(0, MAX_LABEL_TEXT).split('\n')) {
     result.push(...valuesAfterHeadings(line, PACKING_HEADING, (source, evidence) => {
     const tail = source.replace(/^[ \t]*:[ \t]*/, '').trim().slice(0, 80)
-    if (/^BY\b/i.test(tail)) return null
+    // Role/address references (MFD BY, or a standalone MFD & continuation)
+    // are not date values. Keep arbitrary damaged dates/empty headings invalid;
+    // this narrow conjunction case must not manufacture a conflicting date.
+    if (/^BY\b/i.test(tail) || /^(?:&|AND)\s*$/i.test(tail)) return null
     // Require the whole date token. Otherwise optional-day backtracking can
     // accept a clipped DD/MM/Y as MM/YY (02/08/2 -> February 2008), or accept
     // the prefix of an extra component. A trailing separator is unresolved,
