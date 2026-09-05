@@ -38,10 +38,22 @@ async function boundedImage(response, signal) {
   return { bytes, mime }
 }
 export function mergeCloudRecord(local, remote) {
-  return { ...remote, imageUrl: local?.imageUrl || '', evidenceItems: remote.evidenceItems.map((panel) => {
+  if (Number.isSafeInteger(local?.serverVersion) && (!Number.isSafeInteger(remote?.serverVersion) || remote.serverVersion < local.serverVersion)) return local
+  if (remote.recordKind === 'summary') {
+    // A list refresh must not replace the full evidence already cached at the
+    // same version. Newer review metadata is visible immediately, but reports
+    // must retrieve its complete history before being opened or reviewed.
+    if (local && local.recordKind !== 'summary' && !local.detailsStale && local.serverVersion === remote.serverVersion) return local
+    return { ...local, ...remote, evidenceItems: local?.evidenceItems || [], imageUrl: local?.imageUrl || '', detailsStale: true }
+  }
+  return { ...remote, recordKind: 'detail', detailsStale: false, imageUrl: local?.imageUrl || '', evidenceItems: remote.evidenceItems.map((panel) => {
     const cached = local?.evidenceItems?.find((item) => item.id === panel.id)
     return { ...cached, ...panel }
   }) }
+}
+export const requiresCaseDetails = (record) => record?.recordKind === 'summary' || record?.detailsStale === true
+export function assertQueuedRulePack(record) {
+  if (record?.rulePack !== RULE_PACK.id) throw Object.assign(new Error(`This inspection was sealed under ${record?.rulePack || 'an unknown rule pack'}; this app uses ${RULE_PACK.id}. Its original seal is retained. Start a new inspection and explicitly reassess under the current rules before submitting.`), { status: 409, code: 'RULE_PACK_MISMATCH' })
 }
 export function createWorkspaceClient(client, org, expectedUserId) {
   if (!expectedUserId) throw new Error('Workspace clients must be bound to an authenticated user.')
@@ -63,7 +75,7 @@ export function createWorkspaceClient(client, org, expectedUserId) {
     const response = await fetch(`/api/${path}`, { ...options, headers: await headers(signal), cache: 'no-store', signal })
     const result = await response.json().catch(() => ({}))
     await ensureCurrent(signal)
-    if (!response.ok) throw Object.assign(new Error(result.error || `Request failed (${response.status}).`), { status: response.status })
+    if (!response.ok) throw Object.assign(new Error(result.error || `Request failed (${response.status}).`), { status: response.status, ...(result.code === 'RULE_PACK_MISMATCH' ? { code: result.code } : {}) })
     return result
   }
   const upload = async (record, panel, kind, signal) => {
@@ -88,7 +100,18 @@ export function createWorkspaceClient(client, org, expectedUserId) {
     }
     return prepared.path
   }
-  return { headers, request, expectedUserId, ensureCurrent,
+  const getRecordMetadata = async (record, { source = 'available', signal: callerSignal } = {}) => {
+    if (!['available', 'cloud'].includes(source)) throw Object.assign(new Error('Unknown evidence retrieval source.'), { status: 422 })
+    const signal = AbortSignal.any([controller.signal, ...(callerSignal ? [callerSignal] : [])])
+    await ensureCurrent(signal)
+    if (source !== 'cloud' && !requiresCaseDetails(record)) return record
+    if (typeof record?.id !== 'string' || !/^[A-Za-z0-9_-]{8,100}$/.test(record.id)) throw Object.assign(new Error('A valid managed case ID is required.'), { status: 422 })
+    const { record: fresh } = await request(`cases?id=${encodeURIComponent(record.id)}`, { signal })
+    if (!fresh || fresh.id !== record.id || requiresCaseDetails(fresh) || !Number.isSafeInteger(fresh.serverVersion) || fresh.serverVersion < 1 || typeof fresh.serverPayloadHash !== 'string' || !/^[a-f0-9]{64}$/.test(fresh.serverPayloadHash) || typeof fresh.serverSealedAt !== 'string' || !Number.isFinite(Date.parse(fresh.serverSealedAt)) || fresh.syncState !== 'synced') throw Object.assign(new Error('The server did not return complete evidence and a valid managed receipt. Cached evidence was not substituted.'), { status: 422 })
+    if (Number.isSafeInteger(record.serverVersion) && fresh.serverVersion < record.serverVersion) throw Object.assign(new Error('The server returned an older case version. Retry the evidence check before reviewing.'), { status: 409 })
+    return source === 'cloud' ? fresh : mergeCloudRecord(record, fresh)
+  }
+  return { headers, request, expectedUserId, ensureCurrent, getRecordMetadata,
     get signal() { return controller.signal },
     cancelPending() { controller.abort(cancelled()); if (!disposed) controller = new AbortController() },
     dispose() { disposed = true; controller.abort(cancelled()) },
@@ -101,6 +124,7 @@ export function createWorkspaceClient(client, org, expectedUserId) {
       }
       if (operation.kind !== 'seal') throw Object.assign(new Error('Unknown queued operation.'), { status: 422 })
       const record = operation.payload
+      assertQueuedRulePack(record)
       try { validateOcrHistory(record?.evidenceItems) } catch (error) { throw Object.assign(error, { status: 422 }) }
       const panels = []
       for (const panel of record.evidenceItems) {
@@ -110,22 +134,15 @@ export function createWorkspaceClient(client, org, expectedUserId) {
         panels.push({ ...metadata, originalPath, analysisPath })
       }
       const { imageUrl, ...metadata } = record
-      const result = await request('cases', { method: 'POST', body: JSON.stringify({ record: { ...metadata, evidenceItems: panels, rulePack: RULE_PACK.id } }), signal })
+      const result = await request('cases', { method: 'POST', body: JSON.stringify({ record: { ...metadata, evidenceItems: panels } }), signal })
       return { record: mergeCloudRecord(record, result.record) }
     },
     async openRecord(record, { source = 'available', signal: callerSignal } = {}) {
       if (!['available', 'cloud'].includes(source)) throw Object.assign(new Error('Unknown evidence retrieval source.'), { status: 422 })
       const signal = AbortSignal.any([controller.signal, ...(callerSignal ? [callerSignal] : [])])
       await ensureCurrent(signal)
-      if (source === 'cloud') {
-        if (typeof record?.id !== 'string' || !/^[A-Za-z0-9_-]{8,100}$/.test(record.id)) throw Object.assign(new Error('A valid managed case ID is required.'), { status: 422 })
-        const result = await request(`cases?id=${encodeURIComponent(record.id)}`, { signal })
-        const fresh = result.record
-        if (!fresh || fresh.id !== record.id || !Number.isSafeInteger(fresh.serverVersion) || fresh.serverVersion < 1 || typeof fresh.serverPayloadHash !== 'string' || !/^[a-f0-9]{64}$/.test(fresh.serverPayloadHash) || typeof fresh.serverSealedAt !== 'string' || !Number.isFinite(Date.parse(fresh.serverSealedAt)) || fresh.syncState !== 'synced') throw Object.assign(new Error('The server did not return a valid managed receipt. Cached evidence was not substituted.'), { status: 422 })
-        // Inspect a fresh server snapshot without overwriting a local draft,
-        // queued review, or cached image. Failure must never fall back to cache.
-        record = fresh
-      }
+      // Summary rows are never sufficient to render or export an evidence report.
+      record = await getRecordMetadata(record, { source, signal })
       if (!Array.isArray(record.evidenceItems) || record.evidenceItems.length < 1 || record.evidenceItems.length > 4) throw Object.assign(new Error('A managed case requires one to four evidence panels.'), { status: 422 })
       const panels = []
       for (const panel of record.evidenceItems) {

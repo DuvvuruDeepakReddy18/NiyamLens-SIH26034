@@ -2,9 +2,10 @@ import { findConsumerAddress, findConsumerPhone } from './consumerContact.mjs'
 import { extractDeclarations } from './extraction.mjs'
 import { findBoundedEmail, normalizeUnit, parseLabelNumbers, MAX_LABEL_TEXT } from './labelParser.mjs'
 import { finiteNumber, validateInspectionMetadata, INSPECTION_LIMITS } from './inspectionMetadata.mjs'
+import { evaluateRule3Applicability, rule3ApplicabilityCheck } from './applicability.mjs'
 
 export const RULE_PACK = {
-  id: 'LMPC-RC-2026.09-RC5',
+  id: 'LMPC-RC-2026.09-RC6',
   title: 'Legal Metrology (Packaged Commodities) Rules, 2011',
   status: 'Prototype rule pack — officer verification required',
   sources: [
@@ -421,7 +422,7 @@ export function evaluateCompliance({ text = '', meta = {} }) {
   if (typeof text !== 'string' || text.length > MAX_LABEL_TEXT) metadataIssues.push({ field: 'text', reason: 'Label text must be a string no longer than 100000 characters.' })
   if (metadataIssues.length) {
     const checks = metadataIssues.map(issue => ({ id: `invalidInput:${issue.field}`, label: 'Invalid inspection input', rule: 'Evidence safety policy', status: 'review', reason: issue.reason, evidence: issue.field }))
-    return { status: 'manual_review', score: 0, counts: { pass: 0, fail: 0, review: checks.length }, checks, context: { category: 'general', quantity: null, unit: '', smallPack: false, confidence: 0, rulePack: RULE_PACK.id, exemption: { exempt: false, code: '', reason: '' } } }
+    return { status: 'manual_review', score: 0, counts: { pass: 0, fail: 0, review: checks.length }, checks, context: { category: 'general', quantity: null, unit: '', smallPack: false, confidence: 0, rulePack: RULE_PACK.id, applicability: { state: 'review', code: 'invalid-input', reason: 'Inspection metadata must be corrected before Rule 3 applicability can be assessed.' }, exemption: { exempt: false, code: '', reason: '' } } }
   }
   const normalizedText = String(text).replace(/\r/g, '').trim()
   const extraction = extractDeclarations(normalizedText)
@@ -435,11 +436,35 @@ export function evaluateCompliance({ text = '', meta = {} }) {
   const quantityInfo = inferQuantity(normalizedText, meta.quantity, meta.unit)
   const smallPack = isSmallPack(quantityInfo.quantity, quantityInfo.unit)
   const category = meta.category || 'general'
+  const applicability = quantityInfo.conflict
+    ? { state: 'review', code: 'rule3-quantity-conflict', reason: 'Resolve conflicting quantity evidence before applying Chapter II scope or an exclusion.', evidence: extraction.byId.netQuantity.evidence, consumerScope: meta.rule3ConsumerScope || 'unknown' }
+    : evaluateRule3Applicability({ quantity: quantityInfo.quantity, unit: quantityInfo.unit, text: normalizedText, meta })
+  const applicabilityCheck = rule3ApplicabilityCheck(applicability)
+  const quantityConflictCheck = quantityInfo.conflict ? { id: 'quantityConflict', label: 'Quantity evidence conflict', rule: 'Evidence safety policy', status: 'review', reason: 'The quantity is invalid, ambiguous or inconsistent with structured metadata. Resolve the source declaration before applying an exemption.', evidence: extraction.byId.netQuantity.evidence } : null
+  if (applicability.state === 'review' || applicability.state === 'outside_chapter_ii') {
+    const review = applicability.state === 'review'
+    const scopeChecks = [applicabilityCheck, quantityConflictCheck].filter(Boolean)
+    return {
+      status: review ? 'manual_review' : 'exempt',
+      score: 0,
+      counts: { pass: 0, fail: 0, review: scopeChecks.filter(check => check.status === 'review').length },
+      checks: scopeChecks,
+      context: {
+        category,
+        quantity: quantityInfo.quantity,
+        unit: quantityInfo.unit,
+        smallPack,
+        confidence,
+        rulePack: RULE_PACK.id,
+        applicability,
+        exemption: { exempt: false, code: '', reason: '' },
+      },
+    }
+  }
   const specialistMedical = category === 'medical' || meta.commodityClass === 'medical_device' || extraction.suggestions.category === 'medical'
   const classificationConflict = (['tobacco', 'pan_masala'].includes(extraction.suggestions.commodityClass) && meta.commodityClass !== extraction.suggestions.commodityClass) || (['imported', 'medical'].includes(extraction.suggestions.category) && category !== extraction.suggestions.category)
   const exemption = quantityInfo.conflict || classificationConflict || specialistMedical ? { exempt: false, code: '', reason: '' } : getExemptionProfile(quantityInfo.quantity, quantityInfo.unit, meta)
-  const checks = []
-  if (quantityInfo.conflict) checks.push({ id: 'quantityConflict', label: 'Quantity evidence conflict', rule: 'Evidence safety policy', status: 'review', reason: 'The quantity is invalid, ambiguous or inconsistent with structured metadata. Resolve the source declaration before applying an exemption.', evidence: extraction.byId.netQuantity.evidence })
+  const checks = applicabilityCheck ? [applicabilityCheck] : []
   if (classificationConflict) checks.push({ id: 'classificationConflict', label: 'Commodity classification conflict', rule: 'Evidence safety policy', status: 'review', reason: 'The transcript contains an imported, medical, tobacco or pan-masala signal inconsistent with the selected profile. Resolve classification before a decisive verdict.', evidence: `${extraction.suggestions.category} / ${extraction.suggestions.commodityClass}` })
 
   if (exemption.exempt) {
@@ -500,7 +525,16 @@ export function evaluateCompliance({ text = '', meta = {} }) {
     })
   }
 
-  if (!exemption.exempt && !specialistMedical) checks.push(...geometryChecks(meta))
+  if (!exemption.exempt && !specialistMedical) {
+    const geometry = geometryChecks(meta)
+    if (category === 'food') {
+      for (const check of geometry) {
+        check.status = 'review'
+        check.reason = `Food-package Rule 7 applicability is pending qualified cross-regime review under Rule 7(4); the recorded measurement is retained but cannot decide compliance. ${check.reason}`
+      }
+    }
+    checks.push(...geometry)
+  }
 
   if (lowConfidence) {
     checks.push({
@@ -551,6 +585,7 @@ export function evaluateCompliance({ text = '', meta = {} }) {
       smallPack,
       confidence,
       rulePack: RULE_PACK.id,
+      applicability,
       exemption,
     },
   }

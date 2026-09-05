@@ -14,10 +14,14 @@ This document is an engineering compliance aid, not legal advice. It records wha
 
 The in-app Rules Library links the source URLs and exposes the active rule-pack ID.
 
+The active engine revision for these semantics is `LMPC-RC-2026.09-RC6`.
+
 ## Encoded profiles
 
 | Profile | Prototype behaviour | Approval state |
 |---|---|---|
+| Rule 3 / Chapter II applicability | Requires an officer-confirmed retail, industrial or institutional purchase context. A confirmed ordinary retail package above 25 kg/litre is marked outside the supported Chapter II check set. Industrial/institutional treatment requires confirmation of a direct manufacturer purchase for use by that consumer; a buyer name alone is insufficient. | Source encoded; statutory-definition and field-workflow sign-off pending |
+| Rule 3 special commodities | Cement, fertilizer and agricultural farm produce above 25 kg through 50 kg remain REVIEW because the package form and wording need qualified interpretation. A confirmed mass package above 50 kg is marked outside the supported Chapter II check set. Volume records remain REVIEW because the special threshold is stated for bags by mass. | Qualified legal interpretation pending |
 | Rule 6 declaration signals | Detects and evaluates configured mandatory fields by selected package profile | Source encoded; applicability review pending |
 | Rule 7 / Table I | Selects normal or formed/moulded minimum height from panel-area tier | Source encoded; measurement validation pending |
 | Area boundary | Uses supplied percentage uncertainty and abstains when the interval crosses a tier | Engineering trust policy |
@@ -25,7 +29,7 @@ The in-app Rules Library links the source URLs and exposes the active rule-pack 
 | Rule 26(a), ≤10 g/ml | Applies the small-package exemption when profile permits | Source encoded; profile review pending |
 | Tobacco | Does not apply the Rule 26(a) small-package exemption because the proviso says clause (a) is not applicable to tobacco/tobacco products | Source encoded; counsel confirmation pending |
 | Pan masala | 2025 carve-out disables small-package exemption and evaluates declarations | Source encoded; amendment-text confirmation pending |
-| Food packages | Keeps the encoded general Legal Metrology declarations and typography checks in scope; does not claim FSSAI compliance | Source encoded; cross-regime applicability review pending |
+| Food packages | Retains detected declarations and recorded geometry, but forces Rule 7 typography findings to REVIEW while Rule 7(4) cross-regime applicability is unresolved; does not claim FSSAI compliance | Qualified cross-regime applicability review pending |
 | Consumer-care address | Passes only on address-like evidence near the complaint-contact block; ambiguous cases become REVIEW | Engineering trust policy; officer confirmation required |
 | Restaurant/hotel fast food | Officer-selected exemption profile | Classification policy pending |
 | Scheduled/non-scheduled formulations | Officer-selected exemption; specialist review marker | Specialist sign-off pending |
@@ -36,6 +40,8 @@ The in-app Rules Library links the source URLs and exposes the active rule-pack 
 ## Deliberate correction to earlier working assumptions
 
 The historic proviso requiring MRP and net quantity on packages from 10–20 g/ml was omitted by G.S.R. 784(E) in 2011. It is therefore not encoded as a current rule. The later Rule 26(a) proviso states that clause (a) is not applicable to tobacco and tobacco products, so the prototype does not grant those products the ≤10 g/10 ml exemption. The separate 2025 change targets pan masala. These interpretations must still be confirmed against the amendment-complete text before enforcement deployment.
+
+For compatibility with the inspection status model, the engine uses `exempt` when an officer-confirmed Rule 3 decision places a package outside the supported Chapter II retail checks. In that context, `exempt` is a routing result only: it is not a certification of compliance with the Act, another chapter, or any other law.
 
 The first 2026 amendment created a Rule 6(10A) e-commerce country-of-origin filter with a proposed 1 July 2026 commencement. G.S.R. 312(E), dated 27 April 2026, substituted that provision and moved commencement to 1 July 2027. It is therefore shown as a future e-commerce integration requirement and does not affect the present physical-label verdict. G.S.R. 418(E), dated 29 May 2026, permits mandatory declarations to be made at AEO Tier-2/Tier-3 bonded warehouses but requires complete declarations before retail packages leave the warehouse; it is recorded as importer-workflow context rather than a retail-label exemption.
 

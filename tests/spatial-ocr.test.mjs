@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { associateSpatialOcrRows, rapidOcrLines } from '../src/lib/spatialOcr.mjs'
+import { associateSpatialOcrRows, rapidOcrLines, reviewableStackedDeclarationProposals } from '../src/lib/spatialOcr.mjs'
 import { extractDeclarations } from '../src/lib/extraction.mjs'
 
 const box = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]
@@ -108,4 +108,112 @@ test('RapidOCR adapter keeps parallel-array indices and rejects malformed arrays
   assert.deepEqual(lines[1].box, metadata.boxes[1])
   assert.equal(associateSpatialOcrRows(lines).associations.length, 1)
   assert.throws(() => rapidOcrLines({ ...metadata, confidences: [0.9] }), /equal-length/)
+})
+
+const stacked = (text = '500 ml', heading = 'NET CONTENT:') => [line('heading', heading, 100, 100, 200, 40), line('value', text, 150, 150, 100, 40)]
+
+test('stacked proposals preserve exact originals and source geometry without changing the same-row API', () => {
+  const input = stacked(' 500mL '); const original = structuredClone(input)
+  const result = reviewableStackedDeclarationProposals(input)
+  assert.deepEqual(input, original)
+  assert.equal(result.proposals.length, 1)
+  const proposal = result.proposals[0]
+  assert.equal(proposal.text, 'NET CONTENT:  500mL ')
+  assert.equal(proposal.value, '500 ml')
+  assert.deepEqual(proposal.sourceIds, ['heading', 'value'])
+  assert.deepEqual(proposal.parts.map(part => part.box), input.map(line => line.box))
+  assert.equal(proposal.requiresOfficerReview, true)
+  assert.equal(proposal.eligibleForAutomaticVerdict, false)
+  assert.equal(associateSpatialOcrRows(input).associations.length, 0)
+})
+
+test('stacked proposal supports left-aligned short values and mild common skew', () => {
+  const input = [line('h', 'MRP:', 100, 100, 200, 40), line('v', '22.00', 100, 150, 100, 40)]
+  assert.equal(reviewableStackedDeclarationProposals(input).proposals.length, 1)
+  assert.equal(reviewableStackedDeclarationProposals(input.map(item => rotate(item, 7))).proposals.length, 1)
+})
+
+test('stacked proposals do not repair damaged units, price punctuation, dates or missing headings', () => {
+  for (const [heading, value] of [['NET CONTENT:', '500mr'], ['NET CONTENT:', '500'], ['MEP:', '22.00'], ['MRP:', '22..00'], ['PACKED ON:', '31/02/2026']]) {
+    assert.equal(reviewableStackedDeclarationProposals(stacked(value, heading)).proposals.length, 0, `${heading} ${value}`)
+  }
+})
+
+test('stacked proposal rejects multi-field, multi-number and free-text fragments', () => {
+  for (const value of ['500 ml USP 0.05/ml', '500 ml 100 ml', '500 ml BATCH', '500 ml each', '500ml MRP20']) assert.equal(reviewableStackedDeclarationProposals(stacked(value)).proposals.length, 0)
+})
+
+test('unrelated other-column text does not force SDK order into the mapped column', () => {
+  const [heading, value] = stacked()
+  const input = [heading, line('note1', 'For details', 1, 130, 70, 30), line('note2', 'SEE WEBSITE', 1, 165, 70, 30), value]
+  assert.deepEqual(reviewableStackedDeclarationProposals(input).proposals[0].sourceIds, ['heading', 'value'])
+})
+
+test('intervening text, overlapping values and a nearer section heading block stacked association', () => {
+  for (const blocker of [line('b', 'SERVING SIZE', 145, 139, 120, 15), line('b', '100 g', 170, 163, 90, 35), line('b', 'NET WEIGHT:', 100, 137, 200, 20)]) {
+    const result = reviewableStackedDeclarationProposals([...stacked(), blocker])
+    assert.equal(result.proposals.length, 0)
+    assert.ok(result.rejected.some(item => /intervening|multiple|shared/.test(item.reason)))
+  }
+})
+
+test('two possible stacked values abstain even when only one has valid syntax', () => {
+  const result = reviewableStackedDeclarationProposals([line('h', 'NET QTY:', 100, 100, 240, 40), line('a', '500 ml', 100, 150, 100, 40), line('b', '999 xx', 180, 150, 100, 40)])
+  assert.equal(result.proposals.length, 0)
+})
+
+test('same-row alternative blocks a stacked guess rather than choosing the value that fits', () => {
+  const result = reviewableStackedDeclarationProposals([...stacked(), line('right', '250 ml', 340, 100, 120, 40)])
+  assert.equal(result.proposals.length, 0)
+  assert.ok(result.rejected.some(item => item.reason === 'competing_same_row_value'))
+})
+
+test('wide gaps, separate columns, unsupported skew and reversed stacked order remain unresolved', () => {
+  const [heading, value] = stacked()
+  for (const input of [[heading, line('v', '500 ml', 150, 240, 100, 40)], [heading, line('v', '500 ml', 350, 150, 100, 40)], stacked().map(item => rotate(item, 30)), [value, { ...heading, box: box(100, 210, 200, 40) }]]) assert.equal(reviewableStackedDeclarationProposals(input).proposals.length, 0)
+})
+
+test('use-by, expiry, imported date, ordinary CONTENTS and manufacturer-BY are not critical-date/quantity proposals', () => {
+  for (const heading of ['USE BY:', 'EXPIRY:', 'IMPORTED ON:', 'MANUFACTURED BY:', 'CONTENTS:', 'SERVING SIZE:']) assert.equal(reviewableStackedDeclarationProposals(stacked(heading === 'CONTENTS:' || heading === 'SERVING SIZE:' ? '500 ml' : '02/08/2026', heading)).proposals.length, 0)
+})
+
+test('packing date is strictly calendar-valid and remains distinct from expiry', () => {
+  const result = reviewableStackedDeclarationProposals(stacked('02/08/2026', 'PACKED ON:'))
+  assert.equal(result.proposals[0].field, 'packDate')
+  assert.equal(result.proposals[0].value, '02/08/2026')
+})
+
+test('different same-field values and unresolved field evidence elsewhere block proposals', () => {
+  for (const text of ['NET QTY: 250 ml', 'NET QTY: unreadable', 'NET QTY:']) {
+    const result = reviewableStackedDeclarationProposals([...stacked(), line('other', text, 500, 300, 240, 40)])
+    assert.equal(result.proposals.length, 0)
+    assert.ok(result.rejected.some(item => /elsewhere/.test(item.reason)))
+  }
+})
+
+test('separate resolved conflicting stacked rows cannot silently resolve each other', () => {
+  const input = [...stacked(), line('h2', 'NET QTY:', 500, 300, 200, 40), line('v2', '250 ml', 550, 350, 100, 40)]
+  const result = reviewableStackedDeclarationProposals(input)
+  assert.equal(result.proposals.length, 0)
+  assert.equal(result.rejected.filter(item => item.reason === 'conflicting_field_values_elsewhere_in_evidence').length, 2)
+})
+
+test('stacked matching values keep separate original mappings and never share a source', () => {
+  const input = [...stacked(), line('h2', 'NET QTY:', 500, 300, 200, 40), line('v2', '500 ml', 550, 350, 100, 40)]
+  const result = reviewableStackedDeclarationProposals(input)
+  assert.equal(result.proposals.length, 2)
+  assert.equal(new Set(result.proposals.flatMap(item => item.sourceIds)).size, 4)
+})
+
+test('different panels do not connect and conflicting evidence on another panel is not hidden', () => {
+  const [heading, value] = stacked()
+  assert.equal(reviewableStackedDeclarationProposals([{ ...heading, panelId: 'front' }, { ...value, panelId: 'back' }]).proposals.length, 0)
+  assert.equal(reviewableStackedDeclarationProposals([...stacked(), line('conflict', 'NET QTY: 250 ml', 500, 300, 240, 40, { panelId: 'back' })]).proposals.length, 0)
+})
+
+test('stacked proposal validates bounded source data and returns no data for an empty observation', () => {
+  assert.equal(reviewableStackedDeclarationProposals([]).proposals.length, 0)
+  assert.throws(() => reviewableStackedDeclarationProposals(null), /array/)
+  assert.throws(() => reviewableStackedDeclarationProposals(Array(1)), /dense/)
+  assert.throws(() => reviewableStackedDeclarationProposals([line('h', 'NET QTY:\n500 ml')]), /single-line/)
 })

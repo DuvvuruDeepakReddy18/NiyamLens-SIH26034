@@ -26,7 +26,14 @@ export function evaluateInspection({ text = '', meta = {} }) {
   if (!meta.enforceEvidenceReview) return result
   const checks = result.checks.map((check) => ({ ...check }))
   const extraction = extractDeclarations(text)
-  if (meta.classificationConfirmed !== true) checks.push({ id: 'profileConfirmation', label: 'Package classification', rule: 'Evidence safety policy', status: 'review', reason: 'Confirm category, commodity class and package scope against the physical label before a decisive verdict.', evidence: 'Package profile not confirmed' })
+  const applicabilityState = result.context.applicability?.state
+  const outsideChapterTwo = applicabilityState === 'outside_chapter_ii'
+  if (outsideChapterTwo && result.context.applicability.consumerScope === 'retail') {
+    const field = extraction.byId.netQuantity
+    const review = meta.fieldReviews?.netQuantity
+    if (!field?.value || field.conflict || review?.state !== 'confirmed' || normalized(review.value) !== normalized(field.value) || !review.reason?.trim()) checks.push({ id: 'rule3QuantityEvidence', label: 'Rule 3 quantity evidence', rule: 'Evidence safety policy', status: 'review', reason: 'Verify the exact net quantity against the physical package before applying a quantity-based Chapter II exclusion. A selected scope checkbox or OCR guess is not enough.', evidence: field?.value || 'Quantity not verified' })
+  }
+  if (!outsideChapterTwo && meta.classificationConfirmed !== true) checks.push({ id: 'profileConfirmation', label: 'Package classification', rule: 'Evidence safety policy', status: 'review', reason: 'Confirm category, commodity class and package scope against the physical label before a decisive verdict.', evidence: 'Package profile not confirmed' })
   for (const [fieldId, ruleIds] of Object.entries(FIELD_RULES)) {
     const review = meta.fieldReviews?.[fieldId]
     const field = extraction.byId[fieldId]
@@ -60,11 +67,11 @@ export function evaluateInspection({ text = '', meta = {} }) {
     checks.push({ id: 'exemptionEvidence', label: 'Exemption evidence confirmation', rule: 'Evidence safety policy', status: 'review', reason: 'Confirm package classification and quantity against the physical label before applying an exemption.', evidence: 'Unconfirmed exemption inputs' })
   }
   if (Array.isArray(meta.evidencePanelIds) && meta.evidencePanelIds.length === 0) checks.push({ id: 'captureEvidence', label: 'Captured package panels', rule: 'Evidence safety policy', status: 'review', reason: 'No package photograph is linked. A text-only draft cannot establish physical label compliance.', evidence: 'No captured panels' })
-  checks.push(...evaluatePlacement({ meta, extraction, exempt: result.context.exemption?.exempt === true, ruleChecks: result.checks }))
+  checks.push(...evaluatePlacement({ meta, extraction, exempt: result.context.exemption?.exempt === true || applicabilityState === 'review' || outsideChapterTwo, ruleChecks: result.checks }))
   const counts = { pass: 0, fail: 0, review: 0 }
   checks.forEach((check) => { if (check.status in counts) counts[check.status] += 1 })
   const count = counts.pass + counts.fail + counts.review
-  return { ...result, checks, counts, score: count ? Math.round(counts.pass / count * 100) : 0, status: counts.fail ? 'non_compliant' : counts.review ? 'manual_review' : result.context.exemption?.exempt ? 'exempt' : 'compliant' }
+  return { ...result, checks, counts, score: count ? Math.round(counts.pass / count * 100) : 0, status: counts.fail ? 'non_compliant' : counts.review ? 'manual_review' : outsideChapterTwo || result.context.exemption?.exempt ? 'exempt' : 'compliant' }
 }
 export function calibrationSummary(samples = []) {
   const valid = samples.filter((item) => Number(item.referenceMm) > 0 && Number(item.measuredMm) > 0)

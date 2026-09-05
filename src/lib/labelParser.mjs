@@ -88,8 +88,12 @@ export function parsePackingDates(text) {
     result.push(...valuesAfterHeadings(line, PACKING_HEADING, (source, evidence) => {
     const tail = source.replace(/^[ \t]*:[ \t]*/, '').trim().slice(0, 80)
     if (/^BY\b/i.test(tail)) return null
-    const numeric = /^(?:(\d{1,2})\s*[\/.-]\s*)?(\d{1,2})\s*[\/.-]\s*(\d{4}|\d{2})\b/.exec(tail)
-    const named = /^(?:(\d{1,2})\s+)?([A-Z]+)\s+(\d{4}|\d{2})\b/i.exec(tail)
+    // Require the whole date token. Otherwise optional-day backtracking can
+    // accept a clipped DD/MM/Y as MM/YY (02/08/2 -> February 2008), or accept
+    // the prefix of an extra component. A trailing separator is unresolved,
+    // even when it could be punctuation; never repair an OCR date by omission.
+    const numeric = /^(?:(\d{1,2})\s*[\/.-]\s*)?(\d{1,2})\s*[\/.-]\s*(\d{4}|\d{2})\b(?![ \t]*[\/.-])/.exec(tail)
+    const named = /^(?:(\d{1,2})\s+)?([A-Z]+)\s+(\d{4}|\d{2})\b(?![ \t]*[\/.-])/i.exec(tail)
     const match = numeric || named
     const day = Number(match?.[1] || 1)
     const name = named?.[2].toUpperCase()

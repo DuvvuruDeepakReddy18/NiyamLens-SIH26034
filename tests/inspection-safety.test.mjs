@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { evaluateInspection, fieldCandidates, calibrationSummary } from '../src/lib/inspectionSafety.mjs'
 import { appendReview, effectiveStatus } from '../src/lib/caseRecords.mjs'
 import { verifyAuditChain } from '../src/lib/audit.mjs'
-const meta = { enforceEvidenceReview: true, quantity: 100, unit: 'g', category: 'general', commodityClass: 'standard', ocrConfidence: 100, pdpArea: 75, referenceMm: 20, referencePx: 100, glyphPx: 20, glyphWidthPx: 15, pdpUncertainty: 2, measurementUncertainty: 2 }
+const meta = { enforceEvidenceReview: true, quantity: 100, unit: 'g', category: 'general', commodityClass: 'standard', rule3ConsumerScope: 'retail', rule3CommodityClass: 'ordinary', rule3ApplicabilityConfirmed: true, ocrConfidence: 100, pdpArea: 75, referenceMm: 20, referencePx: 100, glyphPx: 20, glyphWidthPx: 15, pdpUncertainty: 2, measurementUncertainty: 2 }
 const check = (text, change, id) => evaluateInspection({ text, meta: { ...meta, ...change } }).checks.find((item) => item.id === id)
 test('high-confidence missing OCR is not proof a physical declaration is absent', () => {
   assert.equal(check('SHAMPOO', {}, 'mrp').status, 'review')

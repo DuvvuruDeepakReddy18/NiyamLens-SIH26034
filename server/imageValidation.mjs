@@ -26,7 +26,7 @@ export async function verifyStoredImage(context, descriptor) {
   if (typeof descriptor.path !== 'string' || !Number.isInteger(descriptor.bytes) || descriptor.bytes < 1 || descriptor.bytes > MAX_IMAGE_BYTES || !/^[a-f0-9]{64}$/.test(descriptor.sha256 || '')) throw new HttpError(422, 'The evidence registration is incomplete or invalid.')
   const { data, error } = await context.client.storage.from('evidence').download(descriptor.path)
   if (error && Number(error.status || error.statusCode) !== 404) throw new HttpError(503, 'Private evidence is temporarily unavailable. Retry without discarding local evidence.')
-  if (error || !data) throw new HttpError(422, 'Upload is incomplete. Retry this panel.')
+  if (error || !data) throw Object.assign(new HttpError(422, 'Upload is incomplete. Retry this panel.'), { code: 'UPLOAD_INCOMPLETE' })
   if (data.size !== descriptor.bytes || data.size > MAX_IMAGE_BYTES) throw new HttpError(422, 'Uploaded evidence failed size verification.')
   const content = Buffer.from(await data.arrayBuffer())
   if (content.length !== descriptor.bytes || createHash('sha256').update(content).digest('hex') !== descriptor.sha256) throw new HttpError(422, 'Uploaded evidence failed size or hash verification.')

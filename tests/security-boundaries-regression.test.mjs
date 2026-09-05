@@ -80,7 +80,7 @@ test('server retains only bounded source regions tied to extracted fields and at
 test('server and UI reject default OCR confidence without both a recorded completed run and raw transcript', async () => {
   const completed = await appendAuditEvent([], 'ocr_completed', { confidence: 95 }, user.id)
   const sealedOnly = await appendAuditEvent([], 'inspection_sealed', {}, user.id)
-  const fixture = { ...base(), meta: { quantity: 100, unit: 'g', ocrSource: 'local', ocrConfidence: 95, ocrEngineConfidence: 98 } }
+  const fixture = { ...base(), meta: { quantity: 100, unit: 'g', ocrSource: 'local', ocrConfidence: 95, ocrEngineConfidence: 98, rule3ConsumerScope: 'retail', rule3CommodityClass: 'ordinary', rule3ApplicabilityConfirmed: true } }
   for (const patch of [
     { rawOcrText: '', auditChain: [] },
     { rawOcrText: 'TEST SOAP', auditChain: [] },
@@ -102,7 +102,7 @@ test('server and UI reject default OCR confidence without both a recorded comple
 
 test('recorded OCR is preserved as an unverified client observation using either supported timeline name', async () => {
   const completed = await appendAuditEvent([], 'ocr_completed', { confidence: 95 }, user.id)
-  const fixture = { ...base(), rawOcrText: 'TEST SOAP', meta: { quantity: 100, unit: 'g', ocrSource: 'local', ocrConfidence: 95, ocrEngineConfidence: 98 } }
+  const fixture = { ...base(), rawOcrText: 'TEST SOAP', meta: { quantity: 100, unit: 'g', ocrSource: 'local', ocrConfidence: 95, ocrEngineConfidence: 98, rule3ConsumerScope: 'retail', rule3CommodityClass: 'ordinary', rule3ApplicabilityConfirmed: true } }
   for (const timeline of [{ auditChain: completed }, { clientAuditChain: completed }]) {
     const record = validateCase({ ...fixture, ...timeline }, context)
     assert.equal(record.meta.ocrConfidence, 95); assert.equal(record.meta.ocrEngineConfidence, 98)
@@ -155,6 +155,79 @@ test('evidence registration rejects header-only files and never treats old regis
       const res = response(); await evidenceHandler(request({ ...descriptor, action }), res)
       assert.equal(res.code, 422); assert.equal(inserts, 0)
     }
+  })
+})
+
+test('prepare recovers a lost upload acknowledgement only after exact object verification, without overwrite', async () => {
+  const bytes = await sharp({ create: { width: 24, height: 18, channels: 3, background: '#386d50' } }).png().toBuffer()
+  const sha256 = createHash('sha256').update(bytes).digest('hex')
+  const descriptor = { caseId: base().id, panelId, kind: 'original', sha256, bytes: bytes.length, mime: 'image/png', action: 'prepare' }
+  const expectedPath = `${org}/${user.id}/${base().id}/${panelId}/original-${sha256}`
+  let inserts = 0; let signs = 0; let reads = 0; let registered = false
+  await providerMock((url, options, json) => {
+    if (url.pathname === '/rest/v1/evidence_objects') {
+      if (options.method === 'POST') {
+        const row = JSON.parse(options.body); assert.equal(row.path, expectedPath)
+        assert.equal(row.owner_id, user.id); assert.equal(row.org_id, org)
+        inserts++; registered = true; return json(null)
+      }
+      assert.equal(url.searchParams.get('path'), `eq.${expectedPath}`)
+      return json(registered ? { path: expectedPath } : null)
+    }
+    if (url.pathname.startsWith('/storage/v1/object/upload/sign/')) {
+      signs++; assert.notEqual(new Headers(options.headers).get('x-upsert'), 'true')
+      return new Response(JSON.stringify({ statusCode: '409', error: 'Duplicate', message: 'The resource already exists' }), { status: 409, headers: { 'Content-Type': 'application/json' } })
+    }
+    if (url.pathname.startsWith('/storage/v1/object/')) {
+      reads++; assert.ok(url.pathname.endsWith(expectedPath)); assert.equal(options.method, 'GET')
+      return new Response(bytes, { headers: { 'Content-Type': 'image/png' } })
+    }
+    throw new Error(`Unexpected provider request: ${url.pathname}`)
+  }, async () => {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = response(); await evidenceHandler(request(descriptor), res)
+      assert.equal(res.code, 200); assert.deepEqual(res.body, { path: expectedPath, verified: true })
+    }
+    assert.equal(inserts, 1); assert.equal(signs, 1); assert.equal(reads, 2)
+  })
+})
+
+test('failed upload preparation never registers corrupt, wrong-hash or missing storage bytes', async () => {
+  const good = await sharp({ create: { width: 24, height: 18, channels: 3, background: '#386d50' } }).png().toBuffer()
+  const corrupt = Buffer.from([255, 216, 255])
+  for (const variant of ['hash', 'decode', 'missing', 'unavailable']) {
+    const bytes = variant === 'decode' ? corrupt : good
+    const descriptor = { caseId: base().id, panelId, kind: 'analysis', sha256: variant === 'hash' ? 'a'.repeat(64) : createHash('sha256').update(bytes).digest('hex'), bytes: bytes.length, mime: variant === 'decode' ? 'image/jpeg' : 'image/png', action: 'prepare' }
+    let inserts = 0
+    await providerMock((url, options, json) => {
+      if (url.pathname === '/rest/v1/evidence_objects') { if (options.method === 'POST') inserts++; return json(null) }
+      if (url.pathname.startsWith('/storage/v1/object/upload/sign/')) return new Response(JSON.stringify({ message: 'Upload URL unavailable' }), { status: 503 })
+      if (url.pathname.startsWith('/storage/v1/object/')) {
+        if (['missing', 'unavailable'].includes(variant)) return new Response(JSON.stringify({ message: 'Object unavailable' }), { status: variant === 'missing' ? 404 : 503 })
+        return new Response(bytes, { headers: { 'Content-Type': descriptor.mime } })
+      }
+      throw new Error(`Unexpected provider request: ${url.pathname}`)
+    }, async () => {
+      const res = response(); await evidenceHandler(request(descriptor), res)
+      assert.equal(res.code, ['missing', 'unavailable'].includes(variant) ? 503 : 422, variant)
+      assert.equal(inserts, 0); assert.equal(res.body.verified, undefined)
+    })
+  }
+})
+
+test('new evidence preparation returns a non-upserting URL without claiming verification', async () => {
+  let downloaded = false; let inserted = false
+  await providerMock((url, options, json) => {
+    if (url.pathname === '/rest/v1/evidence_objects') { inserted ||= options.method === 'POST'; return json(null) }
+    if (url.pathname.startsWith('/storage/v1/object/upload/sign/')) {
+      assert.notEqual(new Headers(options.headers).get('x-upsert'), 'true')
+      return json({ url: '/object/upload/sign/evidence/new-fixture?token=fixture-token' })
+    }
+    downloaded = true; throw new Error(`Unexpected provider request: ${url.pathname}`)
+  }, async () => {
+    const res = response(); await evidenceHandler(request({ caseId: base().id, panelId, kind: 'original', sha256: 'a'.repeat(64), bytes: 3, mime: 'image/png', action: 'prepare' }), res)
+    assert.equal(res.code, 200); assert.equal(res.body.verified, false); assert.ok(res.body.uploadUrl)
+    assert.equal(downloaded, false); assert.equal(inserted, false)
   })
 })
 

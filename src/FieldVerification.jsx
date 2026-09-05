@@ -1,8 +1,14 @@
 import { FIELD_RULES } from './lib/inspectionSafety.mjs'
+import { useState } from 'react'
+import { fieldReviewComplete } from './lib/captureCoach.mjs'
 export default function FieldVerification({ extraction, meta, onChange }) {
+  const [showVerified, setShowVerified] = useState(false)
+  const fields = extraction.fields.filter(field => FIELD_RULES[field.id])
+  const remaining = fields.filter(field => !fieldReviewComplete(field, meta))
   const review = (field, change) => onChange('fieldReviews', { ...meta.fieldReviews, [field.id]: { state: 'unreviewed', ...meta.fieldReviews?.[field.id], ...change, value: field.value } })
   return <section className="evidence-verification"><h4>Verify against the physical label</h4><p>OCR agreement is a heuristic, not an accuracy probability. Confirm each decisive reading. “Not detected” is not proof that a declaration is absent. Correct the transcript above when needed; the original OCR remains separate.</p>
-    {extraction.fields.filter((field) => FIELD_RULES[field.id]).map((field) => {
+    <div className="review-filter"><span>{remaining.length} of {fields.length} fields still need attention. Verified fields stay in the report.</span><button type="button" aria-pressed={showVerified} onClick={() => setShowVerified(value => !value)}>{showVerified ? 'Show only fields needing attention' : 'Show all verification fields'}</button></div>
+    {(showVerified ? fields : remaining).map((field) => {
       const saved = meta.fieldReviews?.[field.id]
       const stale = saved?.value !== field.value
       const invalid = field.conflict || !field.value || ['invalid', 'conflict'].includes(field.validation?.status)

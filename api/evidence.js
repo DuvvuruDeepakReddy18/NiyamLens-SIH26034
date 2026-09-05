@@ -24,12 +24,22 @@ export default async function handler(req, res) {
     const path = `${context.org}/${context.user.id}/${id}/${panelId}/${kind}-${sha256}`
     const existing = await context.client.from('evidence_objects').select('path').eq('path', path).maybeSingle()
     if (existing.error) throw new HttpError(503, 'Evidence register unavailable.')
+    let uploadPreparationFailed = false
     if (!existing.data && action === 'prepare') {
       const { data, error } = await context.client.storage.from('evidence').createSignedUploadUrl(path, { upsert: false })
-      if (error) throw new HttpError(503, 'Unable to prepare the private upload.')
-      return reply(res, 200, { path, token: data.token, uploadUrl: data.signedUrl, verified: false })
+      if (!error && data?.signedUrl && data?.token) return reply(res, 200, { path, token: data.token, uploadUrl: data.signedUrl, verified: false })
+      // The PUT can succeed while its acknowledgement or the subsequent verify
+      // request is lost. Storage then refuses another non-upserting upload URL.
+      // Recover only by downloading, hashing and fully decoding this caller's
+      // exact content-addressed object below. Never enable overwrite, infer
+      // success from a conflict, or register an unverified object.
+      uploadPreparationFailed = true
     }
-    await verifyStoredImage(context, { path, bytes, sha256, mime })
+    try { await verifyStoredImage(context, { path, bytes, sha256, mime }) }
+    catch (error) {
+      if (uploadPreparationFailed && error.code === 'UPLOAD_INCOMPLETE') throw new HttpError(503, 'Unable to prepare the private upload. Retry without discarding local evidence.')
+      throw error
+    }
     if (existing.data) return reply(res, 200, { path, verified: true })
     const stored = await context.client.from('evidence_objects').insert({ path, org_id: context.org, owner_id: context.user.id, case_id: id, panel_id: panelId, kind, sha256, bytes, mime })
     if (stored.error && stored.error.code !== '23505') throw new HttpError(503, 'Could not register verified evidence.')

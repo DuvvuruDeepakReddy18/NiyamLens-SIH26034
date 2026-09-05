@@ -1,8 +1,11 @@
 import { validatePlacementMetadata } from './placement.mjs'
+import { RULE3_COMMODITY_CLASSES, RULE3_CONSUMER_SCOPES } from './applicability.mjs'
 export const INSPECTION_LIMITS = { text: 100000, dimension: 1e9, quantity: 1e12, uncertainty: 100 }
 export const INSPECTION_ENUMS = {
   category: ['general', 'food', 'imported', 'medical'],
   commodityClass: ['standard', 'tobacco', 'pan_masala', 'medical_device', 'fast_food', 'drug_formulation'],
+  rule3ConsumerScope: RULE3_CONSUMER_SCOPES,
+  rule3CommodityClass: RULE3_COMMODITY_CLASSES,
   unit: ['g', 'gm', 'gms', 'gram', 'grams', 'kg', 'kgs', 'ml', 'l', 'ltr', 'pcs', 'pc', 'n', 'nos'],
   measurementSurface: ['unverified', 'flat', 'curved'],
 }
@@ -27,12 +30,13 @@ export function validateInspectionMetadata(meta) {
   for (const key of ['pdpArea', 'referenceMm', 'referencePx', 'glyphPx', 'glyphWidthPx', 'panelWidthCm', 'panelHeightCm', 'cylinderDiameterCm', 'cylinderHeightCm']) number(meta, key, 0, INSPECTION_LIMITS.dimension)
   number(meta, 'quantity', 0, INSPECTION_LIMITS.quantity)
   for (const key of ['pdpUncertainty', 'measurementUncertainty', 'ocrConfidence', 'ocrEngineConfidence', 'cylinderCoverage']) number(meta, key, 0, 100, '', true)
-  for (const key of ['enforceEvidenceReview', 'allPanelsCaptured', 'classificationConfirmed', 'pdpConfirmed', 'measurementConfirmed', 'widthCharacterConfirmed', 'formedText', 'perishable']) {
+  for (const key of ['enforceEvidenceReview', 'allPanelsCaptured', 'classificationConfirmed', 'rule3ApplicabilityConfirmed', 'pdpConfirmed', 'measurementConfirmed', 'widthCharacterConfirmed', 'formedText', 'perishable']) {
     if (meta[key] !== undefined && typeof meta[key] !== 'boolean') add(key, 'Confirmation flags must be true or false booleans.')
   }
   for (const [key, values] of Object.entries(INSPECTION_ENUMS)) {
     if (!absent(meta[key]) && (typeof meta[key] !== 'string' || !values.includes(meta[key]))) add(key, 'Unsupported inspection profile or unit; select a supported value.')
   }
+  if (meta.rule3ApplicabilityConfirmed === true && (!meta.rule3ConsumerScope || meta.rule3ConsumerScope === 'unknown')) add('rule3ApplicabilityConfirmed', 'A confirmed Rule 3 assessment requires a known purchaser context.')
   if (meta.evidencePanelIds !== undefined && (!Array.isArray(meta.evidencePanelIds) || meta.evidencePanelIds.length > 4 || meta.evidencePanelIds.some(v => typeof v !== 'string' || !v || v.length > 200) || new Set(meta.evidencePanelIds).size !== meta.evidencePanelIds.length)) add('evidencePanelIds', 'One to four unique nonempty panel identifiers are supported.')
   if (meta.panelMeasurements !== undefined) {
     if (!plain(meta.panelMeasurements) || Object.keys(meta.panelMeasurements).length > 4) add('panelMeasurements', 'Expected at most four panel measurement objects.')

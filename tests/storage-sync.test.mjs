@@ -64,3 +64,36 @@ test('authorization denial cannot be retried indefinitely by the sync button', a
   await engine.run(true); await engine.run(true)
   assert.equal(calls, 1); assert.equal((await db.get('outbox', a.id)).state, 'blocked')
 })
+
+test('out-of-order remote refreshes cannot downgrade an already observed server decision', async () => {
+  const db = store()
+  const merge = (_, remote) => remote
+  await db.mergeRemote({ id: 'one', serverVersion: 3, decision: 'non_compliant' }, merge)
+  assert.equal(await db.mergeRemote({ id: 'one', serverVersion: 2, decision: 'compliant' }, merge), false)
+  assert.equal(await db.mergeRemote({ id: 'one', decision: 'unknown' }, merge), false)
+  assert.equal((await db.get('inspections', 'one')).decision, 'non_compliant')
+})
+
+test('a delayed operation acknowledgement cannot overwrite a newer version committed by another tab', async () => {
+  const db = store(); const operation = createOperation('review', 'one', { reason: 'My reason' }, 1)
+  await db.saveAndQueue({ id: 'one', serverVersion: 1 }, operation)
+  const engine = createSyncEngine({ store: db, transport: async () => {
+    await db.saveInspection({ id: 'one', serverVersion: 3, decision: 'non_compliant' })
+    return { record: { id: 'one', serverVersion: 2, decision: 'compliant' } }
+  } })
+  await engine.run()
+  assert.equal((await db.all('outbox')).length, 0)
+  assert.equal((await db.get('inspections', 'one')).serverVersion, 3)
+  assert.equal((await db.get('inspections', 'one')).decision, 'non_compliant')
+})
+
+test('rule-pack conflicts preserve the old sealed case and expose a machine-readable reassessment reason', async () => {
+  const db = store(); const original = { id: 'one', rulePack: 'LMPC-OLD', text: 'Original evidence' }
+  await db.saveAndQueue(original, createOperation('seal', 'one', original))
+  const engine = createSyncEngine({ store: db, transport: async () => { throw Object.assign(new Error('Reassess this inspection.'), { status: 409, code: 'RULE_PACK_MISMATCH' }) } })
+  await engine.run()
+  const [operation] = await db.all('outbox')
+  assert.equal(operation.state, 'conflict'); assert.equal(operation.lastErrorCode, 'RULE_PACK_MISMATCH')
+  assert.deepEqual(await db.get('inspections', 'one'), original)
+  assert.equal(operation.payload.rulePack, 'LMPC-OLD')
+})

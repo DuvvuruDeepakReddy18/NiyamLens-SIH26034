@@ -40,9 +40,12 @@ export function createSyncEngine({ store, transport, now = Date.now, onChange = 
             const remaining = pending.result.filter((item) => item.id !== operation.id && item.recordId === operation.recordId)
             outbox.delete(operation.id)
             if (!result?.record) return
-            if (!remaining.length) { tx.objectStore('inspections').put(result.record); return }
             const current = tx.objectStore('inspections').get(operation.recordId)
             current.onsuccess = () => {
+              if (!remaining.length) {
+                if (Number.isSafeInteger(current.result?.serverVersion) && (!Number.isSafeInteger(result.record.serverVersion) || result.record.serverVersion < current.result.serverVersion)) return
+                tx.objectStore('inspections').put(result.record); return
+              }
               if (current.result) tx.objectStore('inspections').put({ ...current.result, syncState: remaining.some((item) => item.kind === 'review') ? 'pending-review' : 'pending' })
             }
           }
@@ -54,7 +57,7 @@ export function createSyncEngine({ store, transport, now = Date.now, onChange = 
         await store.transact(['outbox'], 'readwrite', (tx) => {
           const outbox = tx.objectStore('outbox'); const current = outbox.get(operation.id)
           current.onsuccess = () => {
-            if (current.result) outbox.put({ ...current.result, state, attempts, lastError: error.message, nextAttempt: now() + Math.min(300000, 1000 * 2 ** Math.min(attempts, 8)) })
+            if (current.result) outbox.put({ ...current.result, state, attempts, lastError: error.message, lastErrorCode: error.code === 'RULE_PACK_MISMATCH' ? error.code : null, nextAttempt: now() + Math.min(300000, 1000 * 2 ** Math.min(attempts, 8)) })
           }
         })
         blocked.add(operation.recordId)

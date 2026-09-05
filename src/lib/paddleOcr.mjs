@@ -2,9 +2,35 @@ import { boundedOcr, OCR_LIMITS, ocrController, throwIfAborted } from './ocrLife
 import { OCR_OUTPUT_LIMITS, validateOcrHistory, validateOcrWords, appendOcrHistory } from './ocrHistory.mjs'
 import { createFocusedVariants } from './focusOcr.mjs'
 import { planPaddleFocus } from './ocrFocusGuidance.mjs'
+import { buildPaddleWorkingAddition } from './paddleWorkingText.mjs'
 
 export const PADDLE_MODEL = 'PP-OCRv6_small@paddleocr-js-0.4.2'
 export const PADDLE_PATH = '/ocr/paddle-v1/'
+
+const ORIGINAL_IMAGE = /^data:image\/(jpeg|png|webp);base64,/
+
+// A Paddle preview is temporary, but appending it must still prove that both
+// possible pixel sources and the transform state are the same as at run time.
+// Keep the snapshot as primitives so later mutation cannot rewrite it in place.
+export function paddleSourceBinding(item) {
+  if (typeof item?.analysisUrl !== 'string' || !item.analysisUrl) throw new Error('Paddle OCR requires a bound analysis image.')
+  const originalUrl = typeof item.originalUrl === 'string' ? item.originalUrl : null
+  const transform = JSON.stringify({
+    rotation: item.rotation ?? 0,
+    perspective: item.perspective ?? null,
+    grayscale: item.grayscale ?? false,
+    contrast: item.contrast ?? null,
+    analysisWidth: item.analysisWidth ?? item.width ?? null,
+    analysisHeight: item.analysisHeight ?? item.height ?? null,
+    originalWidth: item.originalWidth ?? null,
+    originalHeight: item.originalHeight ?? null,
+  })
+  return { schemaVersion: 1, originalUrl, analysisUrl: item.analysisUrl, inputKind: !item.perspective && !item.rotation && ORIGINAL_IMAGE.test(originalUrl || '') ? 'original' : 'analysis', transform }
+}
+
+const samePaddleSource = (left, right) => left?.schemaVersion === 1 && right?.schemaVersion === 1
+  && left.originalUrl === right.originalUrl && left.analysisUrl === right.analysisUrl
+  && left.inputKind === right.inputKind && left.transform === right.transform
 
 // initialize:false gives us a disposable worker BEFORE the potentially slow
 // model load. No remote image service, CDN fallback or inferred accuracy score.
@@ -36,9 +62,10 @@ export async function createPaddleEngine() {
 export async function createPaddleInput(item, maxSide = 2000) {
   // Retain the inspection's current rotation/perspective. Upscaling cannot
   // recover absent pixels, so use the original only for an untransformed panel.
-  const original = !item.perspective && !item.rotation && /^data:image\/(jpeg|png|webp);/.test(item.originalUrl || '')
+  const sourceBinding = paddleSourceBinding(item)
+  const original = sourceBinding.inputKind === 'original'
   const url = original ? item.originalUrl : item.analysisUrl
-  if (typeof url !== 'string' || !/^data:image\/(jpeg|png|webp);base64,/.test(url)) throw new Error('Paddle OCR requires a captured local image.')
+  if (typeof url !== 'string' || !ORIGINAL_IMAGE.test(url)) throw new Error('Paddle OCR requires a captured local image.')
   const image = await new Promise((resolve, reject) => {
     const target = new Image()
     const timer = setTimeout(() => { target.src = ''; reject(new Error('OCR image decoding timed out.')) }, 20000)
@@ -55,14 +82,19 @@ export async function createPaddleInput(item, maxSide = 2000) {
   if (!context) throw new Error('Canvas unavailable for local OCR.')
   context.fillStyle = '#fff'; context.fillRect(0, 0, canvas.width, canvas.height)
   context.drawImage(image, 0, 0, canvas.width, canvas.height)
-  return { input: canvas, width: canvas.width, height: canvas.height, source: original ? 'original-resolution-bounded' : 'analysis-derivative' }
+  // The reviewer must see the exact bounded pixels passed to the engine. PNG is
+  // lossless and snapshotting does not alter the canvas supplied as `input`.
+  const previewUrl = canvas.toDataURL('image/png')
+  if (!/^data:image\/png;base64,/.test(previewUrl)) throw new Error('Unable to preserve the exact Paddle input preview.')
+  return { input: canvas, width: canvas.width, height: canvas.height, source: original ? 'original-resolution-bounded' : 'analysis-derivative', previewUrl, sourceBinding }
 }
 
 export async function createPaddleFocusInput(item, rect) {
+  const sourceBinding = paddleSourceBinding(item)
   const [variant] = await createFocusedVariants(item, rect)
   // Preserve the crop's exact coordinate frame; its maximum side is 2248 px.
   const frame = await createPaddleInput({ ...item, originalUrl: variant.dataUrl, analysisUrl: variant.dataUrl, perspective: null, rotation: 0 }, 2400)
-  return { ...frame, source: `officer-selected-${variant.source}`, previewUrl: variant.dataUrl, crop: rect, mapWords: variant.mapWords }
+  return { ...frame, source: `officer-selected-${variant.source}`, sourceBinding, crop: rect, mapWords: variant.mapWords }
 }
 
 export function parsePaddleOutput(result, panelId, frame) {
@@ -98,13 +130,15 @@ export async function runPaddleOcr({ evidenceItems, signal, onProgress = () => {
       const item = evidenceItems[index]
       update(10 + Math.round(index / evidenceItems.length * 85), `Paddle OCR · panel ${index + 1}/${evidenceItems.length}`)
       const frame = await boundedOcr(inputFactory(item), { signal: job.signal, timeoutMs: limits.passMs, label: 'Paddle image preparation' })
+      const sourceBinding = paddleSourceBinding(item)
+      if (!samePaddleSource(frame?.sourceBinding, sourceBinding) || typeof frame?.previewUrl !== 'string' || !/^data:image\/png;base64,/.test(frame.previewUrl)) throw new Error('Paddle input preview is not bound to the current evidence pixels.')
       const output = await boundedOcr(engine.predict(frame.input), { signal: job.signal, timeoutMs: limits.passMs, label: 'Paddle recognition' })
       throwIfAborted(job.signal)
       if (!Array.isArray(output) || output.length !== 1) throw new Error('Paddle OCR returned an invalid page count.')
       const parsed = parsePaddleOutput(output[0], item.id, frame)
       const words = frame.mapWords ? frame.mapWords(parsed.words) : parsed.words
       validateOcrWords(words)
-      const reading = { id: item.id, imageUrl: item.analysisUrl, previewUrl: frame.previewUrl || item.analysisUrl, crop: frame.crop || null, source: frame.source, width: frame.width, height: frame.height, ...parsed,
+      const reading = { id: item.id, imageUrl: item.analysisUrl, previewUrl: frame.previewUrl, sourceBinding, crop: frame.crop || null, source: frame.source, width: frame.width, height: frame.height, ...parsed,
         ocrPasses: [{ id: `${item.id}:paddle-${frame.crop ? 'focus' : 'original'}`, text: parsed.text, confidence: parsed.confidence, provider: 'paddleocr-js', model: PADDLE_MODEL, strategy: frame.crop ? 'local-alternative-officer-focus' : 'local-alternative-original' }], ocrWords: words }
       reading.focusGuidance = planPaddleFocus(reading)
       items.push(reading)
@@ -126,23 +160,14 @@ export function preparePaddleAppend({ evidenceItems, text = '', rawOcrText = '',
   if (new Set(output.items.map(item => item.id)).size !== output.items.length) throw new Error('Duplicate alternative OCR panels.')
   if (!Array.isArray(proposedRows) || proposedRows.length > 50) throw new Error('Too many layout proposals.')
   const nextItems = [...evidenceItems]
-  let addition = ''
   for (const item of output.items) {
     const index = nextItems.findIndex(panel => panel.id === item.id)
-    if (index < 0 || nextItems[index].analysisUrl !== item.imageUrl) throw new Error('The image changed since this OCR preview. Run OCR again.')
+    if (index < 0 || nextItems[index].analysisUrl !== item.imageUrl || !samePaddleSource(item.sourceBinding, paddleSourceBinding(nextItems[index]))) throw new Error('The image changed since this OCR preview. Run OCR again.')
     if (typeof item.text !== 'string' || item.text.length > OCR_OUTPUT_LIMITS.textPerPass) throw new Error('Invalid Paddle transcript.')
-    addition += `\n\n[PADDLE ${item.crop ? 'FOCUSED ' : ''}RAW OCR · PANEL ${index + 1}]\n${item.text}`
     nextItems[index] = appendOcrHistory(nextItems[index], { text: [nextItems[index].ocrText, item.text].filter(Boolean).join('\n\n'), passes: item.ocrPasses.map(pass => ({ ...pass, id: `${pass.id}:${runId}` })), words: item.ocrWords })
   }
-  const checkedRows = proposedRows.map(row => {
-    const item = output.items.find(panel => panel.id === row.panelId)
-    if (!item || !Array.isArray(row.sourceIds) || row.sourceIds.length < 2 || row.sourceIds.length > 12 || new Set(row.sourceIds).size !== row.sourceIds.length) throw new Error('Invalid layout proposal source mapping.')
-    const sources = row.sourceIds.map(id => item.lines.find(line => line.id === id))
-    if (sources.some(source => !source) || row.text !== sources.map(source => source.text).join(' ')) throw new Error('A layout proposal changed its original OCR text.')
-    return { panelId: item.id, text: row.text, sourceIds: row.sourceIds, parts: sources.map(({ id, text, box }) => ({ id, text, box })), frame: { width: item.width, height: item.height, crop: item.crop }, method: 'officer-selected-geometric-row' }
-  })
-  const derived = checkedRows.length ? '\n\n[OFFICER-SELECTED LAYOUT SUGGESTIONS · NOT RAW OCR]\n' + checkedRows.map(row => row.text).join('\n') : ''
-  if (text.length + addition.length + derived.length > 100000 || rawOcrText.length + addition.length > 100000) throw new Error('Alternative OCR would exceed the evidence text limit.')
+  const { rawAddition, workingAddition, reviewedRows, workingMappings } = buildPaddleWorkingAddition(output.items, proposedRows, evidenceItems.map(item => item.id))
+  if (text.length + workingAddition.length > 100000 || rawOcrText.length + rawAddition.length > 100000) throw new Error('Alternative OCR would exceed the evidence text limit.')
   validateOcrHistory(nextItems)
-  return { text: text + addition + derived, rawOcrText: rawOcrText + addition, evidenceItems: nextItems, words: nextItems.flatMap(panel => panel.ocrWords || []), reviewedRows: checkedRows }
+  return { text: text + workingAddition, rawOcrText: rawOcrText + rawAddition, evidenceItems: nextItems, words: nextItems.flatMap(panel => panel.ocrWords || []), reviewedRows, workingMappings }
 }

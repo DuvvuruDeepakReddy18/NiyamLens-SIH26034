@@ -1,0 +1,20 @@
+.capture-coach { margin: 18px 0; border: 1px solid #bfd7ce; background: #f4f9f6; border-radius: 12px; padding: 18px; }
+.capture-coach header { display: flex; align-items: flex-start; gap: 12px; }
+.capture-coach header > svg { flex-shrink: 0; color: #007d61; }
+.capture-coach p { margin: 6px 0 0; font-size: 13px; line-height: 1.6; color: #526964; }
+.capture-coach ol { margin: 14px 0 0; padding-left: 22px; font-size: 13px; line-height: 1.8; }
+.capture-targets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 15px; }
+.capture-targets article { padding: 13px; border: 1px solid #c9d9d0; border-radius: 8px; background: #fffef9; min-width: 0; }
+.capture-targets article.needs-capture { border-top: 3px solid #aa792b; }
+.capture-targets span { display: block; font-size: 11px; color: #62685b; margin-bottom: 7px; }
+.capture-targets strong { display: block; overflow-wrap: anywhere; font-size: 14px; }
+.capture-targets button, .review-filter button { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; padding: 8px 10px; border: 1px solid #aecbc0; background: #fff; color: #075c49; border-radius: 6px; cursor: pointer; }
+.ocr-advanced { width: 100%; padding: 10px 0; }
+.ocr-advanced > summary, .optional-notes > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: #215e50; padding: 8px 0; }
+.ocr-advanced-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0; }
+.inspection-empty-next { background: #fbfaf4; border: 1px dashed #c5cabe; border-radius: 12px; padding: 24px; align-self: start; }
+.inspection-empty-next p { font-size: 14px; line-height: 1.7; color: #61716b; }
+.review-filter { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+.review-filter span { font-size: 12px; color: #536b61; }
+.rule-scope-note { grid-column: 1 / -1; font-size: 12px; line-height: 1.6; }
+@media (max-width: 700px) { .capture-targets { grid-template-columns: 1fr; } .capture-coach { padding: 14px; } }

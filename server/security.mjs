@@ -42,7 +42,7 @@ export function reply(res, status, payload) {
   return res.status(status).json(payload)
 }
 export function failure(res, error) {
-  const databaseStatus = { '40001': 409, '23505': 409, '42501': 403, '22P02': 400, '22003': 400, '22001': 400, '23514': 400, '23503': 422 }[error.code]
+  const databaseStatus = { PT409: 409, '40001': 409, '23505': 409, '42501': 403, '22P02': 400, '22003': 400, '22001': 400, '23514': 400, '23503': 422 }[error.code]
   const status = error.status || databaseStatus || 500
   const message = error.status || error.code === '40001' ? error.message : databaseStatus === 409 ? 'This operation conflicts with an existing record. Refresh and review before retrying.' : databaseStatus === 400 || databaseStatus === 422 ? 'The submitted data does not match the required schema.' : 'Request failed. No success was recorded.'
   return reply(res, status, { error: message })

@@ -12,6 +12,8 @@
     "field:pilot": "node tools/field-pilot.mjs",
     "field:download": "node tools/download-field-pilot.mjs",
     "field:smoke": "node tools/run-field-ocr-smoke.mjs",
+    "field:browser": "node tools/run-browser-field-pilot.mjs",
+    "field:time-score": "node tools/score-workflow-study.mjs",
     "pilot:hosted": "node tools/verify-hosted-permissions.mjs",
     "backup:verify": "node tools/verify-workspace-backup.mjs",
     "qa:backup": "node --test tests/workspace-backup.test.mjs",

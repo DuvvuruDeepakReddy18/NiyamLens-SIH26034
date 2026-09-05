@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NiyamLens · inspection study observer</title>
+<style>
+body{font:16px/1.6 system-ui,sans-serif;margin:0;background:#f5f3eb;color:#163632}main{max-width:850px;margin:auto;padding:32px 20px}h1{font-size:30px;line-height:1.2}section{background:#fffef9;border:1px solid #c5d2c7;border-radius:12px;padding:20px;margin:18px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}label{display:block}input,select,textarea,button{font:inherit;box-sizing:border-box;max-width:100%}input,select,textarea{width:100%;padding:9px;border:1px solid #8caaa1;border-radius:6px}button{padding:10px 16px;background:#075f4c;border:0;border-radius:7px;color:white;cursor:pointer;margin:8px 8px 0 0}button:disabled{opacity:.45;cursor:default}#elapsed{font-size:38px;font-variant-numeric:tabular-nums}#message{white-space:pre-wrap;color:#8b361a}.muted{color:#536b65;font-size:14px}li{overflow-wrap:anywhere}@media(max-width:540px){.grid{grid-template-columns:1fr}}
+</style>
+<main><p class="muted">NIYAMLENS / REAL OBSERVATIONS ONLY</p><h1>Time the complete inspection</h1>
+<p>Observer-operated stopwatch, not a simulated study. Include waiting, corrections and failed attempts. No results exist until you actually run and save an attempt. Use anonymous IDs; no passwords or personal contact details.</p>
+<section><form id="setup"><div class="grid">
+<label>Participant ID<input id="participant" required pattern="[A-Za-z0-9_-]{1,80}" placeholder="P01"></label>
+<label>Package ID<input id="package" required pattern="[A-Za-z0-9_-]{1,80}" placeholder="PKG01"></label>
+<label>Method<select id="method"><option value="manual">Manual checklist + report</option><option value="niyamlens">NiyamLens complete workflow</option></select></label>
+<label>Actual order for this participant/package<select id="order"><option value="1">First method</option><option value="2">Second method</option></select></label>
+</div><button id="start" type="submit">Start observed attempt</button></form>
+<p class="muted">Alternate method order across participants. Keep the same task and physical package. Do not close/reload this tab while timing; an interrupted observation must not be silently discarded.</p></section>
+<section aria-label="Live observation"><div id="elapsed" role="timer">0.0 s</div><p id="current">No attempt running</p>
+<label>Stage currently being observed<select id="stage" disabled><option value="capture">Capture / initial inspection</option><option value="read_or_transcribe">Read / transcribe / OCR wait</option><option value="verify_and_correct">Verify and correct</option><option value="measure">Measure and record uncertainty</option><option value="export">Prepare / export usable report</option></select></label>
+<p class="muted">Switch when the participant changes activity. Returning to an earlier stage adds to its duration. There is no pause that hides waiting.</p>
+<label>Observed correction count<input id="corrections" type="number" min="0" max="1000" step="1" disabled></label>
+<label>Outcome<select id="outcome" disabled><option value="">Select the actual outcome</option><option value="complete">Complete</option><option value="failed">Failed</option><option value="abandoned">Abandoned</option></select></label>
+<label>Observation notes (reason required for failures/abandonment)<textarea id="notes" maxlength="4000" disabled></textarea></label>
+<button id="finish" disabled>Finish and save attempt</button><p id="message" role="status" aria-live="polite"></p></section>
+<section><h2>Retained attempts</h2><p class="muted">Saved in this browser when available. Export after every session. Each report still needs a different person's physical-package quality review; this timer leaves <code>qualityReview</code> null.</p><ol id="history"></ol><button id="export">Export observed study JSON</button><p id="storage" role="status"></p></section>
+</main>
+<script>
+const $=id=>document.getElementById(id), key='niyamlens-observer-v1', stages=['capture','read_or_transcribe','verify_and_correct','measure','export'];
+let trials=[], active=null, storageReadable=true;
+try { const saved=JSON.parse(localStorage.getItem(key)||'[]'); if(!Array.isArray(saved)||saved.length>500||saved.some(t=>!t||typeof t.id!=='string'||!Number.isFinite(t.totalSeconds)))throw Error(); trials=saved; } catch { storageReadable=false;$('start').disabled=true;$('export').disabled=true;$('storage').textContent='Saved observations could not be read. Collection is blocked to avoid overwriting them. Preserve browser storage and use another profile for a new study.'; }
+function render(){ $('history').replaceChildren(...trials.map(t=>{const li=document.createElement('li');li.textContent=`${t.id} · ${t.participantId} / ${t.packageId} · ${t.method} · ${t.outcome} · ${t.totalSeconds}s`;return li})); }
+function persist(){ try{localStorage.setItem(key,JSON.stringify(trials));$('storage').textContent='Retained in this browser. Export a separate file now.'}catch{$('storage').textContent='Browser storage unavailable: EXPORT NOW before closing this tab.'} }
+function account(now){active.stages[active.stage]+=(now-active.mark)/1000;active.mark=now;}
+function enable(running){for(const id of ['participant','package','method','order','start'])$(id).disabled=running;for(const id of ['stage','corrections','outcome','notes','finish'])$(id).disabled=!running;}
+$('setup').addEventListener('submit',event=>{event.preventDefault();if(!storageReadable||active||!$('setup').reportValidity())return;if(trials.length>=500){$('message').textContent='500-attempt bound reached. Export and start a separately named study using another browser profile.';return;}
+ if(typeof crypto.randomUUID!=='function'){$('message').textContent='Open the downloaded file in current Chrome, or serve it on HTTPS/localhost. Secure ID generation is unavailable here.';return;}
+ const now=performance.now();active={id:'TRIAL-'+crypto.randomUUID(),participantId:$('participant').value,packageId:$('package').value,method:$('method').value,order:Number($('order').value),startedAt:new Date().toISOString(),start:now,mark:now,stage:'capture',stages:Object.fromEntries(stages.map(s=>[s,0]))};
+ $('stage').value='capture';$('corrections').value='';$('outcome').value='';$('notes').value='';$('message').textContent='Timing includes all elapsed time. Keep observing.';enable(true);
+});
+$('stage').addEventListener('change',()=>{if(!active)return;account(performance.now());active.stage=$('stage').value;});
+$('finish').addEventListener('click',()=>{if(!active)return;const outcome=$('outcome').value,notes=$('notes').value.trim(),raw=$('corrections').value,corrections=Number(raw);
+ if(!outcome||raw===''||!Number.isInteger(corrections)||corrections<0||corrections>1000||outcome!=='complete'&&!notes){$('message').textContent='Record the actual outcome, counted corrections, and a reason for failure/abandonment. Timing continues.';return;}
+ const now=performance.now();account(now);const round=n=>Math.round(n*1000)/1000;
+ trials.push({id:active.id,participantId:active.participantId,packageId:active.packageId,method:active.method,order:active.order,outcome,totalSeconds:round((now-active.start)/1000),stages:Object.fromEntries(stages.map(s=>[s,round(active.stages[s])])),corrections,notes,qualityReview:null,observation:{tool:'human-operated-monotonic-observer-v1',startedAt:active.startedAt,endedAt:new Date().toISOString(),independence:'not-established-by-this-tool'}});
+ active=null;enable(false);persist();render();$('message').textContent='Attempt retained. Physical report correctness remains unreviewed.';
+});
+$('export').addEventListener('click',()=>{const payload={schemaVersion:1,kind:'paired-inspection-time-study',status:trials.length?'observed-awaiting-independent-quality-review':'not-started-no-human-observations',trials};const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='NiyamLens-observed-study-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);$('message').textContent=active?'Export contains finished attempts only. The current attempt is still running.':'Download requested; confirm the JSON file was saved.';});
+setInterval(()=>{if(active){$('elapsed').textContent=((performance.now()-active.start)/1000).toFixed(1)+' s';$('current').textContent='Observing: '+$('stage').selectedOptions[0].textContent;}else{$('current').textContent='No attempt running';}},100);
+addEventListener('beforeunload',event=>{if(active){event.preventDefault();event.returnValue='';}});render();
+</script></html>

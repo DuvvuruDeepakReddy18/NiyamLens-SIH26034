@@ -1,3 +1,5 @@
+import { extractDeclarations } from './extraction.mjs'
+
 // Experimental geometry-only association. This never repairs OCR characters,
 // infers a declaration from a product catalogue, or resolves conflicting values.
 export const SPATIAL_OCR_THRESHOLDS = Object.freeze({ maxLines: 1000, maxTextCharacters: 100000, maxLineCharacters: 2000, maxSkewDegrees: 12, maxPairAngleDifference: 5, maxEdgeAngleDifference: 5, maxHeightRatio: 2.5, maxCentreOffsetHeights: 0.35, minVerticalOverlap: 0.65, maxGapHeights: 12 })
@@ -141,4 +143,84 @@ export function associateSpatialOcrRows(inputLines = []) {
 export function rapidOcrLines(metadata, { panelId = 'panel-1' } = {}) {
   if (!metadata || !Array.isArray(metadata.texts) || !Array.isArray(metadata.boxes) || !Array.isArray(metadata.confidences) || metadata.texts.length !== metadata.boxes.length || metadata.texts.length !== metadata.confidences.length) throw new Error('RapidOCR texts, boxes and confidences must be equal-length arrays.')
   return metadata.texts.map((text, index) => ({ id: `${panelId}:line-${index + 1}`, panelId, text, box: metadata.boxes[index], confidence: metadata.confidences[index] }))
+}
+
+// Separate opt-in proposal path: the earlier same-row API and its transcript
+// remain unchanged. These heuristics are NOT calibrated semantic confidence.
+export const STACKED_OCR_POLICY = Object.freeze({ maxGapHeights: 1, minHorizontalOverlap: 0.8, maxAnchorOffsetHeights: 0.5 })
+
+function stackedPair(heading, value) {
+  if (heading.panelId !== value.panelId || !heading.geometry.supported || !value.geometry.supported) return null
+  if (Math.abs(heading.geometry.angle - value.geometry.angle) > SPATIAL_OCR_THRESHOLDS.maxPairAngleDifference) return null
+  const height = Math.max(heading.geometry.height, value.geometry.height)
+  if (height / Math.min(heading.geometry.height, value.geometry.height) > SPATIAL_OCR_THRESHOLDS.maxHeightRatio) return null
+  const angle = radians((heading.geometry.angle + value.geometry.angle) / 2)
+  const u = [Math.cos(angle), Math.sin(angle)]; const v = [-Math.sin(angle), Math.cos(angle)]
+  const hx = interval(heading.box, u); const vx = interval(value.box, u)
+  const hy = interval(heading.box, v); const vy = interval(value.box, v)
+  const gapHeights = (vy.min - hy.max) / height
+  const overlapFraction = (Math.min(hx.max, vx.max) - Math.max(hx.min, vx.min)) / Math.min(hx.max - hx.min, vx.max - vx.min)
+  const centreOffsetHeights = Math.abs(dot(heading.geometry.centre, u) - dot(value.geometry.centre, u)) / height
+  const leftOffsetHeights = Math.abs(hx.min - vx.min) / height
+  if (gapHeights < 0 || gapHeights > STACKED_OCR_POLICY.maxGapHeights || overlapFraction < STACKED_OCR_POLICY.minHorizontalOverlap || Math.min(centreOffsetHeights, leftOffsetHeights) > STACKED_OCR_POLICY.maxAnchorOffsetHeights) return null
+  return { u, v, hx, vx, hy, vy, gapHeights, overlapFraction, centreOffsetHeights, leftOffsetHeights, angleDegrees: degrees(angle) }
+}
+
+const criticalHeading = line => line.headings.includes('mrp') ? 'mrp'
+  : line.headings.includes('quantity') && /^NET\s*/i.test(line.text.trim()) ? 'netQuantity'
+    : line.headings.includes('packed') && !/^IMPORTED\b/i.test(line.text.trim()) ? 'packDate' : null
+const completeValueFragment = (field, text) => ({
+  mrp: /^(?:(?:₹|RS\.?|INR)\s*)?\d[\d,.]*$/i,
+  netQuantity: /^\d[\d,.]*\s*[a-zℓ]+\.?$/i,
+  packDate: /^(?:\d{1,4}(?:[./-]\d{1,4}){1,2}|\d{1,2}[ -][a-z]{3,9}[ -]\d{2,4}|[a-z]{3,9}[ -]\d{2,4})$/i,
+}[field]).test(text.trim())
+
+export function reviewableStackedDeclarationProposals(inputLines = []) {
+  const lines = validateLines(inputLines)
+  const preliminary = []; const rejected = []
+  for (const heading of lines) {
+    const field = criticalHeading(heading)
+    if (!field) continue
+    const reject = (reason, candidateIds = [], extra = {}) => rejected.push({ headingId: heading.id, field, reason, candidateIds, ...extra })
+    const candidates = lines.filter(value => value.id !== heading.id && value.numeric && stackedPair(heading, value))
+    const lateral = lines.filter(value => value.id !== heading.id && value.numeric && alignedPair(heading, value))
+    // Do not select the value whose format happens to fit. Two candidate boxes
+    // or a same-row alternative are already sufficient to withhold the guess.
+    if (candidates.length !== 1 || lateral.length) { reject(lateral.length ? 'competing_same_row_value' : candidates.length ? 'multiple_stacked_value_candidates' : 'no_unambiguous_stacked_value', [...candidates, ...lateral].map(line => line.id)); continue }
+    const value = candidates[0]; const pair = stackedPair(heading, value)
+    const blockers = lines.filter(other => {
+      if ([heading.id, value.id].includes(other.id) || other.panelId !== heading.panelId || !other.text.trim()) return false
+      const x = interval(other.box, pair.u); const y = interval(other.box, pair.v)
+      return x.max > Math.min(pair.hx.min, pair.vx.min) && x.min < Math.max(pair.hx.max, pair.vx.max)
+        && y.max > pair.hy.max && y.min < pair.vy.max
+    })
+    if (blockers.length) { reject('intervening_or_overlapping_text', [value.id], { blockerIds: blockers.map(line => line.id) }); continue }
+    const competingHeadings = lines.filter(other => other.id !== heading.id && other.headings.length && (stackedPair(other, value) || alignedPair(other, value)))
+    if (competingHeadings.length) { reject('value_shared_by_another_heading', [value.id], { competingHeadingIds: competingHeadings.map(line => line.id) }); continue }
+    const text = `${heading.text} ${value.text}`
+    const parsed = extractDeclarations(text).byId[field]
+    if (!completeValueFragment(field, value.text) || parsed.candidates.length !== 1 || !parsed.candidates[0].valid || parsed.conflict || parsed.validation?.status !== 'format_valid') { reject('value_fragment_not_one_complete_valid_field', [value.id]); continue }
+    preliminary.push({ heading, value, field, text, parsed, pair })
+  }
+  const proposals = []
+  for (const item of preliminary) {
+    const peers = preliminary.filter(other => other.field === item.field)
+    const resolvedSources = new Set(peers.flatMap(other => [other.heading.id, other.value.id]))
+    // Remove only geometrically resolved fragments while searching original
+    // evidence for competing or unreadable declarations of this field.
+    const others = lines.filter(line => !resolvedSources.has(line.id)).flatMap(line => extractDeclarations(line.text).byId[item.field].candidates)
+    const keys = new Set([...peers.map(other => other.parsed.candidates[0].key), ...others.filter(candidate => candidate.valid).map(candidate => candidate.key)])
+    if (keys.size !== 1 || others.some(candidate => !candidate.valid)) {
+      rejected.push({ headingId: item.heading.id, field: item.field, reason: keys.size !== 1 ? 'conflicting_field_values_elsewhere_in_evidence' : 'unresolved_field_evidence_elsewhere', candidateIds: [item.value.id] }); continue
+    }
+    const sources = [item.heading, item.value]
+    proposals.push({
+      id: `stacked:${sources.map(line => line.id).join('+')}`, panelId: item.heading.panelId, field: item.field, value: item.parsed.value, text: item.text,
+      sourceIds: sources.map(line => line.id), sourceIndexes: sources.map(line => line.index),
+      parts: sources.map(line => ({ sourceId: line.id, sourceIndex: line.index, text: line.text, box: line.box.map(point => [...point]) })),
+      geometry: Object.fromEntries(['gapHeights', 'overlapFraction', 'centreOffsetHeights', 'leftOffsetHeights', 'angleDegrees'].map(key => [key, item.pair[key]])),
+      method: 'conservative-stacked-heading-value-v1', validation: { ...item.parsed.candidates[0].validation }, requiresOfficerReview: true, eligibleForAutomaticVerdict: false,
+    })
+  }
+  return { proposals, rejected, method: 'conservative-stacked-heading-value-v1', policy: { ...STACKED_OCR_POLICY }, limitation: 'Experimental source-mapped suggestion only: one literal heading above one close aligned complete value, no intervening text, alternative or conflicting field evidence. Exact original characters remain unchanged. Human inspection is mandatory; this does not resolve raw OCR conflicts or establish semantic accuracy.' }
 }

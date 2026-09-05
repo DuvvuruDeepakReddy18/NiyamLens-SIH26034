@@ -44,7 +44,10 @@ export function createEvidenceStore(scope = 'local') {
       pending.onsuccess = () => {
         if (pending.result.some((operation) => operation.recordId === record.id)) { done(false); return }
         const existing = tx.objectStore('inspections').get(record.id)
-        existing.onsuccess = () => { tx.objectStore('inspections').put(merge(existing.result, record)); done(true) }
+        existing.onsuccess = () => {
+          if (Number.isSafeInteger(existing.result?.serverVersion) && (!Number.isSafeInteger(record.serverVersion) || record.serverVersion < existing.result.serverVersion)) { done(false); return }
+          tx.objectStore('inspections').put(merge(existing.result, record)); done(true)
+        }
       }
     }),
     saveAndQueue: (record, operation) => transact(['inspections', 'outbox'], 'readwrite', (tx, done) => {

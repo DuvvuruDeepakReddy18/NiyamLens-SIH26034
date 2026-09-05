@@ -41,6 +41,7 @@ for (const testCase of cases) {
   }
   const caution = page.getByRole('button', { name: 'Continue with caution', exact: true })
   if (await caution.count()) await caution.click()
+  if (scanMode === 'deep') await page.getByText('More OCR options', { exact: true }).click()
   await page.getByRole('button', { name: scanMode === 'deep' ? /Deep scan small text/i : /Run browser OCR/i }).click()
   await page.getByText(scanMode === 'deep' ? /Deep scan complete across/i : /OCR complete across/i).waitFor({ timeout: 240_000 })
   const recognizedText = await page.locator('.evidence-editor').inputValue()

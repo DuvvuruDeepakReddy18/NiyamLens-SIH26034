@@ -4,7 +4,7 @@
 
 Measure whether NiyamLens extracts declarations and issues safe decision-support outcomes on real, unseen packages. Synthetic fixtures test regressions only and must never be reported as field accuracy.
 
-For an executable first 20–30-SKU pilot, use the [prospective photo-pilot runbook](FIELD_PILOT_RUNBOOK.md) and `node tools/field-pilot.mjs --help`. It adds original-image hashes, development-SKU exclusions, two independent human annotations, pre-OCR freezing and separate raw/assisted exact-value scoring. The supplied template is intentionally empty; no unseen-field result is claimed. This small extraction pilot does not replace the broader study below.
+For an executable first 20–30-SKU pilot, use the [prospective photo-pilot runbook](FIELD_PILOT_RUNBOOK.md) and `node tools/field-pilot.mjs --help`. It adds original-image hashes, development-SKU exclusions, two independent human annotations, pre-OCR freezing and separate raw/assisted exact-value scoring. The supplied template is intentionally empty; no unseen-field result is claimed. For the current 24 reserved public-source photos, use the [offline human review kit procedure](FIELD_REVIEW_KIT.md), then print the pre-registration choices with `npm run field:browser -- --modes` before freeze. This small extraction pilot does not replace the broader study below.
 
 ## Dataset target
 

@@ -49,7 +49,7 @@ export function invalidateCapturedEvidence(meta = {}) {
   return {
     ...metadata(meta), ...EMPTY_OCR,
     fieldReviews: {}, fieldCandidates: {}, placementReviews: {}, quantitySpacing: {},
-    allPanelsCaptured: false, classificationConfirmed: false, placementPdpConfirmed: false,
+    allPanelsCaptured: false, classificationConfirmed: false, rule3ApplicabilityConfirmed: false, placementPdpConfirmed: false,
     measurementConfirmed: false, widthCharacterConfirmed: false,
   }
 }

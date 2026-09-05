@@ -4,9 +4,11 @@ NiyamLens is a local-first inspection system for packaged-commodity declarations
 
 The product is designed around the question a judge will ask: **can it survive a random packet in real time?** The Blind Challenge route disables controlled fixtures, starts a sealed timer and records every material action.
 
-## Current readiness — 4 September 2026
+## Current readiness — 5 September 2026 documentation checkpoint
 
-Version 0.4.2 / rule pack RC5 adds optional local Paddle OCR (whole panels and officer-selected crops), reviewable layout suggestions, literal label-format parsing fixes, atomic OCR appends, draft-race protection and resilient optional-asset caching. Local release validation passes 318 automated tests, the production build, source/build OCR asset hashes and 14 exact-photo identity checks. See the [release validation record](reports/release-2026-09-04/RELEASE-VALIDATION.md) and the branch's GitHub checks for push/CI status. These checks do not certify production cloud configuration or general OCR accuracy.
+Current follow-up: [OCR fixes, Arif/Tharun review bundles, hosted tests and remaining human evidence](docs/OCR_AND_FIELD_VALIDATION_2026-09-05.md). The [earlier implementation checkpoint](docs/READINESS_IMPLEMENTATION_2026-09-05.md) retains its original diagnostic results. Passing engineering checks does not establish real-label accuracy or legal approval.
+
+Version 0.4.4 / rule pack `LMPC-RC-2026.09-RC6` adds an explicit Rule 3 applicability gate, conservative food-package typography review, optional local Paddle OCR (whole panels and officer-selected crops), reviewable layout suggestions and hardened evidence/synchronization boundaries. At this documentation checkpoint on 5 September 2026, `npm test` reported 524 passed, 0 failed in the local working tree. This is a timestamped engineering snapshot—not a permanent “latest” count—and must be rerun after subsequent changes. Earlier release reports and GitHub checks describe the revision they name; they do not certify this working tree, production cloud configuration or general OCR accuracy.
 
 Actual Chrome Paddle recognition of an untouched Amul photograph recovered `MRP:22.00`; an officer-selected crop also read `Net Content:` followed by `500ml`, without typing corrected OCR text. This is a known-photo, officer-assisted acceptance check—not a blind accuracy result. Earlier bad readings remain preserved and may require explicit conflict resolution. Strict whole-image experiments on eight provisional development photos still show poor end-to-end critical-field extraction. See [this pass's handoff](reports/recognition-2026-09-04-pass2/IMPLEMENTATION-STATUS.md) and [measured experiments](reports/recognition-2026-09-04-pass2/RESULTS.md). Do not present this as general real-label accuracy or guaranteed SIH success.
 
@@ -81,7 +83,7 @@ npm run qa:ocr:google-baseline
 npm run qa:pwa
 ```
 
-Current local verified baseline: 318 automated regression tests and a production Vite build pass. [Clean-checkout instructions](docs/RELEASE_REPRODUCIBILITY.md) explain the independent CI, pinned-asset and exact-photo gates. Actual Chrome verification and exact frozen-corpus denominators are documented in the linked reports; read their limitations before making a claim. Earlier fixture/token-recovery reports remain historical artifacts, not current end-to-end field accuracy. The new optional browser engine has not been tested on an independent held-out corpus or every target phone. Cloud identity/storage/provider integration requires a configured, separately verified deployment.
+Timestamped local test snapshot: 524 automated regression tests passed with 0 failures on 5 September 2026 before later branch changes. Rerun the commands above and retain their output for any release claim. [Clean-checkout instructions](docs/RELEASE_REPRODUCIBILITY.md) explain the independent CI, pinned-asset and exact-photo gates. Actual Chrome verification and exact frozen-corpus denominators are documented in the linked reports; read their limitations before making a claim. Earlier fixture/token-recovery reports remain historical artifacts, not current end-to-end field accuracy. The optional browser engine has not been tested on an independent held-out corpus or every target phone. Cloud identity, storage and provider behavior must be verified against the exact deployed revision before presentation.
 
 The UI distinguishes engine scores from unvalidated reliability heuristics. Neither is an accuracy probability. The Validation Lab scores supplied transcripts; it does not automatically execute browser OCR. See the [Open Food Facts pilot protocol](datasets/openfoodfacts-india/README.md), [field-dataset schema](datasets/legal-metrology-field/README.md) and raw reports in `reports/`.
 
@@ -140,6 +142,8 @@ Further detail:
 - [Architecture and trust model](docs/ARCHITECTURE.md)
 - [Hybrid OCR architecture decision](docs/ADR-001-HYBRID-OCR.md)
 - [Legal review register](docs/LEGAL_REVIEW.md)
+- [Independent domain and legal review packet](docs/DOMAIN_REVIEW_PACKET.md)
 - [Field validation protocol](docs/FIELD_VALIDATION_PROTOCOL.md)
 - [Judge demonstration runbook](docs/JUDGE_DEMO.md)
+- [Team competition rehearsal and unseen-package protocol](docs/TEAM_WINNING_REHEARSAL.md)
 - [Deployment readiness](docs/DEPLOYMENT_READINESS_2026-09-03.md)

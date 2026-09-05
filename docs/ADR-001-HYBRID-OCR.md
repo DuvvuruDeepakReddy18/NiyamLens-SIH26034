@@ -33,7 +33,7 @@ Use a hybrid recognition boundary:
 - A team can demonstrate an entirely offline inspection and separately demonstrate a higher-recall connected path.
 - Production use requires departmental approval of the provider, region, retention terms, credentials and threat model.
 - Connected OCR requires `GOOGLE_CLOUD_VISION_API_KEY` in the deployment environment. It is intentionally unavailable when the variable is absent.
-- Provider confidence is displayed separately from the calibrated reliability score and must not be reported as accuracy.
+- Provider confidence is displayed separately from the unvalidated reliability heuristic. Neither value is calibrated to the probability that text, a field or a legal finding is correct, and neither may be reported as accuracy.
 
 ## References
 

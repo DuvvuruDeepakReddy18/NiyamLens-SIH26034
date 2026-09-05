@@ -1,7 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { createWorkspaceClient } from '../src/lib/workspaceClient.mjs'
+import { createWorkspaceClient, mergeCloudRecord } from '../src/lib/workspaceClient.mjs'
+import { RULE_PACK } from '../src/lib/rules.mjs'
 
 const ORG = 'workspace-one'
 const USER = 'officer-a'
@@ -10,7 +11,7 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR
 const hash = createHash('sha256').update(png).digest('hex')
 const originalPath = `org/user/case/panel/original-${hash}`
 const analysisPath = `org/user/case/panel/analysis-${hash}`
-const record = () => ({ id: 'test-case-123', evidenceItems: [{ id: 'panel-one', originalPath, analysisPath, sha256: hash }] })
+const record = () => ({ id: 'test-case-123', rulePack: RULE_PACK.id, evidenceItems: [{ id: 'panel-one', originalPath, analysisPath, sha256: hash }] })
 const setup = () => {
   let session = { user: { id: USER }, access_token: 'token-a' }
   const client = { auth: { getSession: async () => ({ data: { session } }) } }
@@ -230,4 +231,49 @@ test('invalid OCR history fails before any private image upload', async () => {
     await assert.rejects(api.transport({ kind: 'seal', payload: source }), { status: 422, message: /Duplicate/ })
   })
   assert.equal(requests, 0)
+})
+
+test('an old or missing queued rule pack is retained and blocked before all uploads', async () => {
+  for (const rulePack of ['LMPC-OLD', undefined]) {
+    const { api } = setup(); const source = { ...record(), rulePack }; let calls = 0
+    await withFetch(async () => { calls++; return json({}) }, async () => {
+      await assert.rejects(api.transport({ kind: 'seal', payload: source }), { status: 409, code: 'RULE_PACK_MISMATCH', message: /original seal is retained/ })
+    })
+    assert.equal(calls, 0); assert.equal(source.rulePack, rulePack)
+  }
+})
+
+test('newer summary invalidates detail history while equal or older responses retain complete cached evidence', () => {
+  const complete = { ...record(), serverVersion: 3, recordKind: 'detail', text: 'raw capture', reviewHistory: [{ id: 'v3', status: 'non_compliant' }] }
+  const summary = { id: complete.id, serverVersion: 3, recordKind: 'summary', evidenceItems: [], reviewHistory: [{ id: 'v3', status: 'non_compliant' }] }
+  assert.equal(mergeCloudRecord(complete, summary), complete)
+  assert.equal(mergeCloudRecord(complete, { ...summary, serverVersion: 2 }), complete)
+  const newer = mergeCloudRecord(complete, { ...summary, serverVersion: 4, reviewHistory: [{ id: 'v4', status: 'compliant' }] })
+  assert.equal(newer.detailsStale, true); assert.equal(newer.recordKind, 'summary')
+  assert.equal(newer.evidenceItems, complete.evidenceItems); assert.equal(newer.text, complete.text)
+  assert.equal(newer.reviewHistory[0].id, 'v4')
+})
+
+test('summary and stale-detail records hydrate on demand before review and cannot accept older server details', async () => {
+  const { api } = setup()
+  const summary = { id: 'test-case-123', recordKind: 'summary', serverVersion: 3, evidenceItems: [] }
+  const fresh = { ...record(), serverVersion: 3, serverPayloadHash: 'a'.repeat(64), serverSealedAt: '2026-09-05', syncState: 'synced', text: 'full transcript', reviewHistory: [{ id: 'r1' }, { id: 'r2' }] }
+  let calls = 0
+  await withFetch(async (url) => { calls++; assert.equal(url, '/api/cases?id=test-case-123'); return json({ record: fresh }) }, async () => {
+    const detail = await api.getRecordMetadata(summary)
+    assert.equal(detail.recordKind, 'detail'); assert.equal(detail.detailsStale, false)
+    assert.equal(detail.text, fresh.text); assert.equal(detail.reviewHistory.length, 2)
+    assert.equal(await api.getRecordMetadata(detail), detail); assert.equal(calls, 1)
+    await assert.rejects(api.getRecordMetadata({ ...summary, serverVersion: 4 }), { status: 409, message: /older case version/ })
+  })
+  await withFetch(async () => json({ record: { ...fresh, recordKind: 'summary' } }), async () => {
+    await assert.rejects(api.getRecordMetadata(summary), { status: 422 })
+  })
+})
+
+test('server rule mismatch code survives the transport boundary for explicit reassessment', async () => {
+  const { api } = setup()
+  await withFetch(async () => new Response(JSON.stringify({ error: 'Reassessment required.', code: 'RULE_PACK_MISMATCH' }), { status: 409 }), async () => {
+    await assert.rejects(api.request('cases'), { status: 409, code: 'RULE_PACK_MISMATCH' })
+  })
 })

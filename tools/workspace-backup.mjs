@@ -9,7 +9,10 @@ import { hashPayload } from '../server/caseService.mjs'
 
 export const BACKUP_FORMAT = 'niyamlens-workspace-backup-v1'
 export const BACKUP_LIMITS = Object.freeze({ fileBytes: 96 * 1024 * 1024, imageBytes: 15 * 1024 * 1024, totalImageBytes: 64 * 1024 * 1024, rowsPerTable: 5000, objects: 1024 })
-export const MIGRATIONS = ['202609040001_workspaces.sql', '202609040002_assignment_transactions.sql']
+export const MIGRATIONS = Object.freeze(['202609040001_workspaces.sql', '202609040002_assignment_transactions.sql', '202609050001_business_conflict_http_409.sql'])
+// Keep the exact previously supported schema restorable. A historical backup
+// must not silently acquire new function bodies or be relabelled as current.
+const supportedMigrationNames = names => Array.isArray(names) && [2, 3].includes(names.length) && names.every((name, index) => name === MIGRATIONS[index])
 export const COLUMNS = Object.freeze({
   auth_users: ['id'],
   organizations: ['id', 'name', 'created_at'],
@@ -67,7 +70,7 @@ export async function verifyWorkspaceBackup(bundle) {
   jsonShape({ format: bundle.format, schema: bundle.schema, scope: bundle.scope, tables: bundle.tables })
   check(exactKeys(bundle.scope, ['orgId', 'snapshotAt', 'consistentSnapshot', 'authUsers', 'captureMethod']) && isUuid(bundle.scope.orgId) && validDate(bundle.scope.snapshotAt) && bundle.scope.consistentSnapshot === true && bundle.scope.authUsers === 'ids-only' && ['operator-export', 'synthetic-fixture'].includes(bundle.scope.captureMethod), 'BACKUP_SCOPE_INVALID')
   const manifest = await currentMigrationManifest()
-  check(Array.isArray(bundle.schema) && bundle.schema.length === manifest.length && bundle.schema.every((item, index) => exactKeys(item, ['name', 'sha256']) && item.name === manifest[index].name && isHash(item.sha256) && item.sha256 === manifest[index].sha256), 'BACKUP_SCHEMA_VERSION_MISMATCH')
+  check(Array.isArray(bundle.schema) && supportedMigrationNames(bundle.schema.map(item => item?.name)) && bundle.schema.every((item, index) => exactKeys(item, ['name', 'sha256']) && item.name === manifest[index].name && isHash(item.sha256) && item.sha256 === manifest[index].sha256), 'BACKUP_SCHEMA_VERSION_MISMATCH')
   check(exactKeys(bundle.tables, Object.keys(COLUMNS)), 'BACKUP_TABLE_SET_INVALID')
   for (const [table, columns] of Object.entries(COLUMNS)) {
     check(Array.isArray(bundle.tables[table]) && bundle.tables[table].length <= BACKUP_LIMITS.rowsPerTable, 'BACKUP_TABLE_ROW_LIMIT')
@@ -137,10 +140,12 @@ export async function verifyWorkspaceBackup(bundle) {
     check((typeof row.sequence === 'number' || (typeof row.sequence === 'string' && /^[1-9][0-9]*$/.test(row.sequence))) && Number.isSafeInteger(Number(row.sequence)) && Number(row.sequence) === ++sequence && row.previous_hash === prev && isHash(row.hash) && users.has(row.actor_id) && typeof row.event === 'string' && row.event.length > 0 && row.event.length <= 100 && plain(row.details), 'BACKUP_AUDIT_CHAIN_INVALID')
     prev = row.hash
   }
-  return { bundle, objectBytes, summary: { format: BACKUP_FORMAT, captureMethod: bundle.scope.captureMethod, tableRows: Object.fromEntries(Object.entries(t).map(([table, rows]) => [table, rows.length])), registeredObjects: registrations.size, caseObjects: requiredObjects.size, unsealedRegisteredObjects: registrations.size - requiredObjects.size, totalImageBytes, snapshotConsistencyIndependentlyVerified: false, liveSnapshotAuthenticityVerified: false } }
+  return { bundle, objectBytes, summary: { format: BACKUP_FORMAT, schemaMigrationNames: bundle.schema.map(item => item.name), currentSchema: bundle.schema.length === MIGRATIONS.length, forwardMigrationsNotApplied: MIGRATIONS.slice(bundle.schema.length), captureMethod: bundle.scope.captureMethod, tableRows: Object.fromEntries(Object.entries(t).map(([table, rows]) => [table, rows.length])), registeredObjects: registrations.size, caseObjects: requiredObjects.size, unsealedRegisteredObjects: registrations.size - requiredObjects.size, totalImageBytes, snapshotConsistencyIndependentlyVerified: false, liveSnapshotAuthenticityVerified: false } }
 }
 
-export async function createRehearsalDatabase() {
+export async function createRehearsalDatabase(migrationNames = MIGRATIONS) {
+  check(supportedMigrationNames(migrationNames), 'BACKUP_SCHEMA_VERSION_MISMATCH')
+  const selectedNames = [...migrationNames]
   const db = new PGlite({ extensions: { pgcrypto } })
   try {
     await db.exec(`set timezone = 'UTC'; create role anon; create role authenticated; create role service_role bypassrls;
@@ -149,7 +154,7 @@ export async function createRehearsalDatabase() {
       create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
       grant usage on schema public,auth to authenticated,anon,service_role;
       create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);`)
-    for (const name of MIGRATIONS) await db.exec(await readFile(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8'))
+    for (const name of selectedNames) await db.exec(await readFile(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8'))
     await db.exec('create schema backup_rehearsal; create table backup_rehearsal.object_bytes(path text primary key references public.evidence_objects(path), bytes bytea not null)')
     return db
   } catch (error) { await db.close(); throw error }
@@ -157,7 +162,7 @@ export async function createRehearsalDatabase() {
 
 export async function rehearseWorkspaceRestore(bundle) {
   const verified = await verifyWorkspaceBackup(bundle) // All bytes checked BEFORE any restore is attempted.
-  const db = await createRehearsalDatabase()
+  const db = await createRehearsalDatabase(bundle.schema.map(item => item.name))
   try {
     await db.exec('begin')
     try {

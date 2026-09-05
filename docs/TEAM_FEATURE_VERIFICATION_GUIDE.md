@@ -1,10 +1,10 @@
 # NiyamLens team feature and verification guide
 
 - **Problem statement:** SIH26034 — packaged-commodity declaration compliance
-- **Release:** NiyamLens 0.4.4, public managed release (`LMPC-RC-2026.09-RC5`)
+- **Documented code snapshot:** NiyamLens 0.4.4 (`LMPC-RC-2026.09-RC6`)
 - **Public application:** <https://niyamlens-sih26034.vercel.app>
 - **Source repository:** <https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034>
-- **Last verified locally and publicly:** 5 September 2026; see [the public-cutover report](../reports/public-release-2026-09-05/VALIDATION.md)
+- **Verification boundary:** 524/524 unit tests passed locally at the 5 September 2026 documentation checkpoint. This count is a timestamped working-tree snapshot, not a claim that later changes or the public deployment contain the same revision. The [public-cutover report](../reports/public-release-2026-09-05/VALIDATION.md) applies only to the release it identifies.
 
 ## What the product does
 
@@ -24,7 +24,7 @@ The product is decision support for an authorised officer. It does not claim to 
 
 Use this before every presentation.
 
-1. Open `http://127.0.0.1:5173` in current Chrome/Edge, or use the public URL after release 0.3.0 is deployed.
+1. Open `http://127.0.0.1:5173` in current Chrome/Edge. Use the public URL only after its displayed rule-pack/version and release evidence match the revision being presented.
 2. Go to **New inspection**.
 3. Expand **Controlled test packets** and select **Compliant packet**.
 4. Confirm the right-side assessment says **PASS**.
@@ -35,7 +35,7 @@ Use this before every presentation.
 9. Open **Officer operations**, switch to **Supervising Officer**, enter a review reason and seal a disposition. Reopen the evidence and confirm the automated result is still displayed.
 10. Open **Blind challenge**, start it and confirm **Controlled test packets** is no longer available.
 
-If those ten checks pass, the core presentation path is ready. The controlled packets prove repeatability; the blind challenge with a judge-selected package proves the system is not tuned only to canned data.
+If those ten checks pass, the core presentation path has completed one rehearsal. Controlled packets demonstrate repeatability, while a judge-selected package supplies a falsifiable unseen trial; neither one trial nor a canned fixture proves general field performance.
 
 ## Feature map
 
@@ -178,25 +178,25 @@ If those ten checks pass, the core presentation path is ready. The controlled pa
 1. Upload an appropriate label.
 2. Select the OCR language combination.
 3. Select **Run browser OCR**.
-4. Observe progress, the editable transcript and the separate reliability/engine-confidence values.
+4. Observe progress, the editable transcript and the separate unvalidated-reliability/engine-confidence values.
 5. Click extracted declaration cards to inspect their image grounding.
 
-**Verified sample result:** The bundled sample completes at 91% calibrated reliability and 92% engine confidence with ten parsed signals and ten mapped evidence regions. It makes zero requests to external OCR services.
+**Recorded controlled-sample result:** In the cited browser check, the bundled sample completed at 91% on the unvalidated reliability heuristic and 92% engine confidence, with ten parsed signals and ten mapped evidence regions. It made zero requests to external OCR services. Recheck these exact outputs on the revision being presented.
 
-**Do not claim:** Neither 91% reliability nor 92% engine confidence is field accuracy.
+**Do not claim:** Neither the 91% heuristic value nor the 92% engine confidence is field accuracy or a calibrated probability of correctness.
 
 **Status:** Live automated by `npm run qa:ocr` and `npm run qa:pwa`.
 
-### 7A. Deep scan and calibrated retake guidance
+### 7A. Deep scan and heuristic retake guidance
 
-**What it does:** Adds four overlapping 2×2 detail tiles to the three whole-panel OCR passes, then scores reliability from pass agreement, engine confidence, capture quality and evidence volume. Low reliability produces a retake/deep-scan recommendation instead of a confident-looking verdict.
+**What it does:** Adds four overlapping 2×2 detail tiles to the three whole-panel OCR passes, then computes an unvalidated reliability heuristic from pass agreement, engine confidence, capture quality and evidence volume. A low heuristic value produces a retake/deep-scan recommendation instead of a confident-looking verdict; the value is not calibrated to correctness.
 
 **Manual verification:**
 
 1. Upload a difficult small-text panel.
 2. Run normal browser OCR and preserve the transcript.
 3. Run **Deep scan small text** and compare recovered declarations.
-4. Confirm poor captures remain visibly low-reliability rather than inheriting a single optimistic engine score.
+4. Confirm poor captures remain visibly low on the unvalidated heuristic rather than inheriting a single optimistic engine score.
 
 **Measured pilot:** Standard local OCR recovered 61.1% of pre-labelled tokens and deep scan recovered 67.5% on the same 17 untouched declaration-panel photos from ten products. The larger stress set includes glare, soft focus, rotation and curved packaging; these remain known failure modes. This pilot is too small for a field-accuracy claim.
 
@@ -357,13 +357,13 @@ It also checks that measured character width is at least one-third of height, su
 **Manual verification:**
 
 1. Open **Rule library**.
-2. Confirm rule pack `LMPC-RC-2026.09-RC4` and matrix `LMPC-MATRIX-2026.09-RC4` are visible.
+2. Confirm rule pack `LMPC-RC-2026.09-RC6` and matrix `LMPC-MATRIX-2026.09-RC5` are visible. If either differs, record what the deployed UI actually shows and do not present this guide as its release evidence.
 3. Inspect the Rule 6, Rule 7 and Rule 26 cards, applicability matrix, edge cases, source links and external approval register.
 4. Return to an inspection and expand a finding to see its authority, reason and evidence.
 
 **Expected proof:** The same inputs always produce the same outcome, and the report records the rule-pack version.
 
-**Status:** 44 automated tests pass, including legal boundaries and failure cases; departmental approval is still pending.
+**Status:** Covered by the full unit suite, including legal boundaries and failure cases; departmental approval is still pending. Use the timestamped suite result below rather than an old standalone count.
 
 ### 17. Rule 26 exemptions and carve-outs
 
@@ -541,7 +541,7 @@ It also checks that measured character width is at least one-third of height, su
 4. Upload the sample or a local label and run browser OCR.
 5. Confirm the application and OCR both work without network access.
 
-**Automated proof:** The production-preview check found service worker `niyamlens-shell-v7`, 16 cached shell/OCR resources, successful offline reload and successful offline OCR at 91% reliability / 92% engine confidence.
+**Historical automated proof:** The cited production-preview check found service worker `niyamlens-shell-v7`, 16 cached shell/OCR resources, successful offline reload and OCR output showing a 91% unvalidated reliability heuristic / 92% engine confidence. Those numbers describe that controlled run, not correctness or current-deployment accuracy.
 
 **Status:** Automated on the current production build; repeat on the public URL after deployment.
 
@@ -580,7 +580,7 @@ Run these from the `niyamlens` repository after `npm install`.
 npm test
 ```
 
-Expected release baseline: `44` tests, `44` passed, `0` failed.
+Documentation-checkpoint result (5 September 2026): `524` tests, `524` passed, `0` failed. Rerun after every code change; do not quote this count as the final release result unless the exact candidate reproduces it.
 
 ### Verify production compilation
 
@@ -622,7 +622,7 @@ $env:NIYAMLENS_BASE_URL='https://niyamlens-sih26034.vercel.app/'
 npm run qa:ocr
 ```
 
-Expected release baseline: 91% reliability / 92% engine confidence, product `FIELD HARVEST`, ten parsed signals, ten mapped regions, no external requests and no browser errors.
+Historical controlled-fixture observation: 91% unvalidated reliability heuristic / 92% engine confidence, product `FIELD HARVEST`, ten parsed signals, ten mapped regions, no external requests and no browser errors. Verify the current candidate and report deviations; neither percentage is accuracy.
 
 ### Verify explicit connected OCR and safe failure
 
@@ -678,7 +678,7 @@ If the test runner reports `spawn EPERM` on Windows, rerun the terminal with per
 
 | Safe statement | Unsafe statement |
 |---|---|
-| “The bundled sample produced 91% reliability and 92% engine confidence.” | “Our field OCR accuracy is 91%.” |
+| “In the cited controlled run, the bundled sample showed a 91% unvalidated reliability heuristic and 92% engine confidence.” | “Our field OCR accuracy is 91%.” |
 | “Deep scan improved pilot token recall from 61.1% to 67.5% on our 17-photo stress set.” | “Deep scan is 67.5% accurate on Indian labels.” |
 | “The prototype evaluates a versioned rules-as-code interpretation.” | “The government has approved every encoded legal interpretation.” |
 | “Calibration and uncertainty support a reviewable measurement.” | “Any phone photograph gives enforcement-grade millimetres.” |
@@ -723,6 +723,8 @@ All six members should rehearse the ten-minute smoke test. The operator and pres
 - [Seven-minute judge demonstration](JUDGE_DEMO.md)
 - [Architecture and trust model](ARCHITECTURE.md)
 - [Hybrid OCR architecture decision](ADR-001-HYBRID-OCR.md)
+- [Independent domain and legal review packet](DOMAIN_REVIEW_PACKET.md)
+- [Team competition rehearsal and unseen-package protocol](TEAM_WINNING_REHEARSAL.md)
 - [Legal Metrology field-dataset schema](../datasets/legal-metrology-field/README.md)
 - [Field validation protocol](FIELD_VALIDATION_PROTOCOL.md)
 - [Legal review register](LEGAL_REVIEW.md)

@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import sharp from 'sharp'
-import { BACKUP_FORMAT, COLUMNS, migrationSqlDigest, currentMigrationManifest, createRehearsalDatabase, verifyWorkspaceBackup, rehearseWorkspaceRestore } from '../tools/workspace-backup.mjs'
+import { BACKUP_FORMAT, COLUMNS, MIGRATIONS, migrationSqlDigest, currentMigrationManifest, createRehearsalDatabase, verifyWorkspaceBackup, rehearseWorkspaceRestore } from '../tools/workspace-backup.mjs'
 import { hashPayload } from '../server/caseService.mjs'
 import { main } from '../tools/verify-workspace-backup.mjs'
 
@@ -13,7 +13,7 @@ const panel = '30000000-0000-4000-8000-000000000001'
 const caseId = 'NLM-backup-fixture-001'
 const clone = value => JSON.parse(JSON.stringify(value))
 
-async function fixture() {
+async function fixture(legacy = false) {
   const original = await sharp({ create: { width: 12, height: 10, channels: 3, background: '#123456' } }).png().toBuffer()
   const analysis = await sharp(original).resize(6, 5).jpeg().toBuffer()
   const images = [['original', original, 'image/png'], ['analysis', analysis, 'image/jpeg']].map(([kind, bytes, mime]) => {
@@ -21,7 +21,8 @@ async function fixture() {
     return { kind, bytes, mime, sha256, path: `${org}/${officer}/${caseId}/${panel}/${kind}-${sha256}` }
   })
   const payload = { id: caseId, actor: { id: officer }, text: 'Synthetic fixture; not a field result', automatedResult: { status: 'manual_review' }, evidenceItems: [{ id: panel, originalPath: images[0].path, analysisPath: images[1].path, sha256: images[0].sha256 }] }
-  const db = await createRehearsalDatabase()
+  const names = legacy ? MIGRATIONS.slice(0, 2) : MIGRATIONS
+  const db = await createRehearsalDatabase(names)
   try {
     await db.query('insert into auth.users values($1),($2)', [officer, supervisor])
     await db.query("insert into organizations(id,name) values($1,'Isolated backup fixture')", [org])
@@ -38,7 +39,9 @@ async function fixture() {
       const selected = columns.map(column => ['created_at', 'verified_at'].includes(column) ? `${column}::text as ${column}` : column).join(',')
       tables[table] = (await db.query(`select ${selected} from ${target}`)).rows
     }
-    return { format: BACKUP_FORMAT, schema: await currentMigrationManifest(), scope: { orgId: org, snapshotAt: new Date().toISOString(), consistentSnapshot: true, authUsers: 'ids-only', captureMethod: 'synthetic-fixture' }, tables, objects: images.map(image => ({ path: image.path, base64: image.bytes.toString('base64') })) }
+    const definition = (await db.query("select pg_get_functiondef('public.review_case(uuid,uuid,text,uuid,integer,text,text)'::regprocedure) as definition")).rows[0].definition
+    assert.match(definition, legacy ? /errcode='40001'/ : /errcode='PT409'/)
+    return { format: BACKUP_FORMAT, schema: (await currentMigrationManifest()).slice(0, names.length), scope: { orgId: org, snapshotAt: new Date().toISOString(), consistentSnapshot: true, authUsers: 'ids-only', captureMethod: 'synthetic-fixture' }, tables, objects: images.map(image => ({ path: image.path, base64: image.bytes.toString('base64') })) }
   } finally { await db.close() }
 }
 
@@ -55,6 +58,19 @@ test('workspace backup and isolated restore', async t => {
     assert.equal(result.persistentDestinationWritten, false)
     assert.equal(result.liveSupabaseRestorePerformed, false)
     assert.equal(result.authLoginsRestored, false)
+    assert.equal(result.currentSchema, true)
+    assert.deepEqual(result.schemaMigrationNames, MIGRATIONS)
+    assert.deepEqual(result.forwardMigrationsNotApplied, [])
+  })
+  await t.test('historical two-migration backups restore their exact schema without silent upgrade', async () => {
+    const historical = await fixture(true)
+    const before = JSON.stringify(historical.schema)
+    const result = await rehearseWorkspaceRestore(historical)
+    assert.equal(result.passed, true); assert.equal(result.currentSchema, false)
+    assert.deepEqual(result.schemaMigrationNames, MIGRATIONS.slice(0, 2))
+    assert.deepEqual(result.forwardMigrationsNotApplied, MIGRATIONS.slice(2))
+    assert.equal(JSON.stringify(historical.schema), before)
+    for (const invalid of [[], MIGRATIONS.slice(0, 1), [...MIGRATIONS].reverse(), [...MIGRATIONS, '../untrusted.sql']]) await assert.rejects(createRehearsalDatabase(invalid), /BACKUP_SCHEMA_VERSION_MISMATCH/)
   })
   await t.test('refuses a case-only export or incomplete table collection', async () => {
     await assert.rejects(verifyWorkspaceBackup(good.tables.cases[0].payload), /BACKUP_FORMAT_INVALID/)

@@ -12,7 +12,7 @@ const blocks = ['COMMON NAME: PAPER', 'MRP Rs. 40.00 inclusive of all taxes', 'N
 const complete = blocks.join('\n')
 const verifiedMeta = (text, patch = {}) => {
   const e = extractDeclarations(text)
-  return { ...e.suggestions, pdpArea: 75, pdpUncertainty: 2, referenceMm: 20, referencePx: 100, glyphPx: 9, glyphWidthPx: 3.5, measurementUncertainty: 3, ocrConfidence: 95, enforceEvidenceReview: true, classificationConfirmed: true, allPanelsCaptured: true, pdpConfirmed: true, measurementConfirmed: true, widthCharacterConfirmed: true, measurementSurface: 'flat', fieldReviews: Object.fromEntries(e.fields.filter(f => f.detected).map(f => [f.id, { state: 'confirmed', value: f.value, reason: 'Exact transcription of synthetic package declaration.' }])), ...patch }
+  return { ...e.suggestions, pdpArea: 75, pdpUncertainty: 2, referenceMm: 20, referencePx: 100, glyphPx: 9, glyphWidthPx: 3.5, measurementUncertainty: 3, ocrConfidence: 95, enforceEvidenceReview: true, classificationConfirmed: true, rule3ConsumerScope: 'retail', rule3CommodityClass: 'ordinary', rule3ApplicabilityConfirmed: true, allPanelsCaptured: true, pdpConfirmed: true, measurementConfirmed: true, widthCharacterConfirmed: true, measurementSurface: 'flat', fieldReviews: Object.fromEntries(e.fields.filter(f => f.detected).map(f => [f.id, { state: 'confirmed', value: f.value, reason: 'Exact transcription of synthetic package declaration.' }])), ...patch }
 }
 const inspect = (text = complete, patch = {}) => evaluateInspection({ text, meta: verifiedMeta(text, patch) })
 const noClear = result => assert.ok(!['compliant', 'exempt'].includes(result.status), JSON.stringify(result))

@@ -7,8 +7,9 @@ import { abortError } from '../src/lib/ocrLifecycle.mjs'
 import { invalidateCapturedEvidence, restoreEvidencePolicy, ocrProvenance } from '../src/lib/inspectionWorkflow.mjs'
 import { appendFocusedTranscript } from '../src/lib/focusOcr.mjs'
 import { appendOcrHistory, validateOcrHistory } from '../src/lib/ocrHistory.mjs'
-import { preparePaddleAppend, parsePaddleOutput, PADDLE_MODEL } from '../src/lib/paddleOcr.mjs'
+import { preparePaddleAppend, parsePaddleOutput, paddleSourceBinding, PADDLE_MODEL } from '../src/lib/paddleOcr.mjs'
 import { reconstructOcrReadingOrder, reviewableDeclarationProposals } from '../src/lib/ocrReadingOrder.mjs'
+import { collectPaddleLayoutProposals } from '../src/lib/paddleLayoutProposals.mjs'
 import { extractDeclarations } from '../src/lib/extraction.mjs'
 import { fieldCandidates } from '../src/lib/inspectionSafety.mjs'
 import { matchDeclarationRegions } from '../src/lib/vision.mjs'
@@ -38,7 +39,7 @@ const paddleParsed = parsePaddleOutput({ image: { width: 100, height: 80 }, item
   { text: '02/08/2026', score: .8, poly: [[45, 20], [98, 20], [98, 30], [45, 30]] },
 ] }, 'p1', { width: 100, height: 80 })
 const paddleOutput = { provider: 'paddleocr-js', model: PADDLE_MODEL, reliability: null, items: [{
-  id: 'p1', imageUrl: photo.analysisUrl, source: 'original-resolution-bounded', width: 100, height: 80,
+  id: 'p1', imageUrl: photo.analysisUrl, sourceBinding: paddleSourceBinding(photo), source: 'original-resolution-bounded', width: 100, height: 80,
   ...paddleParsed, ocrWords: paddleParsed.words,
   ocrPasses: [{ id: 'p1:paddle-original', text: paddleParsed.text, confidence: paddleParsed.confidence, provider: 'paddleocr-js', model: PADDLE_MODEL, strategy: 'local-alternative-original' }],
 }] }
@@ -64,7 +65,7 @@ async function harness({ pauseType = '', failType = '', pauseRunner = false, fai
     activeJob: { current: null }, auditRef: { current: oldChain }, auditQueue: { current: Promise.resolve() }, auditGeneration: { current: 0 },
     AbortController, crypto, abortError, INITIAL_META: {}, invalidateCapturedEvidence, restoreEvidencePolicy,
     appendFocusedTranscript, appendOcrHistory, validateOcrHistory, preparePaddleAppend, fieldCandidates, extractDeclarations,
-    reconstructOcrReadingOrder, reviewableDeclarationProposals,
+    reconstructOcrReadingOrder, reviewableDeclarationProposals, collectPaddleLayoutProposals,
     resolvePaddleFocusSuggestion, prepareOcrPassSelection,
     appendAuditEvent: async (...args) => {
       if (args[1] === failType) throw new Error('Injected audit failure')

@@ -58,7 +58,7 @@ import { evaluateInspection, fieldCandidates, FIELD_RULES } from './lib/inspecti
 import { EMPTY_OCR, MAX_EVIDENCE_TEXT, ocrProvenance, restoreEvidencePolicy, invalidateCapturedEvidence, validateSealableEvidence, nextPageOffset } from './lib/inspectionWorkflow.mjs'
 import { runLocalOcr } from './lib/ocrRunner.mjs'
 import { runPaddleOcr, preparePaddleAppend, createPaddleFocusInput } from './lib/paddleOcr.mjs'
-import { reconstructOcrReadingOrder, reviewableDeclarationProposals } from './lib/ocrReadingOrder.mjs'
+import { collectPaddleLayoutProposals } from './lib/paddleLayoutProposals.mjs'
 import PaddleReview from './PaddleReview.jsx'
 import PaddleFocusGuidance from './PaddleFocusGuidance.jsx'
 import { resolvePaddleFocusSuggestion } from './lib/ocrFocusGuidance.mjs'
@@ -71,6 +71,10 @@ import { createOperation, createSyncEngine } from './lib/syncEngine.mjs'
 import { mergeCloudRecord } from './lib/workspaceClient.mjs'
 import { WorkspaceGate, SharedOperations } from './Workspace.jsx'
 import FieldVerification from './FieldVerification.jsx'
+import CaptureCoach from './CaptureCoach.jsx'
+import { singleFlight } from './lib/singleFlight.mjs'
+import { beginRuleReassessment } from './lib/reassessment.mjs'
+import { archiveReviewConflict } from './lib/reviewConflict.mjs'
 import PlacementReview from './PlacementReview.jsx'
 import ReportDownloads from './ReportDownloads.jsx'
 import PackageEvidenceViewer from './PackageEvidenceViewer.jsx'
@@ -129,6 +133,9 @@ const INITIAL_META = {
   productName: '',
   category: 'general',
   commodityClass: 'standard',
+  rule3ConsumerScope: 'unknown',
+  rule3CommodityClass: 'unknown',
+  rule3ApplicabilityConfirmed: false,
   perishable: false,
   quantity: '',
   unit: 'g',
@@ -337,7 +344,7 @@ function usePwaInstall() {
   }
 }
 
-function Shell({ route, setRoute, children, historyCount, actor, online }) {
+function Shell({ route, setRoute, children, historyCount, actor, online, offlineOnly = false }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const current = NAV_ITEMS.find((item) => item.id === route)
 
@@ -389,7 +396,7 @@ function Shell({ route, setRoute, children, historyCount, actor, online }) {
           </div>
           <div className="topbar-status">
             {actor && <span><Users size={13} />{actor.name} · {actor.role}</span>}
-            <span className={online ? 'online-state' : 'offline-state'}><span className="live-dot" />{online ? 'Browser online' : 'Browser offline'}</span>
+            <span className={online && !offlineOnly ? 'online-state' : 'offline-state'}><span className="live-dot" />{offlineOnly ? 'Local work only' : online ? 'Browser online' : 'Browser offline'}</span>
             <span>Decision support</span>
           </div>
         </header>
@@ -457,7 +464,7 @@ function DeclarationCoverage({ extraction, reliability, engineConfidence, reliab
   )
 }
 
-function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onActive, onRemove, onRetake, onQualityAcknowledge, qualityAcknowledged = false, onTransform, onRectify, onRoleChange, processing, locked = false, regions = [], activeRegionId, onRegionSelect, onDetectReference, onCheckDepth, depthState, onFocusSelect }) {
+function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onActive, onRemove, onRetake, onQualityAcknowledge, qualityAcknowledged = false, onTransform, onRectify, onRoleChange, processing, locked = false, regions = [], activeRegionId, onRegionSelect, onDetectReference, onCheckDepth, depthState, onFocusSelect, focusRequest }) {
   const [mode, setMode] = useState('')
   const [points, setPoints] = useState({ reference: [], height: [], width: [], perspective: [], focus: [] })
   const boardRef = useRef(null)
@@ -470,6 +477,12 @@ function CalibrationBoard({ evidenceItems, activeEvidence, meta, onMeasure, onAc
     setPoints({ reference: [], height: [], width: [], perspective: [], focus: [] })
     setMode('')
   }, [imageUrl])
+
+  useEffect(() => {
+    if (!focusRequest || !imageUrl || locked) return
+    setPoints(current => ({ ...current, focus: [] })); setMode('focus')
+    boardRef.current?.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
+  }, [focusRequest])
 
   const modes = {
     reference: { field: 'referencePx', color: '#00a37a', label: 'Reference' },
@@ -807,6 +820,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   const pendingRetakeId = useRef('')
   const activeJob = useRef(null)
   const [focusSelection, setFocusSelection] = useState(null)
+  const [focusRequest, setFocusRequest] = useState(null)
   const [focusResult, setFocusResult] = useState(null)
   const [paddlePreview, setPaddlePreview] = useState(null)
   const [paddleGuidance, setPaddleGuidance] = useState([])
@@ -860,6 +874,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     ...(['pdpArea', 'pdpUncertainty', 'formedText'].includes(key) ? { pdpConfirmed: false, placementPdpConfirmed: false } : {}),
     ...(['referenceMm', 'measurementUncertainty'].includes(key) ? { measurementConfirmed: false, widthCharacterConfirmed: false } : {}),
     ...(['quantity', 'unit', 'category', 'commodityClass'].includes(key) ? { classificationConfirmed: false, placementPdpConfirmed: false } : {}),
+    ...(['quantity', 'unit', 'category', 'commodityClass', 'rule3ConsumerScope', 'rule3CommodityClass'].includes(key) ? { rule3ApplicabilityConfirmed: false } : {}),
     ...(['placementScope', 'measurementSurface'].includes(key) ? { placementPdpConfirmed: false, quantitySpacing: { ...current.quantitySpacing, confirmed: false } } : {}),
   }))
   const updatePanelMeasurement = (key, value) => {
@@ -930,6 +945,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     setMeta((current) => ({
       ...current,
       classificationConfirmed: false,
+      rule3ApplicabilityConfirmed: false,
       productName: parsed.suggestions.productName || current.productName,
       category: parsed.suggestions.category || current.category,
       commodityClass: parsed.suggestions.commodityClass || current.commodityClass,
@@ -1243,6 +1259,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const runConnectedOcr = async () => {
+    if (workspace?.offlineOnly) return
     if (!evidenceItems.length || qualityBlocked || ocrState.running || activeJob.current) return
     const controller = new AbortController()
     activeJob.current = controller
@@ -1380,11 +1397,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       await recordAudit('alternative_ocr_requested', { provider: 'paddleocr-js', panels: focused ? 1 : evidenceItems.length, imagesLeaveDevice: false, crop: focused ? selection.rect : null, focusMethod: selectedSuggestion ? 'heading-guided-focus-v1-officer-selected' : focused ? 'officer-selected-rectangle' : null, headingIds: selectedSuggestion?.headingIds || [] })
       const output = await runPaddleOcr({ evidenceItems: focused ? [focusPanel] : evidenceItems, ...(focused ? { inputFactory: item => createPaddleFocusInput(item, selection.rect) } : {}), signal: controller.signal, onProgress: state => { if (current()) setOcrState(state) } })
       if (!current()) return
-      const proposals = []; const warnings = []
-      for (const item of output.items) {
-        try { proposals.push(...reviewableDeclarationProposals(reconstructOcrReadingOrder(item.lines)).proposals.map(proposal => ({ ...proposal, panelId: item.id }))) }
-        catch (error) { warnings.push(error.message) }
-      }
+      const { proposals, warnings } = collectPaddleLayoutProposals(output.items)
       setPaddlePreview({ output, proposals, layoutWarning: warnings.join(' '), runId: crypto.randomUUID(), guidedSuggestionId: selectedSuggestion?.id || null })
       setOcrState({ running: false, progress: 100, label: 'Paddle preview ready — earlier evidence is unchanged', error: '' })
     } catch (error) {
@@ -1400,7 +1413,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     try {
       setProcessing(true)
       const next = preparePaddleAppend({ evidenceItems, text, rawOcrText, output: paddlePreview.output, runId: paddlePreview.runId, proposedRows })
-      await recordAudit('ocr_completed', { provider: 'paddleocr-js', model: paddlePreview.output.model, strategy: 'officer-reviewed-alternative-append', runId: paddlePreview.runId, reliability: null, engineConfidence: null, previousTranscriptPreserved: true, reviewedRows: next.reviewedRows, rawPasses: paddlePreview.output.items.map(item => ({ panelId: item.id, characters: item.text.length, lines: item.lines.length, crop: item.crop, source: item.source })) })
+      await recordAudit('ocr_completed', { provider: 'paddleocr-js', model: paddlePreview.output.model, strategy: 'officer-reviewed-alternative-append', runId: paddlePreview.runId, reliability: null, engineConfidence: null, previousTranscriptPreserved: true, reviewedRows: next.reviewedRows, workingMappings: next.workingMappings, rawHistoryUnchanged: true, rawPasses: paddlePreview.output.items.map(item => ({ panelId: item.id, characters: item.text.length, lines: item.lines.length, crop: item.crop, source: item.source })) })
       if (!current()) return
       setText(next.text); setRawOcrText(next.rawOcrText); setEvidenceItems(next.evidenceItems); setOcrWords(next.words)
       setMeta(previous => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(next.evidenceItems.flatMap(item => item.ocrPasses || [])), ocrCompletedAt: new Date().toISOString(), ocrSource: 'local-paddle', ocrReliabilityReason: 'Alternative engine reading appended. Raw transcripts and selected layout derivations remain separate. No validated inspection-wide accuracy score is available.' }))
@@ -1460,8 +1473,8 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       setSaving(true)
       const finalChain = await recordAudit('inspection_sealed', { inspectionId, status: result.status, score: result.score, evidencePanels: evidenceItems.length })
       const record = { ...buildRecord(finalChain), auditVerified: await verifyAuditChain(finalChain) }
-      await onSaveRecord(record)
-      setSealedRecord(record)
+      const storedRecord = await onSaveRecord(record)
+      setSealedRecord(storedRecord || record)
       setSaved(true)
       await store.remove('drafts', 'active')
       setDraftMessage('Sealed record saved. Start a new inspection to capture new evidence.')
@@ -1523,15 +1536,16 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               {barcodeState.candidate?.evidenceId === activeEvidence?.id && barcodeState.candidate?.cornerPoints?.length === 4 && <button type="button" className="barcode-button" onClick={rectifyFromBarcode} disabled={processing}><Layers3 size={16} /> Flatten from barcode</button>}
             </div>
             <CaptureChecklist evidenceItems={evidenceItems} />
-            <PackageEvidenceViewer
+            <CaptureCoach hasImage={Boolean(evidenceItems.length)} hasText={Boolean(text.trim())} extraction={extraction} onFocus={(target) => { setActiveRegionId(target.id); setFocusRequest({ id: crypto.randomUUID(), fieldId: target.id }) }} />
+            {evidenceItems.length > 0 && <PackageEvidenceViewer
               evidenceItems={evidenceItems}
               activeEvidenceId={activeEvidence?.id || ''}
               processing={processing || ocrState.running}
               sealed={saved}
               onSelectEvidence={setActiveEvidenceId}
               onCapture={() => openEvidencePicker()}
-            />
-            <CalibrationBoard
+            />}
+            {evidenceItems.length > 0 && <CalibrationBoard
               evidenceItems={evidenceItems}
               activeEvidence={activeEvidence}
               meta={meta}
@@ -1553,7 +1567,8 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               onCheckDepth={checkDepth}
               depthState={depthState}
               onFocusSelect={(rect) => { setFocusSelection({ panelId: activeEvidence.id, imageUrl: activeEvidence.analysisUrl, rect }); setFocusResult(null) }}
-            />
+              focusRequest={focusRequest}
+            />}
             {focusSelection && <section className="focus-ocr-card" aria-label="Focused OCR rescan">
               <h4>Read one declaration at full resolution</h4>
               <p>Include the heading, value and unit. Three real OCR passes keep conflicting readings visible. This does not replace the original photo or certify the result.</p>
@@ -1578,7 +1593,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
             </details>}
           </section>
 
-          <section className="workflow-step">
+          {evidenceItems.length > 0 && <section className="workflow-step">
             <StepHeader
               number="02"
               icon={ScanLine}
@@ -1591,11 +1606,12 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
                 {ocrState.running ? <LoaderCircle className="spin" size={17} /> : <ScanLine size={17} />}
                 {ocrState.running ? 'Reading label…' : 'Run browser OCR'}
               </button>
+              <details className="ocr-advanced"><summary>More OCR options</summary><div className="ocr-advanced-actions">
               <button type="button" className="deep-ocr-button" onClick={() => runOcr('deep')} disabled={!evidenceItems.length || qualityBlocked || ocrState.running}>
                 <SearchCheck size={17} /> Deep scan small text
               </button>
               <button type="button" className="deep-ocr-button" onClick={() => runAlternativeOcr(false)} disabled={!evidenceItems.length || qualityBlocked || ocrState.running} title="Optional local PP-OCRv6 small model. First use loads additional assets; output is previewed before append. Not a validated accuracy upgrade."><Layers3 size={17} /> Try Paddle OCR · local</button>
-              <button type="button" className="connected-ocr-button" onClick={runConnectedOcr} disabled={!evidenceItems.length || qualityBlocked || ocrState.running} title="Explicitly sends processed panels to the configured Google Vision backend">
+              <button type="button" className="connected-ocr-button" onClick={runConnectedOcr} disabled={!evidenceItems.length || qualityBlocked || ocrState.running || workspace?.offlineOnly} title="Explicitly sends processed panels to the configured Google Vision backend">
                 <WandSparkles size={17} /> Connected OCR
               </button>
               <label className="ocr-language">
@@ -1607,6 +1623,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
                   <option value="eng+tam">English + Tamil</option>
                 </select>
               </label>
+              </div><small>Alternative engines preserve raw readings. Connected OCR needs a configured provider and explicit upload consent.</small></details>
               <div className="ocr-progress">
                 <div><span style={{ width: `${ocrState.progress}%` }} /></div>
                 <small>{ocrState.label}</small>
@@ -1616,7 +1633,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
             {qualityBlocked && <div className="inline-warning quality-blocked"><ShieldAlert size={17} /><span>OCR is paused because one or more panels need an explicit image-quality decision. Retake the panel or record “Continue with caution”; the choice becomes part of the audit trail.</span></div>}
             <p className="connected-ocr-disclosure"><LockKeyhole size={13} /> Browser OCR is the private default. Connected OCR sends processed panels to Google Vision only when you click it and requires workspace sign-in. Sealing in a managed workspace uploads evidence to private storage. Reliability percentages below are unvalidated heuristics, not accuracy probabilities.</p>
             {ocrState.error && <div className="inline-warning"><AlertTriangle size={17} />{ocrState.error}</div>}
-            {paddlePreview && <PaddleReview key={paddlePreview.runId} preview={paddlePreview} onAppend={appendAlternativeOcr} onDismiss={() => setPaddlePreview(null)} />}
+            {paddlePreview && <PaddleReview key={paddlePreview.runId} preview={paddlePreview} currentText={text} onAppend={appendAlternativeOcr} onDismiss={() => setPaddlePreview(null)} />}
             <PaddleFocusGuidance suggestions={paddleGuidance} onScan={suggestion => runAlternativeOcr(true, suggestion)} pendingPreview={Boolean(paddlePreview)} />
             <DeclarationCoverage extraction={extraction} reliability={provenance.reliability} engineConfidence={provenance.engineConfidence} reliabilityReason={meta.ocrReliabilityReason} hasOcrRun={provenance.hasRun} />
             <textarea
@@ -1632,9 +1649,9 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
             <EvidenceTracePanel fieldId={activeRegionId} extraction={extraction} regions={regions} evidenceItems={evidenceItems} result={result} meta={meta} onLocate={(id) => { const region = regions.find((item) => item.id === id); if (region) setActiveEvidenceId(region.panelId); setActiveRegionId(id) }} />
             {rawOcrText && <details><summary>Original OCR transcript (not edited)</summary><pre className="transcript-original">{rawOcrText}</pre></details>}
             <OcrPassSelection evidenceItems={evidenceItems} onApply={applyRawPassSelection} disabled={Boolean(paddlePreview) || saved || saving || processing || ocrState.running} />
-            <FieldVerification extraction={extraction} meta={meta} onChange={updateMeta} />
-            <PlacementReview extraction={extraction} meta={meta} evidenceItems={evidenceItems} onChange={updateMeta} result={result} />
-            <div className="translation-panel">
+            {text.trim() && <FieldVerification extraction={extraction} meta={meta} onChange={updateMeta} />}
+            {text.trim() && <PlacementReview extraction={extraction} meta={meta} evidenceItems={evidenceItems} onChange={updateMeta} result={result} />}
+            <details className="optional-notes"><summary>Optional interpretation note</summary><div className="translation-panel">
               <header><Languages size={17} /><div><strong>Officer interpretation</strong><small>Original OCR evidence is preserved; this note never replaces it.</small></div></header>
               <div>
                 <select value={meta.translationLanguage} onChange={(event) => updateMeta('translationLanguage', event.target.value)} aria-label="Interpretation language">
@@ -1642,10 +1659,10 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
                 </select>
                 <textarea value={meta.translationText} onChange={(event) => updateMeta('translationText', event.target.value)} placeholder="Optional officer translation or clarification…" />
               </div>
-            </div>
-          </section>
+            </div></details>
+          </section>}
 
-          <section className="workflow-step">
+          {evidenceItems.length > 0 && <section className="workflow-step">
             <StepHeader
               number="03"
               icon={Ruler}
@@ -1687,6 +1704,17 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
                   </select>
                 </div>
               </Field>
+              <Field label="Chapter II consumer scope">
+                <select aria-label="Chapter II consumer scope" value={meta.rule3ConsumerScope || 'unknown'} onChange={event => updateMeta('rule3ConsumerScope', event.target.value)}>
+                  <option value="unknown">Not established — review</option><option value="retail">Retail consumer</option><option value="industrial">Industrial consumer</option><option value="institutional">Institutional consumer</option>
+                </select>
+              </Field>
+              <Field label="Rule 3 commodity group">
+                <select aria-label="Rule 3 commodity group" value={meta.rule3CommodityClass || 'unknown'} onChange={event => updateMeta('rule3CommodityClass', event.target.value)}>
+                  <option value="unknown">Not established — review if relevant</option><option value="ordinary">Ordinary commodity</option><option value="cement">Cement</option><option value="fertilizer">Fertilizer</option><option value="agricultural_farm_produce">Agricultural farm produce</option>
+                </select>
+              </Field>
+              <label className="toggle-field rule-scope-note"><input type="checkbox" checked={meta.rule3ApplicabilityConfirmed === true} onChange={event => updateMeta('rule3ApplicabilityConfirmed', event.target.checked)} /><span>I checked Rule 3 scope, quantity and purchase context against the package. An industrial/institutional buyer name alone does not establish the statutory exclusion. Outside Chapter II is not clearance under other laws.</span></label>
               <Field label="Barcode / GTIN">
                 <input value={meta.barcode} onChange={(event) => updateMeta('barcode', event.target.value)} placeholder="Scan or enter 8–14 digits" inputMode="numeric" />
               </Field>
@@ -1725,17 +1753,17 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
                 <span><b>Time-sensitive commodity</b><small>Adds best-before / use-by evaluation.</small></span>
               </label>
             </div>
-          </section>
+          </section>}
         </div>
 
-        <VerdictPanel
+        {evidenceItems.length > 0 ? <VerdictPanel
           result={result}
           saved={saved}
           saving={saving}
           evidenceCount={evidenceItems.length}
           onSave={save}
           onReport={() => onOpenReport(buildRecord())}
-        />
+        /> : <aside className="inspection-empty-next"><span className="eyebrow">YOUR NEXT STEP</span><h3>Capture first. Review what the image says.</h3><p>OCR, field verification and rule controls appear after a photograph is attached. No package verdict is issued from an empty form.</p><p>Have the physical package ready. Tiny price/date print may need a separate close-up.</p></aside>}
       </div>
       </fieldset>
     </section>
@@ -2365,15 +2393,15 @@ function InspectionApp({ workspace }) {
     setHistory(records)
     setOperations(queued)
   }
-  const syncEngine = useMemo(() => workspace && createSyncEngine({ store, transport: async (operation) => {
+  const syncEngine = useMemo(() => workspace && !workspace.offlineOnly && createSyncEngine({ store, transport: async (operation) => {
     const signal = workspace.api.signal
     const result = await workspace.api.transport(operation)
     if (result.record) result.record = mergeCloudRecord(await store.get('inspections', operation.recordId), result.record)
     await workspace.api.ensureCurrent(signal)
     return result
   }, onChange: refreshLocal }), [workspace?.api, store])
-  const synchronize = async (force = false) => {
-    if (!workspace || !navigator.onLine) { await refreshLocal(); return }
+  const synchronize = useMemo(() => singleFlight(async (force = false) => {
+    if (!workspace || workspace.offlineOnly || !navigator.onLine) { await refreshLocal(); return }
     const signal = workspace.api.signal
     setSyncing(true); setSyncError('')
     try {
@@ -2392,9 +2420,9 @@ function InspectionApp({ workspace }) {
       await refreshLocal(signal)
       setLastSyncAt(new Date().toISOString())
     } catch (error) { if (!signal.aborted) setSyncError(error.message) } finally { if (!signal.aborted) setSyncing(false) }
-  }
+  }), [workspace?.api, store, syncEngine])
   useEffect(() => {
-    if (!workspace) return
+    if (!workspace || workspace.offlineOnly) { refreshLocal(); return }
     synchronize()
     const online = () => synchronize()
     window.addEventListener('online', online)
@@ -2403,17 +2431,14 @@ function InspectionApp({ workspace }) {
   }, [workspace?.api, store])
 
   const archiveConflictingReview = async (operation) => {
+    if (!workspace || workspace.offlineOnly) return
     const signal = workspace.api.signal
     try {
       const { record } = await workspace.api.request(`cases?id=${encodeURIComponent(operation.recordId)}`, { signal })
-      const cached = await store.get('inspections', operation.recordId)
       await workspace.api.ensureCurrent(signal)
-      await store.transact(['settings', 'outbox', 'inspections'], 'readwrite', (tx) => {
-        tx.objectStore('settings').put({ id: `archived-review:${operation.id}`, operation, archivedAt: new Date().toISOString() })
-        tx.objectStore('outbox').delete(operation.id)
-        tx.objectStore('inspections').put(mergeCloudRecord(cached, record))
-      })
+      const archived = await archiveReviewConflict(store, operation, record)
       await refreshLocal(signal)
+      if (!archived) setSyncError('This queued review was already handled or changed in another tab. Its current evidence and review were not overwritten.')
     } catch (error) { if (!signal.aborted) setSyncError(error.message) }
   }
   const openReport = async (record, { source = 'available' } = {}) => {
@@ -2424,9 +2449,10 @@ function InspectionApp({ workspace }) {
     setReport(null); setReportCloudCheck(null); setSyncError('')
     setReportLoading({ id: record.id, source })
     try {
-      if (source === 'cloud' && (!workspace || !record.serverVersion || record.syncState !== 'synced')) throw new Error('Synchronize this managed case before verifying its cloud copy.')
-      const opened = workspace && record.serverVersion ? await workspace.api.openRecord(record, { source, signal }) : record
-      if (workspace) await workspace.api.ensureCurrent(signal)
+      if (source === 'cloud' && (!workspace || workspace.offlineOnly || !record.serverVersion || record.syncState !== 'synced')) throw new Error('Reconnect and synchronize this managed case before verifying its cloud copy.')
+      if (workspace?.offlineOnly && (record.recordKind === 'summary' || record.detailsStale || !record.evidenceItems?.length || record.evidenceItems.some(panel => !panel.originalUrl?.startsWith('data:image/') || !panel.analysisUrl?.startsWith('data:image/')))) throw new Error('This complete evidence report is not cached. Reconnect and authenticate to retrieve it; a partial report was not substituted.')
+      const opened = workspace && !workspace.offlineOnly && record.serverVersion ? await workspace.api.openRecord(record, { source, signal }) : record
+      if (workspace && !workspace.offlineOnly) await workspace.api.ensureCurrent(signal)
       if (signal.aborted || reportRequest.current !== request) return
       setReport(opened)
       if (source === 'cloud') setReportCloudCheck({ at: new Date().toISOString(), version: opened.serverVersion, panels: opened.evidenceItems.length })
@@ -2441,6 +2467,7 @@ function InspectionApp({ workspace }) {
     else await store.saveInspection(normalized)
     await refreshLocal()
     if (workspace) synchronize()
+    return normalized
   }
 
   const startChallenge = () => {
@@ -2456,6 +2483,7 @@ function InspectionApp({ workspace }) {
 
   const applyOverride = async (status, reason) => {
     if (!overrideRecord) return
+    if (workspace?.offlineOnly) throw new Error('Supervisor review requires fresh server authentication.')
     const operation = createOperation('review', overrideRecord.id, { status, reason }, overrideRecord.serverVersion || 0)
     const updated = await appendReview(overrideRecord, { status, reason, actor, id: operation.id })
     if (workspace) await store.saveAndQueue({ ...updated, syncState: 'pending-review' }, operation)
@@ -2472,17 +2500,32 @@ function InspectionApp({ workspace }) {
     await refreshLocal()
   }
 
+  const openOverride = async record => {
+    if (workspace?.offlineOnly) { setSyncError('Reconnect and authenticate before supervisor review.'); return }
+    try { setOverrideRecord(workspace ? await workspace.api.getRecordMetadata(record) : record) }
+    catch (error) { setSyncError(`Review unavailable: ${error.message}`) }
+  }
+  const startReassessment = async operation => {
+    try {
+      if (syncing) throw new Error('Wait for current synchronization to finish before reassessment.')
+      await beginRuleReassessment(store, operation, actor.id)
+      setChallenge(null); setStudioKey(value => value + 1); setRoute('inspect')
+      await refreshLocal()
+      setSyncError('Original seal retained locally; its unsent upload is archived. Restore the new draft, rerun OCR and reconfirm the evidence under current rules before sealing.')
+    } catch (error) { setSyncError(error.message) }
+  }
+
   return (
     <>
-      <Shell route={route} setRoute={setRoute} historyCount={history.length} actor={actor} online={online}>
+      <Shell route={route} setRoute={setRoute} historyCount={history.length} actor={actor} online={online} offlineOnly={workspace?.offlineOnly}>
         {reportLoading && <div className="processing-banner" role="status"><LoaderCircle size={20} /><span><b>{reportLoading.source === 'cloud' ? 'Checking fresh cloud evidence…' : 'Opening evidence…'}</b><small>{reportLoading.source === 'cloud' ? 'Fetching server metadata and hash-checking original/analysis images. No cached image fallback.' : 'Checking image bytes before opening the report.'}</small></span><button type="button" onClick={() => { reportRequest.current?.abort(); reportRequest.current = null; setReportLoading(null) }}>Cancel evidence check</button></div>}
-        {(workspace || syncError) && <div className="sync-status" role="status"><b>{syncing ? 'Synchronizing…' : `${operations.length} queued change(s)`}</b><span>{syncError || 'Local evidence is retained until the server acknowledges it.'}</span>{workspace && <button disabled={syncing} onClick={() => synchronize(true)}>Sync / retry</button>}{operations.map((operation) => <details key={operation.id}><summary>{operation.kind} · {operation.recordId} · {operation.state}</summary><p>{operation.lastError || 'Waiting for upload and server verification.'}</p>{operation.kind === 'review' && operation.state === 'conflict' && <><p>Your proposed disposition: {operation.payload.status}. {operation.payload.reason}</p><button onClick={() => archiveConflictingReview(operation)}>Keep server version; archive my unsent review locally</button><p>Then reopen Evidence and submit a new review against the latest version.</p></>}</details>)}</div>}
+        {(workspace || syncError) && <div className="sync-status" role="status"><b>{syncing ? 'Synchronizing…' : `${operations.length} queued change(s)`}</b><span>{syncError || (workspace?.offlineOnly ? 'Limited offline access. Captures remain local until fresh authentication and server permission checks.' : 'Local evidence is retained until the server acknowledges it.')}</span>{workspace && <button disabled={syncing || workspace.offlineOnly} onClick={() => synchronize(true)}>Sync / retry</button>}{operations.map((operation) => <details key={operation.id}><summary>{operation.kind} · {operation.recordId} · {operation.state}</summary><p>{operation.lastError || 'Waiting for upload and server verification.'}</p>{operation.lastErrorCode === 'RULE_PACK_MISMATCH' && <button disabled={syncing} onClick={() => startReassessment(operation)}>Archive unsent upload and start linked reassessment</button>}{operation.kind === 'review' && operation.state === 'conflict' && <><p>Your proposed disposition: {operation.payload.status}. {operation.payload.reason}</p><button disabled={workspace?.offlineOnly} onClick={() => archiveConflictingReview(operation)}>Keep server version; archive my unsent review locally</button><p>Then reopen Evidence and submit a new review against the latest version.</p></>}</details>)}</div>}
         {route === 'inspect' && <InspectionStudio key={studioKey} store={store} workspace={workspace} onNewInspection={() => setStudioKey((value) => value + 1)} onSaveRecord={saveRecord} onOpenReport={openReport} challenge={challenge?.active ? challenge : null} onChallengeComplete={completeChallenge} actor={actor} />}
         {route === 'challenge' && <BlindChallengePage challenge={challenge} onStart={startChallenge} onContinue={() => setRoute('inspect')} history={history} />}
         {route === 'dashboard' && <Dashboard history={history} onNavigate={setRoute} onOpenReport={openReport} />}
-        {route === 'history' && <HistoryPage history={history} onOpenReport={openReport} onVerifyCloud={workspace ? (record) => openReport(record, { source: 'cloud' }) : null} reportBusy={Boolean(reportLoading)} onNavigate={setRoute} />}
+        {route === 'history' && <HistoryPage history={history} onOpenReport={openReport} onVerifyCloud={workspace && !workspace.offlineOnly ? (record) => openReport(record, { source: 'cloud' }) : null} reportBusy={Boolean(reportLoading)} onNavigate={setRoute} />}
         {route === 'benchmark' && <ValidationLab />}
-        {route === 'operations' && (workspace ? <SharedOperations workspace={workspace} history={history} onOpenReport={openReport} onOverride={setOverrideRecord} /> : <OfficerOperations history={history} actor={actor} onActorChange={setActor} onOpenReport={openReport} onOverride={setOverrideRecord} onImportRecord={importRecord} />)}
+        {route === 'operations' && (workspace ? <SharedOperations workspace={workspace} history={history} onOpenReport={openReport} onOverride={openOverride} /> : <OfficerOperations history={history} actor={actor} onActorChange={setActor} onOpenReport={openReport} onOverride={openOverride} onImportRecord={importRecord} />)}
         {route === 'rules' && <RulesLibrary />}
         {route === 'system' && <SystemTrust workspace={workspace} online={online} install={install} historyCount={history.length} lastSyncAt={lastSyncAt} onNavigate={setRoute} />}
       </Shell>

@@ -3,8 +3,10 @@ export function focusPlan(rect, width, height) {
   if (!['x0', 'y0', 'x1', 'y1'].every((key) => typeof rect[key] === 'number' && Number.isFinite(rect[key]) && rect[key] >= 0 && rect[key] <= 1)) throw new Error('Select a focus rectangle inside the image.')
   const x = Math.floor(Math.min(rect.x0, rect.x1) * width)
   const y = Math.floor(Math.min(rect.y0, rect.y1) * height)
-  const cropWidth = Math.min(width - x, Math.ceil(Math.abs(rect.x1 - rect.x0) * width))
-  const cropHeight = Math.min(height - y, Math.ceil(Math.abs(rect.y1 - rect.y0) * height))
+  // Round the two edges outward independently. Rounding only the span can
+  // discard the last selected pixel when the first edge is fractional.
+  const cropWidth = Math.min(width, Math.ceil(Math.max(rect.x0, rect.x1) * width)) - x
+  const cropHeight = Math.min(height, Math.ceil(Math.max(rect.y0, rect.y1) * height)) - y
   if (cropWidth < 20 || cropHeight < 12) throw new Error('Focus region is too small. Include the complete declaration and its heading.')
   const scale = Math.min(4, 2200 / Math.max(cropWidth, cropHeight))
   const border = 24

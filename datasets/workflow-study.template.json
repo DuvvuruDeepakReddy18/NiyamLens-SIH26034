@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "kind": "paired-inspection-time-study",
+  "status": "not-started-no-human-observations",
+  "trials": [],
+  "trialTemplate": {
+    "id": "TRIAL-001",
+    "participantId": "P01",
+    "packageId": "PKG01",
+    "method": "manual",
+    "order": 1,
+    "outcome": null,
+    "totalSeconds": null,
+    "stages": { "capture": null, "read_or_transcribe": null, "verify_and_correct": null, "measure": null, "export": null },
+    "corrections": null,
+    "notes": "",
+    "qualityReview": null
+  },
+  "qualityReviewTemplate": { "reviewerId": "REVIEWER-A", "independentPhysicalCheck": true, "reportCorrect": null, "notes": "" }
+}

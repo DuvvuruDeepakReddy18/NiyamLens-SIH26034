@@ -1,6 +1,7 @@
 import { requireMember, quota, reply, failure, accessibleCase, HttpError } from '../server/security.mjs'
 import { validateCase, hashPayload, hydrateCase } from '../server/caseService.mjs'
-import { pageOffset, pageResult } from '../server/pagination.mjs'
+import { pageOffset } from '../server/pagination.mjs'
+import { listCaseSummaries } from '../server/caseSummary.mjs'
 import { verifyStoredImage } from '../server/imageValidation.mjs'
 export default async function handler(req, res) {
   try {
@@ -8,11 +9,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       if (req.query?.id) return reply(res, 200, { record: await hydrateCase(context, await accessibleCase(context, req.query.id)) })
       const offset = pageOffset(req.query?.offset)
-      let query = context.client.from('cases').select('*').eq('org_id', context.org).order('created_at', { ascending: false }).order('id').range(offset, offset + 19)
-      if (context.member.role === 'officer') query = query.eq('owner_id', context.user.id)
-      const { data, error } = await query
-      if (error) throw new HttpError(503, 'Unable to load cases.')
-      return reply(res, 200, { records: await Promise.all(data.map((row) => hydrateCase(context, row))), ...pageResult(offset, data.length, 20) })
+      return reply(res, 200, await listCaseSummaries(context, offset))
     }
     if (req.method !== 'POST') return reply(res, 405, { error: 'Method not allowed.' })
     await quota(context, 'case', 20, 500)
@@ -27,5 +24,8 @@ export default async function handler(req, res) {
     const { error } = await context.client.rpc('commit_case', { p_org: context.org, p_actor: context.user.id, p_id: record.id, p_payload: record, p_hash: hashPayload(record) })
     if (error) throw error
     return reply(res, 200, { record: await hydrateCase(context, await accessibleCase(context, record.id)) })
-  } catch (error) { return failure(res, error) }
+  } catch (error) {
+    if (error.code === 'RULE_PACK_MISMATCH') return reply(res, 409, { error: error.message, code: error.code })
+    return failure(res, error)
+  }
 }

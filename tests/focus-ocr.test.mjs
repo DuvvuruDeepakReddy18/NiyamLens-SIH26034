@@ -16,6 +16,15 @@ test('crop OCR boxes map back to the analysis image, not the high-resolution cro
   assert.deepEqual(mapped.bbox, { x0: 500, y0: 300, x1: 1500, y1: 600 })
   assert.equal(mapped.pageWidth, 2000)
 })
+
+test('fractional selection includes every edge pixel instead of clipping the declaration end', () => {
+  const rect = { x0: .1009, y0: .2009, x1: .4001, y1: .3001 }
+  const plan = focusPlan(rect, 1000, 1000)
+  assert.equal(plan.x, 100); assert.equal(plan.y, 200)
+  assert.equal(plan.x + plan.cropWidth, 401)
+  assert.equal(plan.y + plan.cropHeight, 301)
+  assert.deepEqual(focusPlan({ x0: rect.x1, y0: rect.y1, x1: rect.x0, y1: rect.y0 }, 1000, 1000), plan)
+})
 test('focused readings append without silently replacing manual corrections or conflicting values', () => {
   const result = appendFocusedTranscript({ text: 'Officer corrected text', rawOcrText: 'MRP 40', focusedText: 'MRP 48', panelIndex: 1 })
   assert.match(result.text, /^Officer corrected text/)

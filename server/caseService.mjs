@@ -20,7 +20,7 @@ export function validateCase(input, context) {
   const auditChain = validateAudit(input.auditChain)
   const clientAuditChain = input.clientAuditChain === undefined ? auditChain : validateAudit(input.clientAuditChain)
   const evidenceItems = validatePanels(input.evidenceItems)
-  if (input.rulePack !== RULE_PACK.id) throw new HttpError(409, 'Rule pack changed or missing. Refresh and review before submitting.')
+  if (input.rulePack !== RULE_PACK.id) throw Object.assign(new HttpError(409, 'Rule pack changed or missing. Keep the original seal and explicitly reassess in a new inspection before submitting.'), { code: 'RULE_PACK_MISMATCH' })
   if (typeof input.createdAt !== 'string' || typeof input.sealedAt !== 'string' || input.createdAt.length > 40 || input.sealedAt.length > 40 || !Number.isFinite(Date.parse(input.createdAt)) || !Number.isFinite(Date.parse(input.sealedAt))) throw new HttpError(400, 'Valid capture and seal timestamps are required.')
   const issues = validateInspectionMetadata(input.meta)
   if (issues.length) throw new HttpError(400, `Invalid inspection metadata: ${issues.slice(0, 4).map((issue) => `${issue.field}: ${issue.reason}`).join('; ')}`)
@@ -54,5 +54,5 @@ export async function hydrateCase(context, row) {
   const { data: reviews, error } = await context.client.from('case_reviews').select('*').eq('org_id', context.org).eq('case_id', row.id).order('created_at').order('id')
   if (error) throw new HttpError(503, 'Review history unavailable.')
   const reviewHistory = (reviews || []).map((review) => ({ id: review.id, status: review.status, reason: review.reason, actor: { id: review.actor_id, name: review.actor_id }, at: review.created_at, automatedStatus: row.payload.automatedResult.status }))
-  return { ...row.payload, reviewHistory, supervisorReview: reviewHistory.at(-1) || null, serverVersion: row.version, serverSealedAt: row.created_at, serverPayloadHash: row.payload_hash, syncState: 'synced' }
+  return { ...row.payload, recordKind: 'detail', detailsStale: false, reviewHistory, supervisorReview: reviewHistory.at(-1) || null, serverVersion: row.version, serverSealedAt: row.created_at, serverPayloadHash: row.payload_hash, syncState: 'synced' }
 }

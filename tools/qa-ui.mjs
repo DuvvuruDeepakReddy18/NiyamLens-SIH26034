@@ -16,7 +16,11 @@ page.on('console', (message) => {
 page.on('pageerror', (error) => errors.push(`page: ${error.message}`))
 
 async function verifyDecisiveFieldsAgainstFixture(targetPage) {
+  await targetPage.getByRole('combobox', { name: 'Chapter II consumer scope', exact: true }).selectOption('retail')
+  await targetPage.getByRole('combobox', { name: 'Rule 3 commodity group', exact: true }).selectOption('ordinary')
+  await targetPage.getByRole('checkbox', { name: /I checked Rule 3 scope/ }).check()
   const verification = targetPage.locator('.evidence-verification').filter({ has: targetPage.getByRole('heading', { name: 'Verify against the physical label' }) })
+  await verification.getByRole('button', { name: 'Show all verification fields', exact: true }).click()
   const rows = verification.locator('.field-review-row')
   for (let index = 0; index < await rows.count(); index += 1) {
     const row = rows.nth(index)
@@ -36,6 +40,7 @@ async function verifyDecisiveFieldsAgainstFixture(targetPage) {
 
 await page.goto(baseUrl, { waitUntil: 'networkidle' })
 await page.getByRole('heading', { name: 'From package image to defensible evidence.', exact: true }).waitFor()
+if (await page.locator('.field-review-row').count()) throw new Error('An empty inspection should begin with capture, not the verification form.')
 await page.screenshot({ path: path.join(root, 'qa-desktop-initial.png'), fullPage: true })
 
 // Exercise the real upload path before using controlled regression packets.
