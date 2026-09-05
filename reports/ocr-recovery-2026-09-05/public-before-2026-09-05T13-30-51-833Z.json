@@ -1,0 +1,38 @@
+{
+  "phase": "before",
+  "startedAt": "2026-09-05T13:30:51.833Z",
+  "sourceCommit": "d13aad50adedaa2c3a7d1c41bd036fe65bcb5b54",
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "bytes": 781,
+      "elapsedMs": 197,
+      "sha256": "32c0a43fac6299b84fce40b9365536d6e3ebc54fa572ced9a6cd50903af138b2"
+    },
+    {
+      "path": "/assets/index-E1tT8IDD.js",
+      "status": 200,
+      "bytes": 778785,
+      "elapsedMs": 174,
+      "sha256": "509ce982693a073c685ff02ecfbafb9a17ed9d56f09626ff06616d266979d2df"
+    },
+    {
+      "path": "/api/health",
+      "status": 200,
+      "bytes": 36,
+      "elapsedMs": 1075,
+      "sha256": "a0057c650aa45f3da4883f1b5dfb544141ff9069fa4d4d8793ebd205313de3e9"
+    },
+    {
+      "path": "/api/cases",
+      "status": 401,
+      "bytes": 46,
+      "elapsedMs": 238,
+      "sha256": "8baee91709aa311ea12ae4674f400fe236bdff3a1336e5878da85fc44e61dc14"
+    }
+  ],
+  "error": null,
+  "scope": "Anonymous public smoke probes only; not signed-in hosted OCR, load testing or human field validation.",
+  "finishedAt": "2026-09-05T13:30:53.521Z"
+}

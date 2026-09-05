@@ -6,7 +6,7 @@ The product is designed around the question a judge will ask: **can it survive a
 
 ## Current readiness — RC6 released 5 September 2026
 
-New OCR work: [measured recovery update](docs/OCR_RECOVERY_UPDATE_2026-09-05.md). On the same eight development photos, original-colour Paddle plus selected layout suggestions improved from 5/10 to 6/10 eligible fields. Optional dark-stamp modes recover different readings but are not a general accuracy upgrade. See its separate release status before assuming these changes are live.
+Live OCR follow-up: [measured recovery update](docs/OCR_RECOVERY_UPDATE_2026-09-05.md), source `6c9d185`, CI-passed and deployed. On the same eight development photos, original-colour Paddle plus selected layout suggestions improved from 5/10 to 6/10 eligible fields. Optional dark-stamp modes recover different readings but are not a general accuracy upgrade. The earlier RC6 evidence below retains its historical scope.
 
 Current: [verified RC6 release and remaining limits](docs/RC6_RELEASE_2026-09-05.md), [team PDF](docs/NiyamLens_RC6_Team_Handoff_2026-09-05.pdf), and [fresh-photo/timing/review assignments](docs/VALIDATION_NEXT_ACTIONS.md). Earlier implementation/OCR reports retain their historical results. Passing engineering checks does not establish real-label accuracy or legal approval.
 

@@ -1,5 +1,7 @@
 # OCR recovery update — measured improvement, not a win guarantee
 
+**Live:** [NiyamLens](https://niyamlens-sih26034.vercel.app/), published 5 September 2026 at approximately 13:31 UTC. Source commit `6c9d185616ac91ad7e241f9bee381d90e62818f0` is pushed; [CI passed](https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034/actions/runs/33968920163). Deployment `dpl_HGyqHTseiK6KuT2QwPXuc6iBZoYy` is READY (Vite, existing RC6/0.4.4 line; reported deployment command duration 37 seconds). Subsequent release-note/probe commits do not change this deployed application source.
+
 ## What changed
 
 - Compact prices such as `MRP48` now parse without inserting or changing characters. Embedded words, damaged digits and invalid amounts remain rejected.
@@ -40,7 +42,13 @@ Zero wrong-valid candidates were observed among the ten eligible reference slots
 - Existing desktop/mobile UI and functional evidence/history/export regressions passed.
 - The first unrestricted-parallel unit run failed one test-file process; isolated and full bounded reruns passed. Two new UI-harness selector mistakes were corrected; failed reports were retained. None are hidden as successful runs.
 
-Source-bound results: [evidence summary](../reports/ocr-recovery-2026-09-05/evidence.json). Old RC6 reports/PDF retain their historical results. Deployment status is recorded separately after publication; local tests do not imply hosted acceptance.
+Source-bound results: [evidence summary](../reports/ocr-recovery-2026-09-05/evidence.json). Old RC6 reports/PDF retain their historical results. Local tests do not imply signed-in hosted acceptance.
+
+## Publication checks
+
+The staged health check passed before promotion. Two anonymous post-promotion snapshots one minute apart each verified the homepage, expected application bundle, backend health and HTTP 401 for case access. The new bundle is `/assets/index-gwkgHLXn.js`, SHA-256 `39d8e5a911adc139f383cb1f5d3b908446a95c4758a84b9d9356d34d8a0797ea`. Source-bound public probe receipts are retained alongside the evidence summary.
+
+One deployment-scoped error-log query returned no matching logs. This is an immediate rollout check, not 15 minutes of observation, sustained monitoring, a drains audit, a load test or a fresh signed-in multi-account test. No database, storage, identity or membership changes were made.
 
 ## Still required for a credible competition claim
 
