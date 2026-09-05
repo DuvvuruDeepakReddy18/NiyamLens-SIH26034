@@ -32,3 +32,11 @@ test('failed hosted report cannot expose raw errors or arbitrary endpoint string
   assert.deepEqual(output.apiRequests, [{ path: '/api/evidence', method: 'POST', status: 503 }])
   assert.equal(JSON.stringify(output).includes('secret'), false)
 })
+
+test('offline evidence projection keeps only literal booleans and cannot imply expired-session coverage', () => {
+  const output = publicHostedSealReport({ offlineRecovery: { requested: true, disconnectedSealQueued: true, queuedRecordSurvivedReload: true, explicitCachedWorkUsed: true, reconnectedAndSynced: true, expiredSessionTested: 'true', ocrExecutedOffline: false, privateToken: 'SECRET-SENTINEL' } })
+  assert.equal(output.offlineRecovery.reconnectedAndSynced, true)
+  assert.equal(output.offlineRecovery.expiredSessionTested, false)
+  assert.equal(output.offlineRecovery.ocrExecutedOffline, false)
+  assert.equal(JSON.stringify(output).includes('SECRET-SENTINEL'), false)
+})

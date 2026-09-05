@@ -1,0 +1,429 @@
+{
+  "kind": "bounded-public-release-probes-not-load-test",
+  "origin": "https://niyamlens-sih26034.vercel.app",
+  "asset": "/assets/index-E1tT8IDD.js",
+  "expectedSha": "509ce982693a073c685ff02ecfbafb9a17ed9d56f09626ff06616d266979d2df",
+  "startedAt": "2026-09-05T11:39:53.616Z",
+  "plannedDurationMs": 900000,
+  "rows": [
+    {
+      "index": 0,
+      "observedAt": "2026-09-05T11:39:54.809Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 365
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 1161
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 1106
+        },
+        {
+          "route": "/assets/index-E1tT8IDD.js",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 410
+        }
+      ],
+      "passed": true
+    },
+    {
+      "index": 1,
+      "observedAt": "2026-09-05T11:40:54.204Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 39
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 584
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 309
+        }
+      ],
+      "passed": true
+    },
+    {
+      "index": 2,
+      "observedAt": "2026-09-05T11:41:54.564Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 40
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 932
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 242
+        }
+      ],
+      "passed": true
+    },
+    {
+      "index": 3,
+      "observedAt": "2026-09-05T11:42:54.149Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 35
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 523
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 233
+        }
+      ],
+      "passed": true
+    },
+    {
+      "index": 4,
+      "observedAt": "2026-09-05T11:43:54.180Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 39
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 557
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 248
+        }
+      ],
+      "passed": true
+    },
+    {
+      "index": 5,
+      "observedAt": "2026-09-05T11:44:54.270Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 107
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 647
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 247
+        }
+      ],
+      "passed": true
+    },
+    {
+      "index": 6,
+      "observedAt": "2026-09-05T11:45:54.169Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 45
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 537
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 246
+        }
+      ],
+      "passed": true
+    },
+    {
+      "index": 7,
+      "observedAt": "2026-09-05T11:46:54.157Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 178
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 525
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 247
+        }
+      ],
+      "passed": true
+    },
+    {
+      "index": 8,
+      "observedAt": "2026-09-05T11:47:54.356Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 59
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 737
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 312
+        }
+      ],
+      "passed": true
+    },
+    {
+      "index": 9,
+      "observedAt": "2026-09-05T11:48:54.155Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 40
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 527
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 260
+        }
+      ],
+      "passed": true
+    },
+    {
+      "index": 10,
+      "observedAt": "2026-09-05T11:49:54.206Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 43
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 579
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 254
+        }
+      ],
+      "passed": true
+    },
+    {
+      "index": 11,
+      "observedAt": "2026-09-05T11:50:54.204Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 44
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 576
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 269
+        }
+      ],
+      "passed": true
+    },
+    {
+      "index": 12,
+      "observedAt": "2026-09-05T11:51:54.140Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 40
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 514
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 290
+        }
+      ],
+      "passed": true
+    },
+    {
+      "index": 13,
+      "observedAt": "2026-09-05T11:52:54.550Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 55
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 925
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 274
+        }
+      ],
+      "passed": true
+    },
+    {
+      "index": 14,
+      "observedAt": "2026-09-05T11:53:54.362Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 58
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 736
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 273
+        }
+      ],
+      "passed": true
+    },
+    {
+      "index": 15,
+      "observedAt": "2026-09-05T11:54:54.241Z",
+      "checks": [
+        {
+          "route": "/",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 50
+        },
+        {
+          "route": "/api/health",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 614
+        },
+        {
+          "route": "/api/cases",
+          "status": 401,
+          "passed": true,
+          "elapsedMs": 247
+        },
+        {
+          "route": "/assets/index-E1tT8IDD.js",
+          "status": 200,
+          "passed": true,
+          "elapsedMs": 251
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-09-05T11:54:54.246Z",
+  "passed": true,
+  "limitations": [
+    "Low-volume synthetic endpoint probes, not real-user latency/error-rate telemetry or a stress test.",
+    "No provider runtime logs, authenticated user actions or human field performance measured here.",
+    "No automatic rollback; any failure is retained for explicit release review."
+  ]
+}

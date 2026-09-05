@@ -4,7 +4,7 @@
 - **Documented code snapshot:** NiyamLens 0.4.4 (`LMPC-RC-2026.09-RC6`)
 - **Public application:** <https://niyamlens-sih26034.vercel.app>
 - **Source repository:** <https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034>
-- **Verification boundary:** 524/524 unit tests passed locally at the 5 September 2026 documentation checkpoint. This count is a timestamped working-tree snapshot, not a claim that later changes or the public deployment contain the same revision. The [public-cutover report](../reports/public-release-2026-09-05/VALIDATION.md) applies only to the release it identifies.
+- **Verification boundary:** Follow the exact dated [RC6 release report](RC6_RELEASE_2026-09-05.md) and [next validation actions](VALIDATION_NEXT_ACTIONS.md). Test results are tied to revisions; engineering checks are not field accuracy or legal approval.
 
 ## What the product does
 
@@ -26,13 +26,13 @@ Use this before every presentation.
 
 1. Open `http://127.0.0.1:5173` in current Chrome/Edge. Use the public URL only after its displayed rule-pack/version and release evidence match the revision being presented.
 2. Go to **New inspection**.
-3. Expand **Controlled test packets** and select **Compliant packet**.
-4. Confirm the right-side assessment says **PASS**.
-5. Select **Violation packet** and confirm the assessment says **FLAG** with seven flagged checks in the verified release.
-6. Select **Rule 26 exemption packet** and confirm the assessment says **EXEMPT**.
-7. Select **Evidence report**, then **Finalize inspection**.
+3. For local training only, expand **Controlled test packets** and inspect a fixture. Hosted sealing rejects controlled fixtures.
+4. Confirm unverified critical fields and applicability do **not** silently produce a clean result, even for the fixture named **Compliant packet**.
+5. Inspect the violation fixture's individual flags and reviews; do not expect a fixed total across rule-pack changes.
+6. Examine the small-package exemption route together with its required classification facts and specialist carve-outs; never force an exemption from the fixture name.
+7. Start a new inspection using an actual uploaded package image, retain genuine uncertainty, then **Finalize inspection** and open its evidence report.
 8. Open **Inspection history**, reopen the saved record, and confirm **Audit chain verified**.
-9. Open **Officer operations**, switch to **Supervising Officer**, enter a review reason and seal a disposition. Reopen the evidence and confirm the automated result is still displayed.
+9. On the managed app, use a separately signed-in authorized supervisor to record a reasoned disposition. Reopen the evidence and confirm the automated result is preserved. A local training actor switch is not hosted authorization.
 10. Open **Blind challenge**, start it and confirm **Controlled test packets** is no longer available.
 
 If those ten checks pass, the core presentation path has completed one rehearsal. Controlled packets demonstrate repeatability, while a judge-selected package supplies a falsifiable unseen trial; neither one trial nor a canned fixture proves general field performance.
@@ -259,7 +259,7 @@ If those ten checks pass, the core presentation path has completed one rehearsal
 
 **Manual verification:**
 
-1. Load **Compliant packet** and observe **PASS**.
+1. Load **Compliant packet** for local training and observe the unresolved verification gates. Its name is not a guaranteed PASS.
 2. Change the profile to **Imported package** without adding country of origin.
 3. Confirm the new applicable check does not silently pass.
 4. Enable **Time-sensitive commodity** without a best-before/use-by declaration and inspect the added finding.
@@ -447,31 +447,31 @@ It also checks that measured character width is at least one-third of height, su
 
 ### 22. Officer/supervisor separation and reason-required review
 
-**What it does:** Demonstrates different local roles. A supervisor disposition adds a new audit event while preserving the original automated status.
+**What it does:** In managed mode, the server checks active workspace memberships. A supervisor disposition appends review history without replacing the automated observation. Local training roles are a separate simulation.
 
 **Manual verification:**
 
 1. Save an inspection and open **Officer operations**.
-2. Choose **Field Officer 01**; confirm **Review / override** is disabled.
-3. Choose **Supervising Officer**; open **Review / override**.
+2. Sign in as an authorized officer; confirm **Review / override** is disabled and peer cases are unavailable.
+3. In a separate browser context, sign in as an authorized supervisor and open **Review / override** on a permitted case. Do not share passwords.
 4. Leave the reason blank and confirm the seal action is disabled.
 5. Select a disposition, provide the physical/legal reason and seal it.
 6. Reopen **Evidence** and confirm **Automated status preserved as ...** appears beside the supervisor disposition.
 
-**Status:** Live automated; production identity must use real SSO/RBAC.
+**Status:** Hosted synthetic Auth/RBAC acceptance is documented in the release report; this is not departmental SSO or a human field pilot.
 
-### 23. Local assignment queue
+### 23. Workspace assignment queue
 
-**What it does:** Lets the supervisor create a local premises/package assignment.
+**What it does:** Lets an authorized supervisor assign a package/premises task to an active workspace member. Managed transitions are version checked by the server.
 
 **Manual verification:**
 
-1. Open **Officer operations** as **Supervising Officer**.
-2. Enter a premises/package reference and select **Assign**.
-3. Confirm a generated `ASN-...` record appears as assigned.
-4. Reload and confirm it remains in local storage.
+1. Open **Officer operations** with a separately authenticated authorized supervisor account.
+2. Select the assignee, enter the package reference and create the assignment.
+3. Confirm the intended officer can see and start it; another officer must not be able to update it.
+4. Reopen in a fresh session. A stale-version update must return a conflict without silently overwriting the current task.
 
-**Status:** Implemented local workflow; not a department-wide dispatch system.
+**Status:** Local training and managed server workflows are distinct. Hosted synthetic checks do not establish department-wide operational adoption.
 
 ### 24. Encrypted offline case transfer
 
@@ -580,7 +580,7 @@ Run these from the `niyamlens` repository after `npm install`.
 npm test
 ```
 
-Documentation-checkpoint result (5 September 2026): `524` tests, `524` passed, `0` failed. Rerun after every code change; do not quote this count as the final release result unless the exact candidate reproduces it.
+Use the test count and exact revision in the [current release report](RC6_RELEASE_2026-09-05.md). Rerun after every code change rather than recycling a documentation-checkpoint count.
 
 ### Verify production compilation
 
@@ -701,8 +701,8 @@ All six members should rehearse the ten-minute smoke test. The operator and pres
 ## Release sign-off checklist
 
 - [ ] Public URL opens in Chrome/Edge.
-- [ ] Controlled compliant packet returns PASS.
-- [ ] Controlled violation packet returns FLAG.
+- [ ] Unverified fields and scope remain review, including on a fixture named compliant.
+- [ ] Expected individual fixture findings remain visible without forcing a final result.
 - [ ] Controlled 8 ml standard packet returns EXEMPT.
 - [ ] Pan masala/tobacco carve-out does not receive that exemption.
 - [ ] Real sample OCR completes with grounded fields.

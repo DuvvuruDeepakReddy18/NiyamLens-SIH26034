@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "kind": "ONE-ACTUAL-BROWSER-SYNTHETIC-SEAL-ATTEMPT",
+  "runRef": "a6af0892519b",
+  "startedAt": "2026-09-05T11:48:11.866Z",
+  "finishedAt": "2026-09-05T11:49:14.879Z",
+  "origin": "https://niyamlens-sih26034.vercel.app",
+  "stage": "complete",
+  "passed": true,
+  "caseCreated": true,
+  "casePostAttempts": 1,
+  "source": {
+    "fixture": "public/sample-real-label.png",
+    "syntheticOnly": true,
+    "sha256": "6d532c6369e55f66a82cb65ecac76327d3b44a9a138945170f58a40dd92f0609",
+    "bytes": 220041
+  },
+  "appModules": [
+    "/assets/index-E1tT8IDD.js"
+  ],
+  "apiRequests": [
+    {
+      "path": "/api/cases",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/evidence",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "path": "/api/evidence",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "path": "/api/evidence",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "path": "/api/evidence",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "path": "/api/cases",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "path": "/api/cases",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/assignments",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/cases",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/evidence",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/evidence",
+      "method": "GET",
+      "status": 200
+    }
+  ],
+  "pageErrorCount": 0,
+  "blockedMutations": 0,
+  "failureCode": null,
+  "serverFailure": null,
+  "localCheckpoints": [
+    {
+      "label": "before-seal",
+      "inspections": 1,
+      "drafts": 1,
+      "outbox": 0
+    },
+    {
+      "label": "after-seal",
+      "inspections": 2,
+      "drafts": 0,
+      "outbox": 0
+    }
+  ],
+  "originalOcr": {
+    "characters": 345,
+    "sha256": "b6915ce008a37b7c3b8d541ab068379c44eb733d19cec2d309267e2f34f0d59e",
+    "typedCorrections": false,
+    "engine": "actual-browser-Tesseract-standard"
+  },
+  "fieldReviewsUnconfirmed": true,
+  "physicalConfirmationsUnconfirmed": true,
+  "offlineRecovery": {
+    "requested": true,
+    "disconnectedSealQueued": true,
+    "queuedRecordSurvivedReload": true,
+    "explicitCachedWorkUsed": true,
+    "reconnectedAndSynced": true,
+    "expiredSessionTested": false,
+    "ocrExecutedOffline": false
+  },
+  "exportVerification": {
+    "passed": true,
+    "panels": 1,
+    "images": [
+      {
+        "panel": 1,
+        "kind": "original",
+        "bytes": 220041,
+        "sha256": "6d532c6369e55f66a82cb65ecac76327d3b44a9a138945170f58a40dd92f0609",
+        "hashMatchesRegisteredMetadata": true
+      },
+      {
+        "panel": 1,
+        "kind": "analysis",
+        "bytes": 241812,
+        "sha256": "5e38bc6781165cd0b9aba70ab13a77287e7fbde815c41c6a7be4049ada2ee817",
+        "hashMatchesRegisteredMetadata": true
+      }
+    ],
+    "totalImageBytes": 461853,
+    "sourceOriginalMatched": true,
+    "serverReceiptWellFormed": true,
+    "serverVersion": 1,
+    "receiptAuthenticityIndependentlyVerified": false,
+    "serverPayloadHashRecomputed": false,
+    "clientAuditEvents": 6,
+    "clientAuditInternallyHashLinked": true,
+    "clientAuditIndependentlyAuthentic": false,
+    "rawOcrPassCount": 3,
+    "workingDiffersFromRaw": false,
+    "recognitionAccuracyVerified": false
+  },
+  "limitations": [
+    "One generated package image only; not real-label accuracy, independent ground truth, or human field validation.",
+    "Actual UI capture and standard OCR were used. No OCR corrections, field confirmations or physical measurements were entered.",
+    "Client audit history came from the actual UI. Image hashes and audit linkage prove internal consistency, not physical truth or official legal approval.",
+    "Export verification does not recompute or independently authenticate the server receipt; original private evidence is retained separately.",
+    "Test account identifiers, storage paths, raw transcripts, and local private paths are intentionally omitted from this shareable projection."
+  ]
+}

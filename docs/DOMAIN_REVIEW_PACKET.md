@@ -314,4 +314,3 @@ Team acknowledgement of received findings (not a legal approval):
 - Primary-source excerpts/pinpoints within permitted use
 - Test output from the exact reviewed revision
 - Every change request and its closure evidence
-

@@ -134,7 +134,7 @@ try {
     if (path === '/api/assignments') return json(route, { assignments: [], nextOffset: null })
     return json(route, { error: 'Unexpected mock API route' }, 404)
   })
-  await page.goto('http://127.0.0.1:4174/', { waitUntil: 'networkidle' })
+  await page.goto(process.env.NIYAMLENS_BASE_URL || 'http://127.0.0.1:4174/', { waitUntil: 'networkidle' })
   await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' })
   await page.getByLabel('Email', { exact: true }).fill(user.email)
   await page.getByLabel('Password', { exact: true }).fill('local-test-password-only')

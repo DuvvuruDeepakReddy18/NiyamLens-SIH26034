@@ -31,6 +31,7 @@ export function publicHostedSealReport(report) {
     originalOcr: report.originalOcr ? { characters: count(report.originalOcr.characters), sha256: digest(report.originalOcr.sha256), typedCorrections: report.originalOcr.typedCorrections === true, engine: 'actual-browser-Tesseract-standard' } : null,
     fieldReviewsUnconfirmed: report.fieldReviewsUnconfirmed === true,
     physicalConfirmationsUnconfirmed: report.physicalConfirmationsUnconfirmed === true,
+    offlineRecovery: report.offlineRecovery ? Object.fromEntries(['requested', 'disconnectedSealQueued', 'queuedRecordSurvivedReload', 'explicitCachedWorkUsed', 'reconnectedAndSynced', 'expiredSessionTested', 'ocrExecutedOffline'].map(key => [key, report.offlineRecovery[key] === true])) : null,
     exportVerification: verification ? {
       passed: verification.passed === true, panels: count(verification.panels),
       images: (verification.images || []).map(item => ({ panel: count(item.panel), kind: ['original', 'analysis'].includes(item.kind) ? item.kind : null, bytes: count(item.bytes), sha256: digest(item.sha256), hashMatchesRegisteredMetadata: item.hashMatchesRegisteredMetadata === true })),

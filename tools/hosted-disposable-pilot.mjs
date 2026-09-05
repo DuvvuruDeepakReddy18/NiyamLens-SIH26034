@@ -197,7 +197,9 @@ export async function runPilot(consent, { privateRoot = resolve('.niyamlens-priv
           // caller deliberately discarded the first success acknowledgement.
           if (actor === 'officerA' && kind === 'original') {
             const retry = await request(actor, '/evidence', 'POST', { ...descriptor, action: 'prepare' })
-            must(retry.path === expectedPath, 'RETRY_CHANGED_EVIDENCE_PATH')
+            must(retry.path === expectedPath && retry.verified === true && !retry.uploadUrl, 'LOST_ACK_RETRY_DID_NOT_VERIFY_EXISTING_BYTES')
+            const again = await request(actor, '/evidence', 'POST', { ...descriptor, action: 'prepare' })
+            must(again.path === expectedPath && again.verified === true && !again.uploadUrl, 'RECOVERED_PREPARE_NOT_IDEMPOTENT')
           }
           const verified = await request(actor, '/evidence', 'POST', { ...descriptor, action: 'verify' })
           must(verified.verified === true && verified.path === expectedPath, 'UPLOAD_NOT_VERIFIED')
@@ -245,12 +247,15 @@ export async function runPilot(consent, { privateRoot = resolve('.niyamlens-priv
       must(again.record?.serverVersion === 2 && again.record.reviewHistory?.length === 1, 'DUPLICATE_REVIEW')
       await request('supervisor', '/reviews', 'POST', { ...review, operationId: randomUUID(), reason: review.reason + ' stale attempt' }, 409)
       await request('supervisor', '/reviews', 'POST', { ...review, reason: review.reason + ' altered replay' }, 409)
+      const unchanged = await request('supervisor', `/cases?id=${encodeURIComponent(review.caseId)}`)
+      must(unchanged.record?.serverVersion === 2 && unchanged.record.reviewHistory?.length === 1, 'STALE_REVIEW_CHANGED_RECORDED_STATE')
     })
     const assignment = { id: randomUUID(), officerId: m.accounts.officerA.id, packageRef: `HOSTED SYNTHETIC TEST ${m.runId}` }
     m.assignments.push(assignment.id); await save()
     await check('assignment:create-retry-scope-and-version-conflict', async () => {
       await request('supervisor', '/assignments', 'POST', assignment)
       await request('supervisor', '/assignments', 'POST', assignment)
+      await request('supervisor', '/assignments', 'POST', { ...assignment, packageRef: assignment.packageRef + ' changed replay' }, 409)
       for (const actor of ACTORS) {
         const list = await request(actor, '/assignments')
         const allowed = ['officerA', 'supervisor'].includes(actor)
@@ -260,6 +265,8 @@ export async function runPilot(consent, { privateRoot = resolve('.niyamlens-priv
       await request('officerA', '/assignments', 'PATCH', { id: assignment.id, version: 1, status: 'in_progress' })
       await request('officerA', '/assignments', 'PATCH', { id: assignment.id, version: 1, status: 'submitted' }, 409)
       await request('officerA', '/assignments', 'PATCH', { id: assignment.id, version: 2, status: 'closed' }, 403)
+      const unchanged = await request('officerA', '/assignments')
+      must(unchanged.assignments?.length === 1 && unchanged.assignments[0].version === 2 && unchanged.assignments[0].status === 'in_progress', 'STALE_ASSIGNMENT_CHANGED_RECORDED_STATE')
     })
     await check('suspension:old-token-rejected-and-exact-membership-restored', async () => {
       const account = m.accounts.officerA

@@ -1,0 +1,477 @@
+{
+  "schemaVersion": 1,
+  "kind": "RC6-release-engineering-evidence-not-winner-certification",
+  "generatedAt": "2026-09-05T12:00:10.270Z",
+  "application": {
+    "origin": "https://niyamlens-sih26034.vercel.app",
+    "version": "0.4.4",
+    "rulePack": "LMPC-RC-2026.09-RC6",
+    "sourceCommit": "d13aad50adedaa2c3a7d1c41bd036fe65bcb5b54",
+    "deploymentId": "dpl_FPx8WbxZrukoGC3RijjaKiuRbc8q",
+    "asset": "/assets/index-E1tT8IDD.js",
+    "assetSha256": "509ce982693a073c685ff02ecfbafb9a17ed9d56f09626ff06616d266979d2df"
+  },
+  "ci": {
+    "passed": true,
+    "releaseTests": 603,
+    "url": "https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034/actions/runs/33963587174",
+    "includes": [
+      "Linux clean install",
+      "unit regressions",
+      "production build",
+      "OCR asset SHA-256 checks",
+      "production dependency audit"
+    ]
+  },
+  "migration": {
+    "passed": true,
+    "rehearsalRolledBackAndExactOriginalsVerified": true,
+    "liveReadbackPassed": true,
+    "functions": 4,
+    "sha256": "9233514b1de6fa275ddd9bcd18982f03d698b216b685c7e76cf93e4b8db47088",
+    "appliedAt": "2026-09-05T11:37:51.012Z",
+    "functionRollbackSha256": "724a58361b0707aeb5f7581c1cf6413cd7785e22d8a2c63d1b0188ac41b1d751",
+    "tableDataChanged": false,
+    "backupScope": "Four function definitions and restricted execute grants only. Not a complete database/Auth/Storage backup."
+  },
+  "hostedApi": {
+    "permissions": {
+      "passed": 41,
+      "total": 41
+    },
+    "additional": {
+      "passed": 27,
+      "total": 27
+    },
+    "checks": [
+      {
+        "name": "officerA:real-password-sign-in",
+        "passed": true
+      },
+      {
+        "name": "officerB:real-password-sign-in",
+        "passed": true
+      },
+      {
+        "name": "supervisor:real-password-sign-in",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:real-password-sign-in",
+        "passed": true
+      },
+      {
+        "name": "officerA:original:real-private-upload-and-registration",
+        "passed": true
+      },
+      {
+        "name": "officerA:analysis:real-private-upload-and-registration",
+        "passed": true
+      },
+      {
+        "name": "officerA:real-server-seal-and-exact-retry",
+        "passed": true
+      },
+      {
+        "name": "officerB:original:real-private-upload-and-registration",
+        "passed": true
+      },
+      {
+        "name": "officerB:analysis:real-private-upload-and-registration",
+        "passed": true
+      },
+      {
+        "name": "officerB:real-server-seal-and-exact-retry",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:original:real-private-upload-and-registration",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:analysis:real-private-upload-and-registration",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:real-server-seal-and-exact-retry",
+        "passed": true
+      },
+      {
+        "name": "officerA:original:signed-download-byte-hash",
+        "passed": true
+      },
+      {
+        "name": "officerA:analysis:signed-download-byte-hash",
+        "passed": true
+      },
+      {
+        "name": "officerB:original:signed-download-byte-hash",
+        "passed": true
+      },
+      {
+        "name": "officerB:analysis:signed-download-byte-hash",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:original:signed-download-byte-hash",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:analysis:signed-download-byte-hash",
+        "passed": true
+      },
+      {
+        "name": "officerA:case-list-isolation",
+        "passed": true
+      },
+      {
+        "name": "officerB:case-list-isolation",
+        "passed": true
+      },
+      {
+        "name": "supervisor:case-list-isolation",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:case-list-isolation",
+        "passed": true
+      },
+      {
+        "name": "review:officer-denied",
+        "passed": true
+      },
+      {
+        "name": "review:supervisor-commit-identical-retry-and-stale-conflict",
+        "passed": true
+      },
+      {
+        "name": "assignment:create-retry-scope-and-version-conflict",
+        "passed": true
+      },
+      {
+        "name": "suspension:old-token-rejected-and-exact-membership-restored",
+        "passed": true
+      }
+    ],
+    "permissionsDetail": [
+      {
+        "name": "officerA:officerA:case",
+        "passed": true
+      },
+      {
+        "name": "officerA:officerA:original",
+        "passed": true
+      },
+      {
+        "name": "officerA:officerA:analysis",
+        "passed": true
+      },
+      {
+        "name": "officerA:officerB:case",
+        "passed": true
+      },
+      {
+        "name": "officerA:officerB:original",
+        "passed": true
+      },
+      {
+        "name": "officerA:officerB:analysis",
+        "passed": true
+      },
+      {
+        "name": "officerA:otherOrg:case",
+        "passed": true
+      },
+      {
+        "name": "officerA:otherOrg:original",
+        "passed": true
+      },
+      {
+        "name": "officerA:otherOrg:analysis",
+        "passed": true
+      },
+      {
+        "name": "officerB:officerA:case",
+        "passed": true
+      },
+      {
+        "name": "officerB:officerA:original",
+        "passed": true
+      },
+      {
+        "name": "officerB:officerA:analysis",
+        "passed": true
+      },
+      {
+        "name": "officerB:officerB:case",
+        "passed": true
+      },
+      {
+        "name": "officerB:officerB:original",
+        "passed": true
+      },
+      {
+        "name": "officerB:officerB:analysis",
+        "passed": true
+      },
+      {
+        "name": "officerB:otherOrg:case",
+        "passed": true
+      },
+      {
+        "name": "officerB:otherOrg:original",
+        "passed": true
+      },
+      {
+        "name": "officerB:otherOrg:analysis",
+        "passed": true
+      },
+      {
+        "name": "supervisor:officerA:case",
+        "passed": true
+      },
+      {
+        "name": "supervisor:officerA:original",
+        "passed": true
+      },
+      {
+        "name": "supervisor:officerA:analysis",
+        "passed": true
+      },
+      {
+        "name": "supervisor:officerB:case",
+        "passed": true
+      },
+      {
+        "name": "supervisor:officerB:original",
+        "passed": true
+      },
+      {
+        "name": "supervisor:officerB:analysis",
+        "passed": true
+      },
+      {
+        "name": "supervisor:otherOrg:case",
+        "passed": true
+      },
+      {
+        "name": "supervisor:otherOrg:original",
+        "passed": true
+      },
+      {
+        "name": "supervisor:otherOrg:analysis",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:officerA:case",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:officerA:original",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:officerA:analysis",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:officerB:case",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:officerB:original",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:officerB:analysis",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:otherOrg:case",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:otherOrg:original",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:otherOrg:analysis",
+        "passed": true
+      },
+      {
+        "name": "officerA:foreign-workspace",
+        "passed": true
+      },
+      {
+        "name": "officerB:foreign-workspace",
+        "passed": true
+      },
+      {
+        "name": "supervisor:foreign-workspace",
+        "passed": true
+      },
+      {
+        "name": "otherOrg:foreign-workspace",
+        "passed": true
+      },
+      {
+        "name": "anonymous:case-denied",
+        "passed": true
+      }
+    ]
+  },
+  "chromeRoles": {
+    "passed": true,
+    "actors": [
+      {
+        "actor": "officerA",
+        "role": "officer",
+        "passed": true,
+        "visibleCaseCount": 1,
+        "imageIntegrity": true,
+        "retrievalContract": "on-demand-full-detail-GET"
+      },
+      {
+        "actor": "officerB",
+        "role": "officer",
+        "passed": true,
+        "visibleCaseCount": 1,
+        "imageIntegrity": true,
+        "retrievalContract": "on-demand-full-detail-GET"
+      },
+      {
+        "actor": "supervisor",
+        "role": "supervisor",
+        "passed": true,
+        "visibleCaseCount": 2,
+        "imageIntegrity": true,
+        "retrievalContract": "on-demand-full-detail-GET"
+      },
+      {
+        "actor": "otherOrg",
+        "role": "officer",
+        "passed": true,
+        "visibleCaseCount": 1,
+        "imageIntegrity": true,
+        "retrievalContract": "on-demand-full-detail-GET"
+      }
+    ],
+    "fixtureLimitation": "API-seeded fixtures have no genuine browser audit. Their narrower image/transport check is not strict full-audit acceptance."
+  },
+  "chromeOfflineSeal": {
+    "passed": true,
+    "casePostAttempts": 1,
+    "originalOcr": {
+      "characters": 345,
+      "sha256": "b6915ce008a37b7c3b8d541ab068379c44eb733d19cec2d309267e2f34f0d59e",
+      "typedCorrections": false,
+      "engine": "actual-browser-Tesseract-standard"
+    },
+    "offlineRecovery": {
+      "requested": true,
+      "disconnectedSealQueued": true,
+      "queuedRecordSurvivedReload": true,
+      "explicitCachedWorkUsed": true,
+      "reconnectedAndSynced": true,
+      "expiredSessionTested": false,
+      "ocrExecutedOffline": false
+    },
+    "export": {
+      "passed": true,
+      "panels": 1,
+      "images": [
+        {
+          "panel": 1,
+          "kind": "original",
+          "bytes": 220041,
+          "sha256": "6d532c6369e55f66a82cb65ecac76327d3b44a9a138945170f58a40dd92f0609",
+          "hashMatchesRegisteredMetadata": true
+        },
+        {
+          "panel": 1,
+          "kind": "analysis",
+          "bytes": 241812,
+          "sha256": "5e38bc6781165cd0b9aba70ab13a77287e7fbde815c41c6a7be4049ada2ee817",
+          "hashMatchesRegisteredMetadata": true
+        }
+      ],
+      "totalImageBytes": 461853,
+      "sourceOriginalMatched": true,
+      "serverReceiptWellFormed": true,
+      "serverVersion": 1,
+      "receiptAuthenticityIndependentlyVerified": false,
+      "serverPayloadHashRecomputed": false,
+      "clientAuditEvents": 6,
+      "clientAuditInternallyHashLinked": true,
+      "clientAuditIndependentlyAuthentic": false,
+      "rawOcrPassCount": 3,
+      "workingDiffersFromRaw": false,
+      "recognitionAccuracyVerified": false
+    },
+    "appModules": [
+      "/assets/index-E1tT8IDD.js"
+    ],
+    "pageErrors": 0
+  },
+  "localBrowser": {
+    "passed": true,
+    "checks": [
+      "capture coach and correction review invalidation",
+      "mobile layout and navigation",
+      "sealed source replay",
+      "immutable original transcript",
+      "mocked expired-SDK-session offline restart",
+      "mocked membership revocation and account-switch races",
+      "queued rule-pack mismatch and linked reassessment",
+      "observer timer export and corrupt-storage refusal"
+    ],
+    "limitation": "Local/mock checks are distinct from actual hosted provider acceptance."
+  },
+  "developmentOcr": {
+    "knownPhotos": 8,
+    "eligibleFields": 10,
+    "directMatches": 1,
+    "selectedLayoutMatches": 5,
+    "wrongValidSelected": 0,
+    "unresolvedSelected": 5,
+    "blind": false,
+    "humanReviewed": false,
+    "aiProvisionalReference": true,
+    "source": "reports/readiness-2026-09-05/paddle-review-browser-2026-09-05T11-27-15-509Z.json",
+    "limitation": "Known development corpus, not general accuracy. Automatic checkbox selection is not officer verification; zero observed wrong readings is not a safety guarantee."
+  },
+  "probes": {
+    "passed": true,
+    "startedAt": "2026-09-05T11:39:53.616Z",
+    "finishedAt": "2026-09-05T11:54:54.246Z",
+    "snapshots": 16,
+    "requests": 50,
+    "failed": 0,
+    "file": "public-probes-2026-09-05T11-39-53-616Z.json",
+    "limitation": "Low-volume synthetic probes, not maximum-load stress testing or real-user production telemetry."
+  },
+  "containment": {
+    "syntheticAccounts": 4,
+    "isolatedTestWorkspaces": 2,
+    "sealedTestCases": 4,
+    "registeredTestImageObjects": 8,
+    "disabledMemberships": 4,
+    "allVerifiedInactive": true,
+    "humanAccountsChanged": 0,
+    "emailsSentByAcceptance": 0,
+    "resourcesDeleted": 0
+  },
+  "pendingHumanEvidence": [
+    "New declaration-focused physical package photos",
+    "Independent human labels and disagreement adjudication before frozen evaluation",
+    "Real-user paired timing and separate report correctness checks",
+    "Qualified legal applicability and physical measurement review",
+    "Outsider-led live rehearsals"
+  ],
+  "remainingOperationalLimits": [
+    "Protected off-site workspace/Auth/Storage backups and service-level disaster recovery are not completed here.",
+    "Connected OCR execution and SMTP delivery are not proven by these tests.",
+    "Hosted expired-session renewal and fully offline OCR are not claimed by the one hosted offline-seal test.",
+    "No SIH win, official 2026 rubric/deadline or departmental approval is certified."
+  ]
+}
