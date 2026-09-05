@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "kind": "ocr-root-cause-release-evidence-not-winner-certification",
+  "release": "0.4.6",
+  "rulePack": "LMPC-RC-2026.09-RC7",
+  "application": {
+    "sourceCommit": "a498a5d82e5f1e9630bea51b660dee757da888dd",
+    "origin": "https://niyamlens-sih26034.vercel.app",
+    "deploymentId": "dpl_4X9qPWM83qoWa2C3SMm6Z7pmQaXi",
+    "asset": "/assets/index-Cg8OAE2v.js",
+    "assetSha256": "f0d81ac6a5cf967f22cda7b98bf1b7d59f5f40eda05f0f7774f442646b844f7e",
+    "rollbackDeploymentId": "dpl_7fYuBtsKynoBXnZviVAZsPMf6vdW"
+  },
+  "ci": {
+    "url": "https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034/actions/runs/33977073670",
+    "status": "success",
+    "localRegressionTests": {
+      "passed": 683,
+      "failed": 0
+    }
+  },
+  "recognition": {
+    "isHoldout": false,
+    "humanReviewed": false,
+    "developmentPhotos": 8,
+    "eligibleFields": 10,
+    "rawExactExtractedFields": 1,
+    "automaticMachineCandidateMatches": 6,
+    "automaticTypedCorrections": false,
+    "automaticSuggestionSelections": false,
+    "automaticWrongValidEligibleFields": 0,
+    "checksetPhotos": 6,
+    "checksetExcludedFieldSlots": 18,
+    "checksetValidCandidates": 0,
+    "checksetPositiveDenominator": 0,
+    "checksetAccuracy": null,
+    "sensitiveMode": {
+      "photos": 8,
+      "rawExactExtractedFields": 2,
+      "selectedLayoutCandidateMatches": 6,
+      "eligibleFields": 10,
+      "selectionWasTestAutomationNotHumanReview": true,
+      "defaultEnabled": false
+    }
+  },
+  "verification": {
+    "realPrimaryBrowserWorkflowsPassed": 14,
+    "optionalSensitiveWorkflowsPassed": 8,
+    "detectorIsolationObservations": 16,
+    "numericMergeBrowserWorkflowsPassed": 3,
+    "generalUiRegressionPassed": true,
+    "syntheticFunctionalRegressionPassed": true,
+    "publicHealthReady": true,
+    "publicAnonymousCasesStatus": 401,
+    "publicDesktopMobileAnonymousRenderingPassed": true,
+    "hostedAuthenticatedOcrRerun": false
+  },
+  "sourceReports": [
+    {
+      "path": "reports/root-cause-2026-09-05/structured-ocr-browser-2026-09-05T16-06-07-628Z.json",
+      "sha256": "dccc5aad5556501749fc3aa41d541a9a3fd661f8103a016b5a58e78551a15ae7"
+    },
+    {
+      "path": "reports/root-cause-2026-09-05/structured-ocr-browser-checkset-2026-09-05T16-06-21-445Z.json",
+      "sha256": "faad5706c6eca1639fd234b201a77ea8124abace21305dffd2547c78cb4f0b7b"
+    },
+    {
+      "path": "reports/readiness-2026-09-05/paddle-review-browser-sensitive-detector-2026-09-05T16-04-27-911Z.json",
+      "sha256": "4700e075a61a90b562eb8d46f1ecfb457969dfb7fbed50902150a8933d1da6eb"
+    },
+    {
+      "path": "reports/readiness-2026-09-05/stamp-detection-probe-2026-09-05T15-44-28-038Z.json",
+      "sha256": "6e1aefe137fafc4bc0c022a45d522921cc66678c6a9d62636f99354707479459"
+    },
+    {
+      "path": "reports/root-cause-2026-09-05/numeric-merge-browser-2026-09-05T15-42-19-719Z.json",
+      "sha256": "68ab028e91e2e15aceab5f7aa486743e6485fd3846381a4c54ab8ab5f1f0cc5d"
+    },
+    {
+      "path": "reports/root-cause-2026-09-05/public-structured-after-2026-09-05T16-15-08-452Z.json",
+      "sha256": "bb7af73067191ba8c50ad24e0dbae0bab3cac27e54de1a870ab67b26ddb27139"
+    },
+    {
+      "path": "reports/root-cause-2026-09-05/public-structured-browser-2026-09-05T16-15-18-736Z.json",
+      "sha256": "8deba82e2011c5fde8df3f99c415cfebf3ae61404a8ea773c9c80b061c64d16d"
+    }
+  ],
+  "limitations": [
+    "Previously exposed development images with AI-provisional labels; no general or blind accuracy estimate.",
+    "Automatic candidate matches are not unchanged raw OCR, officer verification or automatic compliance.",
+    "Sensitive mode gains one MRP but loses another quantity association; no best-per-field aggregate is claimed.",
+    "No real-user timing, qualified legal/measurement sign-off or independent human labels were fabricated.",
+    "Public checks are bounded anonymous smoke checks, not a 15-minute monitoring window, hosted authenticated workflow or load test.",
+    "The verified offline download covers classic Tesseract, not separately verified Paddle offline readiness."
+  ]
+}
