@@ -1,6 +1,6 @@
 # Recognition recovery — 6 September 2026
 
-Status: version 0.4.7 implemented and locally tested; hosting publication is recorded separately below. This is engineering evidence, not a promise of winning SIH or a claim of independently measured accuracy.
+Status: version 0.4.7 implemented, tested, pushed and live. This is engineering evidence, not a promise of winning SIH or a claim of independently measured accuracy.
 
 ## Changes
 
@@ -52,6 +52,8 @@ The first new-photo reference and result were not rewritten after seeing failure
 
 RD-005 follow-up isolated the apparent timeout: the worker completed successfully with **zero detected text lines**, and the app immediately displayed “Paddle OCR found no readable text. Previous evidence was preserved.” The first benchmark waited only for a success message, so it misleadingly recorded a 180-second wait. The benchmark now records the terminal warning and worker response instead. This fixes the diagnostic, not the missed stamp; the first result remains unchanged and the field still counts as a failure.
 
+The corrected full eight-photo rerun retained the same **2/6** result and one recognition failure, now reported after about 5 seconds of end-to-end workflow rather than a 180-second success-only wait. The isolated baseline model inference took 878 ms. One sensitive retry took 1,131 ms and produced `F20:05P` and `/05/24`, still no valid packing date. Both received identical pixels. One wrong fragment had 99.34% engine confidence: confidence is not correctness. The sensitive test's initial draft sample raced the 350ms autosave debounce; final persisted original bytes/raw text/audit were verified, but that test does not prove pre-scan draft persistence. Its harness was corrected for future runs without inventing a rerun.
+
 Full local evidence:
 
 - First new-photo run: `reports/recapture-2026-09-06/structured-ocr-browser-unfamiliar-2026-09-06T08-20-43-427Z.json`.
@@ -71,3 +73,11 @@ Do not promote if CI/build fails, evidence changes without a valid audit, captur
 ## Still requires real participants
 
 Fresh independent labels, full-workflow physical-package timing and qualified legal/measurement review cannot be substituted by AI-labelled screenshots or synthetic tests. Existing human review kits remain separate; their results have not been invented.
+
+## Live release
+
+[Open NiyamLens](https://niyamlens-sih26034.vercel.app/). Application source: `19a838b81de56ac4ff03d3c7494e9f55aaa988cb`, branch `codex/managed-cloud-release`. [CI run 34022132746](https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034/actions/runs/34022132746) passed installation, tests, build, source/build model hashes and the production dependency audit.
+
+Vercel deployment `dpl_5kRGzthWjfKA1FR58EuikRhHrMiC` was promoted after a production **managed-mode** build, ready health response and denied anonymous case access. At 08:36 UTC the public site served `/assets/index-DrbHJ5to.js`, SHA-256 `fec7f1b84c62e48c64035a1c3bbeb76989d6e28e5f549129e05372c244c62c45`. All recovery markers were present; homepage/bundle/health returned 200 and anonymous cases returned 401. Fresh signed-out Chrome loaded that exact bundle at 1440px/390px with empty login controls, no page errors and no horizontal overflow.
+
+These are bounded public smoke checks, not a new authenticated hosted OCR study or a 15-minute monitoring window. [Compact evidence and source-report digests](../reports/recapture-release-2026-09-06/evidence.json) retain the failures as well as the passing checks. No account, permission, rule-pack or database changes were needed.

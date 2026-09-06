@@ -1,0 +1,255 @@
+{
+  "schemaVersion": 1,
+  "kind": "recapture-release-engineering-evidence-not-independent-accuracy",
+  "recordedAt": "2026-09-06T08:37:31.564Z",
+  "applicationVersion": "0.4.7",
+  "applicationCommit": "19a838b81de56ac4ff03d3c7494e9f55aaa988cb",
+  "rulePack": "LMPC-RC-2026.09-RC7",
+  "unitTests": {
+    "passed": 737,
+    "failed": 0
+  },
+  "ci": {
+    "id": 34022132746,
+    "conclusion": "success",
+    "url": "https://github.com/DuvvuruDeepakReddy18/NiyamLens-SIH26034/actions/runs/34022132746"
+  },
+  "discoveryFirst": {
+    "manifest": {
+      "path": "datasets/recapture-discovery-2026-09-06-retry1/critical-fields.json",
+      "sha256": "97f683e7974a7539fc784ade3c8b684b0e61d378965b682891824f247b2d9b7c"
+    },
+    "sourceUnchanged": true,
+    "referenceUnchanged": true,
+    "scoring": {
+      "kind": "automatic-unconfirmed-structured-candidates-not-raw-accuracy",
+      "humanReviewed": false,
+      "completedPhotos": 7,
+      "attemptedPhotos": 8,
+      "plannedPhotos": 8,
+      "failedPhotos": 1,
+      "exactCandidateMatches": 2,
+      "readableDenominator": 6,
+      "exactCandidateRate": null,
+      "positiveRecognitionAccuracy": null,
+      "positiveRecognitionAccuracyReason": "Provisional development candidate recovery, not independent recognition accuracy.",
+      "perField": {
+        "mrp": {
+          "readableDenominator": 1,
+          "exactCandidateMatches": 0,
+          "wrongValidCandidates": 0,
+          "unresolvedReadable": 1,
+          "missingOrFailedReadable": 0,
+          "excludedLabels": 7,
+          "excludedWithValidCandidates": 0
+        },
+        "netQuantity": {
+          "readableDenominator": 2,
+          "exactCandidateMatches": 2,
+          "wrongValidCandidates": 0,
+          "unresolvedReadable": 0,
+          "missingOrFailedReadable": 0,
+          "excludedLabels": 6,
+          "excludedWithValidCandidates": 0
+        },
+        "packDate": {
+          "readableDenominator": 3,
+          "exactCandidateMatches": 0,
+          "wrongValidCandidates": 0,
+          "unresolvedReadable": 2,
+          "missingOrFailedReadable": 1,
+          "excludedLabels": 5,
+          "excludedWithValidCandidates": 0
+        }
+      }
+    }
+  },
+  "discoveryFollowUp": {
+    "sourceUnchanged": true,
+    "referenceUnchanged": true,
+    "scoring": {
+      "kind": "automatic-unconfirmed-structured-candidates-not-raw-accuracy",
+      "humanReviewed": false,
+      "completedPhotos": 7,
+      "attemptedPhotos": 8,
+      "plannedPhotos": 8,
+      "failedPhotos": 1,
+      "exactCandidateMatches": 2,
+      "readableDenominator": 6,
+      "exactCandidateRate": null,
+      "positiveRecognitionAccuracy": null,
+      "positiveRecognitionAccuracyReason": "Provisional development candidate recovery, not independent recognition accuracy.",
+      "perField": {
+        "mrp": {
+          "readableDenominator": 1,
+          "exactCandidateMatches": 0,
+          "wrongValidCandidates": 0,
+          "unresolvedReadable": 1,
+          "missingOrFailedReadable": 0,
+          "excludedLabels": 7,
+          "excludedWithValidCandidates": 0
+        },
+        "netQuantity": {
+          "readableDenominator": 2,
+          "exactCandidateMatches": 2,
+          "wrongValidCandidates": 0,
+          "unresolvedReadable": 0,
+          "missingOrFailedReadable": 0,
+          "excludedLabels": 6,
+          "excludedWithValidCandidates": 0
+        },
+        "packDate": {
+          "readableDenominator": 3,
+          "exactCandidateMatches": 0,
+          "wrongValidCandidates": 0,
+          "unresolvedReadable": 2,
+          "missingOrFailedReadable": 1,
+          "excludedLabels": 5,
+          "excludedWithValidCandidates": 0
+        }
+      }
+    },
+    "failedRows": [
+      {
+        "sampleId": "RD-005",
+        "error": "Recognition ended without publishing fields: Paddle OCR found no readable text. Previous evidence was preserved.",
+        "elapsedMs": 5143
+      }
+    ]
+  },
+  "knownDevelopment": {
+    "scoring": {
+      "kind": "automatic-unconfirmed-structured-candidates-not-raw-accuracy",
+      "humanReviewed": false,
+      "completedPhotos": 8,
+      "attemptedPhotos": 8,
+      "plannedPhotos": 8,
+      "failedPhotos": 0,
+      "exactCandidateMatches": 6,
+      "readableDenominator": 10,
+      "exactCandidateRate": 0.6,
+      "positiveRecognitionAccuracy": null,
+      "positiveRecognitionAccuracyReason": "Provisional development candidate recovery, not independent recognition accuracy.",
+      "perField": {
+        "mrp": {
+          "readableDenominator": 3,
+          "exactCandidateMatches": 1,
+          "wrongValidCandidates": 0,
+          "unresolvedReadable": 2,
+          "missingOrFailedReadable": 0,
+          "excludedLabels": 5,
+          "excludedWithValidCandidates": 0
+        },
+        "netQuantity": {
+          "readableDenominator": 5,
+          "exactCandidateMatches": 4,
+          "wrongValidCandidates": 0,
+          "unresolvedReadable": 1,
+          "missingOrFailedReadable": 0,
+          "excludedLabels": 3,
+          "excludedWithValidCandidates": 0
+        },
+        "packDate": {
+          "readableDenominator": 2,
+          "exactCandidateMatches": 1,
+          "wrongValidCandidates": 0,
+          "unresolvedReadable": 1,
+          "missingOrFailedReadable": 0,
+          "excludedLabels": 6,
+          "excludedWithValidCandidates": 0
+        }
+      }
+    },
+    "rawExactMatches": [
+      {
+        "correct": 1,
+        "denominator": 10
+      }
+    ]
+  },
+  "assistedKnownStamp": {
+    "raw": "PKD:19/10/25",
+    "typedCorrections": false,
+    "independentAccuracy": false,
+    "requiresOfficerVerification": true
+  },
+  "hosting": {
+    "origin": "https://niyamlens-sih26034.vercel.app",
+    "deploymentId": "dpl_5kRGzthWjfKA1FR58EuikRhHrMiC",
+    "deploymentUrl": "https://niyamlens-sih26034-qkupba8qk-duvvurudeepakreddy18s-projects.vercel.app",
+    "asset": "/assets/index-DrbHJ5to.js",
+    "bundleSha256": "fec7f1b84c62e48c64035a1c3bbeb76989d6e28e5f549129e05372c244c62c45",
+    "smokeError": null,
+    "anonymousChromeErrors": [],
+    "rollbackDeploymentId": "dpl_4X9qPWM83qoWa2C3SMm6Z7pmQaXi"
+  },
+  "limits": [
+    "AI-provisional case-enriched references, not independent human ground truth or a representative sample.",
+    "The first unfamiliar run recovered only two of six eligible fields and retained a recognition failure. Later reruns are development evidence.",
+    "Compound-table display is read-only and does not increase automatic extraction accuracy.",
+    "No new authenticated hosted OCR or multi-account test, physical timing, qualified legal review or 15-minute monitoring window.",
+    "Source photos and full reports remain local; report digests are included here."
+  ],
+  "references": [
+    {
+      "path": "reports/recapture-2026-09-06/structured-ocr-browser-unfamiliar-2026-09-06T08-20-43-427Z.json",
+      "bytes": 276911,
+      "sha256": "3dc105098244218bfd8b21d8e09abb746c7a6355e9d46330af0750ec7edb67cf",
+      "kind": "actual-Chrome-primary-structured-candidates-NOT-RAW-OR-HUMAN-ACCURACY"
+    },
+    {
+      "path": "reports/recapture-2026-09-06/structured-ocr-browser-unfamiliar-2026-09-06T08-32-28-064Z.json",
+      "bytes": 277983,
+      "sha256": "fb88c6482a62a58d2fd18d740c2085a43cbfa9e89638a1ddfee0a7fcb5fc19fe",
+      "kind": "actual-Chrome-primary-structured-candidates-NOT-RAW-OR-HUMAN-ACCURACY"
+    },
+    {
+      "path": "reports/root-cause-2026-09-05/structured-ocr-browser-2026-09-06T08-21-38-674Z.json",
+      "bytes": 308800,
+      "sha256": "0a42ce6d5e74be5dba1af3b6e9736b908af53d9ac2bfc47b580416bfda91ba2b",
+      "kind": "actual-Chrome-primary-structured-candidates-NOT-RAW-OR-HUMAN-ACCURACY"
+    },
+    {
+      "path": "reports/root-cause-2026-09-06/known-stamp-focus-2026-09-06T08-21-29-522Z.json",
+      "bytes": 23975,
+      "sha256": "6d15306d9cd5e87ba541319bbd630baf5311c49b4a6113d43702fc17fd2afcf2",
+      "kind": "known-development-selected-stamp-UI-workflow-NOT-ACCURACY"
+    },
+    {
+      "path": "reports/root-cause-2026-09-06/compound-table-ui-2026-09-06T08-26-55-187Z.json",
+      "bytes": 38833,
+      "sha256": "90a3440e269512de61ff6376df5ded9d07cf478c473fba0b13084ffb6e931102",
+      "kind": "actual-Chrome-compound-table-diagnostic-NOT-ACCURACY"
+    },
+    {
+      "path": "reports/guided-recapture-2026-09-06/guided-recapture-2026-09-06T08-20-12-250Z.json",
+      "bytes": 7892,
+      "sha256": "58b7fe9291458e67d2cb98a0f57de4f2217d50bd0b281741ed33ef0c38bf152e",
+      "kind": "actual-Chromium-guided-recapture-SYNTHETIC-WORKFLOW-NOT-ACCURACY"
+    },
+    {
+      "path": "reports/recapture-2026-09-06/rd005-recovery-2026-09-06T08-29-28-654Z.json",
+      "bytes": 8248,
+      "sha256": "cb670eca959bc300b60b1711a4fd4b0ef785a58deba7bd12755f107fd4ced65d",
+      "kind": "RD005-follow-up-worker-and-UI-diagnostic-NOT-FRESH-ACCURACY"
+    },
+    {
+      "path": "reports/recapture-2026-09-06/rd005-recovery-2026-09-06T08-31-05-280Z.json",
+      "bytes": 23332,
+      "sha256": "711c68d9f0b56f9e54eb40de649d7fe6a02446c50f1ba79240c7420be218a6aa",
+      "kind": "RD005-follow-up-worker-and-UI-diagnostic-NOT-FRESH-ACCURACY"
+    },
+    {
+      "path": "reports/root-cause-2026-09-05/public-structured-after-2026-09-06T08-36-39-546Z.json",
+      "bytes": 2168,
+      "sha256": "092ddece9240e069719c70e0d86fadc0b42b2bc84844d011355423120cfb8dde",
+      "kind": "public-structured-release-anonymous-smoke"
+    },
+    {
+      "path": "reports/root-cause-2026-09-05/public-structured-browser-2026-09-06T08-36-39-281Z.json",
+      "bytes": 1401,
+      "sha256": "e43d4b6be655d9e13f8e7fd58881819c0fe54d01775cc5a0447cdaa0a4466f9f",
+      "kind": "public-structured-anonymous-browser-rendering-only"
+    }
+  ]
+}
