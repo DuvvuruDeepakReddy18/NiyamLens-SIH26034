@@ -11,7 +11,8 @@ import { extractDeclarations } from '../src/lib/extraction.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const retryMode = process.argv[2] || null
-if (retryMode !== null && !['dark-ink', 'dark-ink-90', 'sensitive-detector'].includes(retryMode)) throw new Error('Supported app retry modes: dark-ink, dark-ink-90 or sensitive-detector.')
+if (process.argv.length > 3 || retryMode !== null && !['dark-ink', 'dark-ink-90', 'dark-ink-180', 'dark-ink-270', 'sensitive-detector'].includes(retryMode)) throw new Error('Supported app retry modes: dark-ink, dark-ink-90, dark-ink-180, dark-ink-270 or sensitive-detector.')
+const retryRotation = ({ 'dark-ink': 0, 'dark-ink-90': 90, 'dark-ink-180': 180, 'dark-ink-270': 270 })[retryMode]
 const hash = value => createHash('sha256').update(value).digest('hex')
 const origin = localPilotOrigin(process.env.NIYAMLENS_BASE_URL || 'http://127.0.0.1:4191/')
 const manifestBytes = await readFile(resolve(root, 'datasets/critical-fields.v1.json'))
@@ -225,7 +226,7 @@ try {
         assert.equal(draft.panels[0].rawPasses[0].detectionProfile, 'sensitive')
         assert.deepEqual(draft.panels[0].rawPasses[0].detectionThresholds, { textDetThresh: .2, textDetBoxThresh: .4 })
         row.persistedDetection = { profile: draft.panels[0].rawPasses[0].detectionProfile, thresholds: draft.panels[0].rawPasses[0].detectionThresholds, strategy: draft.panels[0].rawPasses[0].strategy }
-      } else if (retryMode) assert.equal(draft.panels[0].rawPasses[0].strategy, `local-alternative-dark-ink-${retryMode === 'dark-ink-90' ? 90 : 0}`)
+      } else if (retryMode) assert.equal(draft.panels[0].rawPasses[0].strategy, `local-alternative-dark-ink-${retryRotation}`)
       assert.ok(Object.values(draft.fieldReviews || {}).every(review => review.state !== 'confirmed'))
       assert.ok(Object.values(draft.confirmations).every(value => value !== true))
       assert.deepEqual(pageErrors, [])

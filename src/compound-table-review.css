@@ -1,0 +1,13 @@
+.compound-table-review { margin: 20px 0; padding: 16px; border: 1px solid #c8b897; border-radius: 10px; background: #fffcf2; min-width: 0; }
+.compound-table-review article { padding-top: 6px; min-width: 0; }
+.compound-table-review h5 { margin: 20px 0 8px; font-size: 14px; }
+.compound-table-review .compound-candidate { font-size: 16px; color: #634516; }
+.compound-table-review .compound-unresolved { color: #853d22; font-weight: 600; }
+.compound-table-review ol { padding-left: 24px; }
+.compound-table-review li { margin: 8px 0; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.compound-table-review code { white-space: pre-wrap; overflow-wrap: anywhere; }
+.compound-table-source { display: block; width: 100%; max-height: 500px; border: 1px solid #cec8b6; border-radius: 8px; background: #eceee7; }
+.compound-table-source polygon { vector-effect: non-scaling-stroke; stroke-width: 2; }
+.compound-table-source .compound-heading { stroke: #b65300; fill: #ffad0014; }
+.compound-table-source .compound-value { stroke: #006398; fill: #008cff14; }
+@media (max-width: 550px) { .compound-table-review { padding: 12px; } }

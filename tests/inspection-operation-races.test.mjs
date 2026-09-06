@@ -5,6 +5,7 @@ import { runInNewContext } from 'node:vm'
 import { appendAuditEvent, verifyAuditChain } from '../src/lib/audit.mjs'
 import { abortError, throwIfAborted } from '../src/lib/ocrLifecycle.mjs'
 import { EMPTY_OCR, invalidateCapturedEvidence } from '../src/lib/inspectionWorkflow.mjs'
+import { validateCloseUpCapture } from '../src/lib/captureCoach.mjs'
 
 // These are exact-current-closure software tests, NOT React, browser, image
 // decoding, or device tests. Only the component's relevant JS declarations are
@@ -40,17 +41,23 @@ async function harness({ empty = false, pauseType = '', pauseOccurrence = 1, fai
     focusResult: null, paddlePreview: null,
   }
   const entered = deferred(); const release = deferred(); let occurrences = 0
+  const captureCalls = []
   const context = {
     ...state, saved: false, saving: false, workspace: null, challenge: null,
     activeEvidence: state.evidenceItems[0], actor: { id: 'officer' },
     activeJob: { current: null }, auditRef: { current: oldChain }, auditQueue: { current: Promise.resolve() }, auditGeneration: { current: 0 },
     fileInput: { current: { value: 'selected-file' } },
-    AbortController, abortError, throwIfAborted, EMPTY_OCR, INITIAL_META: {}, invalidateCapturedEvidence,
+    AbortController, abortError, throwIfAborted, EMPTY_OCR, INITIAL_META: {}, invalidateCapturedEvidence, validateCloseUpCapture,
     CAPTURE_REQUIREMENTS: [{ id: 'front' }, { id: 'back' }, { id: 'side' }],
     createInspectionId: () => 'new-id', processImage: async () => 'new-image',
     analyzeImageQuality: async () => ({ width: 100, height: 100, score: 80 }),
     boundedOcr: async promise => promise,
-    evidenceFromFile: async file => photo(file.id),
+    evidenceFromFile: async (file, options) => {
+      captureCalls.push({ file, options })
+      if (pauseType === 'evidence_decode') { entered.resolve(); await release.promise }
+      if (failType === 'evidence_decode') throw new Error('Injected image decoding failure')
+      return photo(file.id)
+    },
     appendAuditEvent: async (...args) => {
       if (args[1] === failType) throw new Error('Injected audit failure')
       if (args[1] === pauseType && ++occurrences === pauseOccurrence) { entered.resolve(); await release.promise }
@@ -77,7 +84,7 @@ async function harness({ empty = false, pauseType = '', pauseOccurrence = 1, fai
     await task
     await context.auditQueue.current
   }
-  return { context, state, handlers, entered, release, cancel, oldChain, setters }
+  return { context, state, handlers, entered, release, cancel, oldChain, setters, captureCalls }
 }
 
 function assertPreserved(h, expectedPhotoCount = 1) {
@@ -189,5 +196,106 @@ for (const scenario of ['cancel', 'new-inspection', 'unmount']) {
       await h.handlers.recordAudit('inspection_started')
       assert.deepEqual(h.context.auditRef.current.map(event => event.type), ['inspection_started'])
     } else assert.equal(h.context.auditRef.current[0].hash, h.oldChain[0].hash)
+  })
+}
+
+for (const target of ['mrp', 'netQuantity', 'packDate']) {
+  test(`guided ${target} close-up adds one source photo without replacing previous readings or fabricating an OCR answer`, async () => {
+    const h = await harness()
+    const oldPhoto = h.state.evidenceItems[0]
+    oldPhoto.ocrText = 'OLD UNCHANGED READING'
+    oldPhoto.ocrPasses = [{ text: 'OLD RAW PASS', provider: 'fixture' }]
+    const before = structuredClone(oldPhoto)
+    h.state.meta.fieldReviews = { [target]: { state: 'confirmed', value: 'old', reason: 'Previous photo review' } }
+    h.state.meta.measurementConfirmed = true
+    await h.handlers.handleFiles([{ id: 'new-close-up' }], { captureTarget: target })
+    assert.equal(h.state.inspectionId, 'old-id')
+    assert.equal(h.state.evidenceItems.length, 2)
+    assert.deepEqual(h.state.evidenceItems[0], before)
+    assert.equal(h.state.evidenceItems[1].id, 'new-close-up')
+    assert.equal(h.state.text, 'ORIGINAL TEXT')
+    assert.equal(h.state.rawOcrText, 'ORIGINAL RAW')
+    assert.equal(h.captureCalls.length, 1)
+    assert.ok(h.captureCalls[0].options.signal instanceof AbortSignal)
+    assert.equal(h.state.meta.measurementConfirmed, false)
+    assert.deepEqual(h.state.meta.fieldReviews, {})
+    assert.deepEqual(h.context.auditRef.current.map(event => event.type), ['old_observation', 'evidence_captured'])
+    const captured = h.context.auditRef.current[1].payload
+    assert.deepEqual(captured.capturePurpose, { target, kind: 'officer-requested-additional-close-up', originalEvidencePreserved: true, suppliesOcrAnswer: false })
+    assert.equal(captured.sha256, h.state.evidenceItems[1].sha256)
+    assert.equal(Object.hasOwn(captured, 'value'), false)
+    assert.equal(Object.hasOwn(h.state.evidenceItems[1], 'ocrText'), false)
+    assert.equal(await verifyAuditChain(h.context.auditRef.current), true)
+    assert.match(h.state.ocrState.label, /previous photographs and readings retained/)
+  })
+}
+
+for (const scenario of [
+  { name: 'unsupported declaration target', target: 'expiryDate', count: 1 },
+  { name: 'attempted replacement of original evidence', target: 'mrp', count: 1, replaceId: 'old-photo' },
+  { name: 'multiple selected photos', target: 'mrp', count: 2 },
+  { name: 'multiple photos despite only one remaining slot', target: 'mrp', count: 2, panelCount: 3 },
+]) {
+  test(`guided capture rejects ${scenario.name} before image work or audit`, async () => {
+    const h = await harness()
+    while (h.state.evidenceItems.length < (scenario.panelCount || 1)) h.state.evidenceItems.push(photo(`prior-${h.state.evidenceItems.length}`))
+    const previousMeta = structuredClone(h.state.meta)
+    await h.handlers.handleFiles(Array.from({ length: scenario.count }, (_, i) => ({ id: `new-${i}` })), { captureTarget: scenario.target, replaceId: scenario.replaceId || '' })
+    assertPreserved(h, scenario.panelCount || 1)
+    assert.deepEqual(h.state.meta, previousMeta)
+    assert.equal(h.captureCalls.length, 0)
+    assert.equal(h.context.activeJob.current, null)
+    assert.equal(h.context.auditRef.current.length, 1)
+    assert.match(h.state.ocrState.error, /close-up|one new close-up/)
+  })
+}
+
+test('guided close-up at the four-panel limit cannot drop an earlier panel or start decoding', async () => {
+  const h = await harness()
+  while (h.state.evidenceItems.length < 4) h.state.evidenceItems.push(photo(`prior-${h.state.evidenceItems.length}`))
+  const before = structuredClone(h.state.evidenceItems)
+  await h.handlers.handleFiles([{ id: 'fifth' }], { captureTarget: 'mrp' })
+  assertPreserved(h, 4)
+  assert.deepEqual(h.state.evidenceItems, before)
+  assert.equal(h.captureCalls.length, 0)
+  assert.equal(h.context.auditRef.current.length, 1)
+  assert.equal(h.setters.length, 0)
+})
+
+test('guided close-up without an original panel cannot create a falsely linked first capture', async () => {
+  const h = await harness({ empty: true })
+  await h.handlers.handleFiles([{ id: 'ungrounded-close-up' }], { captureTarget: 'packDate' })
+  assertPreserved(h, 0)
+  assert.equal(h.captureCalls.length, 0)
+  assert.equal(h.context.auditRef.current.length, 1)
+  assert.match(h.state.ocrState.error, /needs a captured panel/)
+})
+
+for (const pauseType of ['evidence_decode', 'evidence_captured']) {
+  test(`guided close-up cancellation during ${pauseType} preserves all original evidence and records no successful capture`, async () => {
+    const h = await harness({ pauseType })
+    const oldMeta = structuredClone(h.state.meta)
+    const before = structuredClone(h.state.evidenceItems)
+    await h.cancel(h.handlers.handleFiles([{ id: 'cancelled-close-up' }], { captureTarget: 'netQuantity' }))
+    assertPreserved(h)
+    assert.deepEqual(h.state.evidenceItems, before)
+    assert.deepEqual(h.state.meta, oldMeta)
+    assert.equal(h.captureCalls.length, 1)
+    assert.equal(h.captureCalls[0].options.signal.aborted, true)
+    assert.deepEqual(h.context.auditRef.current.map(event => event.type), ['old_observation', 'processing_cancelled'])
+    assert.equal(await verifyAuditChain(h.context.auditRef.current), true)
+    assert.equal(h.context.activeJob.current, null)
+  })
+}
+
+for (const failType of ['evidence_decode', 'evidence_captured']) {
+  test(`guided close-up ${failType} failure publishes no image or partial capture purpose`, async () => {
+    const h = await harness({ failType })
+    const oldMeta = structuredClone(h.state.meta)
+    await h.handlers.handleFiles([{ id: 'failed-close-up' }], { captureTarget: 'mrp' })
+    assertPreserved(h)
+    assert.deepEqual(h.state.meta, oldMeta)
+    assert.deepEqual(h.context.auditRef.current.map(event => event.type), ['old_observation'])
+    assert.match(h.state.ocrState.error, /Injected/)
   })
 }

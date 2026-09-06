@@ -1,0 +1,651 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "niyamlens-recapture-discovery-2026-09-06",
+  "createdOn": "2026-09-06",
+  "purpose": "Newly acquired, case-enriched engineering discovery sample: positive declarations plus incomplete-capture, dual-price, unit-price and field-association diagnostics. This is not a representative or independently adjudicated accuracy benchmark.",
+  "corpusRole": "prospectively-frozen-ai-discovery-corpus",
+  "isHoldout": false,
+  "positiveRecognitionEvaluationReady": true,
+  "annotation": {
+    "labeler": "Single AI visual inspection",
+    "status": "provisional-human-review-required",
+    "humanReviewed": false,
+    "independentGroundTruth": false,
+    "method": "Inspected exact downloaded photographs with view_image, including original-detail inspection where needed, before any OCR on these sources. No catalogue quantities, OCR sidecars, external model outputs, human labels, or arithmetic-derived values were consulted. Approximate locations aid visual review; they are not measured glyph geometry.",
+    "newOcrOutputsConsultedBeforeFreeze": false,
+    "selection": "One India-tagged metadata page; up to eight new SKUs and two originals per SKU, followed by one authorized batch of eight further observed originals from the same SKUs. 21 originals retained; eight useful photos selected before OCR, all retained/rejected reasons preserved. OFF packaging-role and late images often showed only symbols, so earlier originals were screened. Case-enriched purposive selection, not random or prevalence-estimating.",
+    "priorExposureDisclosure": "Product IDs and exact hashes are disjoint from the recorded development inventory and frozen 24-photo AI kit. A repository-reference search before image acquisition found these eight product codes only in the new metadata. Pretrained-model training exposure is unknown. Annotation is one AI opinion, not Arif, Tharun, or independent humans.",
+    "sameProductCodeIsNotSamePhysicalPackage": true,
+    "freezeRule": "Do not amend this manifest after the first recognition run. A later correction needs a new version, old/new values, reason and reviewer. Every new image requires a new source hash."
+  },
+  "split": {
+    "unit": "productCode",
+    "sampleCount": 8,
+    "uniqueProductCount": 6,
+    "overlappingProductCount": 0,
+    "independentGroundTruth": false,
+    "excludedProductCount": 46,
+    "excludedImageHashCount": 159,
+    "exclusionRecord": "datasets/recapture-discovery-2026-09-06-retry1/metadata-acquisition.json",
+    "exclusionInventorySha256": "21e235d916e7e08cfe4cd01784ebdea32a5c5394f2a34781fd16bbe60ed20212",
+    "frozenSelectionSha256": "5ab414283be033a1fb294cea97e0560c907f15aeb1aed152f14684ff0033444d",
+    "frozenImagesRead": false
+  },
+  "source": {
+    "name": "New public Open Food Facts numeric original images acquired 2026-09-06",
+    "pathBase": "repository-root",
+    "imageLicense": "CC BY-SA 3.0",
+    "databaseLicense": "ODbL 1.0",
+    "links": {
+      "api": "https://openfoodfacts.github.io/openfoodfacts-server/api/",
+      "images": "https://openfoodfacts.github.io/openfoodfacts-server/api/how-to-download-images/",
+      "mirror": "https://openfoodfacts.github.io/openfoodfacts-server/api/aws-images-dataset/",
+      "license": "https://openfoodfacts.github.io/openfoodfacts-server/api/tutorials/license-be-on-the-legal-side/",
+      "imageLicense": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "databaseLicense": "https://opendatacommons.org/licenses/odbl/1-0/"
+    },
+    "attribution": "Open Food Facts contributors; each uploader and direct original/product URL is retained. Packaging artwork may carry third-party rights. OFF original means numeric original image, not a camera/EXIF-authenticity assertion. Upload dates are not capture dates.",
+    "acquisitionReports": [
+      "datasets/recapture-discovery-2026-09-06/metadata-acquisition.json",
+      "datasets/recapture-discovery-2026-09-06-retry1/metadata-acquisition.json",
+      "datasets/recapture-discovery-2026-09-06-retry1/photo-acquisition.json",
+      "datasets/recapture-discovery-2026-09-06-retry1/photo-acquisition-extra.json"
+    ]
+  },
+  "scoringPolicy": {
+    "unitOfEvaluation": "individual-photograph",
+    "criticalFields": [
+      "mrp",
+      "netQuantity",
+      "packDate"
+    ],
+    "denominator": "Only complete readable values with their field identity supported in the exact source image enter the positive denominator. Ambiguous, illegible and not-visible fields are excluded, not counted as correct negatives. Do not transfer heading/value answers across separate photos.",
+    "expectedValues": "Literal printed values only; no inferred centuries, unit-price arithmetic, nutrition multiplication, hidden-heading completion or legal verdicts.",
+    "expectedReadableDenominators": {
+      "mrp": 1,
+      "netQuantity": 2,
+      "packDate": 3
+    },
+    "conflictRepresentation": "Dual-MRP field is ambiguous_field with both literal prices recorded and excluded from single-value accuracy. A conflict-free forced answer is not expected.",
+    "legalVerdictsLabelled": false,
+    "falseClearRate": null,
+    "claimsAllowed": "Prospectively frozen single-AI engineering diagnostic on this case-enriched sample only. No independent human accuracy, overall field reliability, legal correctness, measurement validity or real-user productivity claim."
+  },
+  "samples": [
+    {
+      "id": "RD-001",
+      "productCode": "8908010900070",
+      "productLabel": "Pintola all natural peanut butter (crunchy)",
+      "productUrl": "https://world.openfoodfacts.org/product/8908010900070",
+      "panelId": "off:8908010900070:9",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8908010900070-9.jpg",
+      "sourceUrl": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/890/801/090/0070/9.jpg",
+      "sha256": "3cc3627d0979edf81790348e1965661bc22e75aba8c26d244b41a2f66cd3eaa1",
+      "imageSize": {
+        "width": 1909,
+        "height": 3434,
+        "bytes": 1614863
+      },
+      "sourceAttribution": {
+        "name": "Open Food Facts contributors",
+        "uploader": "abishek",
+        "imageLicense": "CC BY-SA 3.0",
+        "databaseLicense": "ODbL 1.0",
+        "acquiredAt": "2026-09-06T08:07:21.128Z",
+        "uploadedAt": "2026-01-09T16:34:40.000Z",
+        "capturedAt": null,
+        "bytesReencoded": false
+      },
+      "humanReviewRequired": true,
+      "conditions": [
+        "curved jar",
+        "clear print with overprinted stamp",
+        "two MRP values",
+        "staggered table"
+      ],
+      "expectedStatus": null,
+      "expectedValues": {
+        "packDate": "14/11/2025"
+      },
+      "fields": {
+        "mrp": {
+          "status": "ambiguous_field",
+          "metricEligible": false,
+          "value": null,
+          "surface": "MRP ₹449.00; NEW MRP RS.420.00 (USP 0.42/g)",
+          "notes": "Two distinct explicit prices are visible: printed MRP 449.00 and overprinted NEW MRP RS.420.00. Conflict diagnostic only; no forced single price and no legal adjudication."
+        },
+        "netQuantity": {
+          "status": "not_visible",
+          "metricEligible": false,
+          "value": null,
+          "surface": null,
+          "notes": "No complete net-weight declaration is visible in this side photograph. Do not infer 1 kg by dividing MRP by unit price."
+        },
+        "packDate": {
+          "status": "readable",
+          "metricEligible": true,
+          "value": "14/11/2025",
+          "surface": "MFG. DATE: 14/11/2025",
+          "notes": "Literal dated stamp beneath batch number 53180120, before USE BY 13/08/2026. Heading/value column baselines are staggered.",
+          "location": "Lower left declaration panel, approximately x=0.14–0.52 y=0.71–0.78"
+        }
+      },
+      "otherVisibleReadings": [
+        {
+          "kind": "price-conflict",
+          "values": [
+            "449.00",
+            "420.00"
+          ],
+          "surface": "MRP ₹449.00 / NEW MRP RS.420.00",
+          "requiresHumanAdjudication": true
+        },
+        {
+          "kind": "use-by",
+          "value": "13/08/2026",
+          "surface": "USE BY: 13/08/2026",
+          "notPackingDate": true
+        }
+      ]
+    },
+    {
+      "id": "RD-002",
+      "productCode": "8906004562389",
+      "productLabel": "Yellow Diamond Plain Sev Mamra",
+      "productUrl": "https://world.openfoodfacts.org/product/8906004562389",
+      "panelId": "off:8906004562389:5",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8906004562389-5.jpg",
+      "sourceUrl": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/890/600/456/2389/5.jpg",
+      "sha256": "374e6ed2c572aca71f55d701d7be37308904b4831b46167f93d7a3fc7034a495",
+      "imageSize": {
+        "width": 3000,
+        "height": 4000,
+        "bytes": 3146244
+      },
+      "sourceAttribution": {
+        "name": "Open Food Facts contributors",
+        "uploader": "smoothie-app",
+        "imageLicense": "CC BY-SA 3.0",
+        "databaseLicense": "ODbL 1.0",
+        "acquiredAt": "2026-09-06T08:07:31.692Z",
+        "uploadedAt": "2025-02-28T05:26:39.000Z",
+        "capturedAt": null,
+        "bytesReencoded": false
+      },
+      "humanReviewRequired": true,
+      "conditions": [
+        "wrinkled pouch",
+        "wrapped/cropped headings",
+        "glare",
+        "nutrition distractors",
+        "small stamp"
+      ],
+      "expectedStatus": null,
+      "expectedValues": {},
+      "fields": {
+        "mrp": {
+          "status": "ambiguous_field",
+          "metricEligible": false,
+          "value": null,
+          "surface": "₹5.00; partial inclusive-of-taxes text",
+          "notes": "₹5.00 is readable, but the MRP heading at the extreme left wraps away/occludes. Do not score complete field association from a repaired heading."
+        },
+        "netQuantity": {
+          "status": "ambiguous_field",
+          "metricEligible": false,
+          "value": null,
+          "surface": "22g; partial QUANTITY",
+          "notes": "22g is readable and part of QUANTITY is visible, but the full heading is wrapped away; stamped values and partial headings are vertically offset. Preserve the numeric observation without silently completing NET QUANTITY."
+        },
+        "packDate": {
+          "status": "ambiguous_field",
+          "metricEligible": false,
+          "value": null,
+          "surface": "25/01/25; 25/06/25",
+          "notes": "25/01/25 and 25/06/25 are readable, but their manufacturing/use-by headings wrap away. No declared packing-date identity is fully visible."
+        }
+      },
+      "otherVisibleReadings": [
+        {
+          "kind": "visible-unassigned-price",
+          "value": "5.00",
+          "surface": "₹5.00"
+        },
+        {
+          "kind": "visible-unassigned-mass",
+          "value": "22 g",
+          "surface": "22g"
+        },
+        {
+          "kind": "visible-unassigned-dates",
+          "values": [
+            "25/01/25",
+            "25/06/25"
+          ],
+          "surface": "DM2 25/01/25 25/06/25"
+        }
+      ]
+    },
+    {
+      "id": "RD-003",
+      "productCode": "8906008818611",
+      "productLabel": "Fortune Soya Health refined soyabean oil - stamp",
+      "productUrl": "https://world.openfoodfacts.org/product/8906008818611",
+      "panelId": "off:8906008818611:10",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8906008818611-10.jpg",
+      "sourceUrl": "https://images.openfoodfacts.org/images/products/890/600/881/8611/10.jpg",
+      "sha256": "9711eda3de52b1704196b65b28f820a8c2033ddd4d1597eb9b9337e2b987dee1",
+      "imageSize": {
+        "width": 2992,
+        "height": 773,
+        "bytes": 205456
+      },
+      "sourceAttribution": {
+        "name": "Open Food Facts contributors",
+        "uploader": "chunkieramos",
+        "imageLicense": "CC BY-SA 3.0",
+        "databaseLicense": "ODbL 1.0",
+        "acquiredAt": "2026-09-06T08:07:43.633Z",
+        "uploadedAt": "2026-09-05T11:23:31.000Z",
+        "capturedAt": null,
+        "bytesReencoded": false
+      },
+      "humanReviewRequired": true,
+      "conditions": [
+        "dot-matrix stamp",
+        "headings outside source",
+        "wide crop"
+      ],
+      "expectedStatus": null,
+      "expectedValues": {},
+      "fields": {
+        "mrp": {
+          "status": "ambiguous_field",
+          "metricEligible": false,
+          "value": null,
+          "surface": "170.00 (USP ₹0.23 per g)",
+          "notes": "170.00 appears before USP ₹0.23 per g, but this cropped stamp photo does not contain the MRP heading. Do not borrow the heading from RD-004 for individual-photo scoring."
+        },
+        "netQuantity": {
+          "status": "ambiguous_field",
+          "metricEligible": false,
+          "value": null,
+          "surface": "750g | 55 Servings",
+          "notes": "750g is visible beside 55 Servings. This cropped photo omits NET QUANTITY. A separate same-SKU heading photo is context, not proof of the same physical package."
+        },
+        "packDate": {
+          "status": "ambiguous_field",
+          "metricEligible": false,
+          "value": null,
+          "surface": "14AUG2026 & 13MAY2027",
+          "notes": "14AUG2026 & 13MAY2027 are visible, but packing/use-by headings are outside the stamp crop; do not derive their role from chronology."
+        }
+      },
+      "otherVisibleReadings": [
+        {
+          "kind": "visible-unassigned-price",
+          "value": "170.00",
+          "surface": "170.00"
+        },
+        {
+          "kind": "visible-unassigned-mass",
+          "value": "750 g",
+          "surface": "750g"
+        },
+        {
+          "kind": "visible-unassigned-dates",
+          "values": [
+            "14AUG2026",
+            "13MAY2027"
+          ],
+          "surface": "14AUG2026 & 13MAY2027"
+        }
+      ]
+    },
+    {
+      "id": "RD-004",
+      "productCode": "8906008818611",
+      "productLabel": "Fortune Soya Health refined soyabean oil - heading panel",
+      "productUrl": "https://world.openfoodfacts.org/product/8906008818611",
+      "panelId": "off:8906008818611:9",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8906008818611-9.jpg",
+      "sourceUrl": "https://images.openfoodfacts.org/images/products/890/600/881/8611/9.jpg",
+      "sha256": "7d046c9588ba86e98dace485b1a46ecc0f1571d4afd24653ddb35346c720758f",
+      "imageSize": {
+        "width": 1774,
+        "height": 2596,
+        "bytes": 669663
+      },
+      "sourceAttribution": {
+        "name": "Open Food Facts contributors",
+        "uploader": "chunkieramos",
+        "imageLicense": "CC BY-SA 3.0",
+        "databaseLicense": "ODbL 1.0",
+        "acquiredAt": "2026-09-06T08:07:47.006Z",
+        "uploadedAt": "2026-09-05T11:23:03.000Z",
+        "capturedAt": null,
+        "bytesReencoded": false
+      },
+      "humanReviewRequired": true,
+      "conditions": [
+        "pouch side panel",
+        "value located elsewhere",
+        "nutrition distractors",
+        "mild blur"
+      ],
+      "expectedStatus": null,
+      "expectedValues": {},
+      "fields": {
+        "mrp": {
+          "status": "not_visible",
+          "metricEligible": false,
+          "value": null,
+          "surface": "MRP ₹ ... SEE SIDE",
+          "notes": "MRP ₹ heading is visible with a SEE SIDE bracket, but the price value is outside this photograph."
+        },
+        "netQuantity": {
+          "status": "not_visible",
+          "metricEligible": false,
+          "value": null,
+          "surface": "NET QUANTITY ... SEE SIDE",
+          "notes": "NET QUANTITY heading points to SEE SIDE; the quantity value is not in this photograph. Serving-size 15 ml/13.65 g is not net quantity."
+        },
+        "packDate": {
+          "status": "not_visible",
+          "metricEligible": false,
+          "value": null,
+          "surface": "DATE OF PACKAGING & USE BY ... SEE SIDE",
+          "notes": "DATE OF PACKAGING & USE BY headings point to SEE SIDE; their date values are outside this photograph."
+        }
+      },
+      "otherVisibleReadings": []
+    },
+    {
+      "id": "RD-005",
+      "productCode": "8906080603938",
+      "productLabel": "Paper Boat Swing+ Slurpy Mango - stamp",
+      "productUrl": "https://world.openfoodfacts.org/product/8906080603938",
+      "panelId": "off:8906080603938:7",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8906080603938-7.jpg",
+      "sourceUrl": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/890/608/060/3938/7.jpg",
+      "sha256": "5cba83833d175fd0b8ca29b547f17389050fb3126dfd252d014bcc0d158bf8f3",
+      "imageSize": {
+        "width": 3069,
+        "height": 1961,
+        "bytes": 1297499
+      },
+      "sourceAttribution": {
+        "name": "Open Food Facts contributors",
+        "uploader": "chunkieramos",
+        "imageLicense": "CC BY-SA 3.0",
+        "databaseLicense": "ODbL 1.0",
+        "acquiredAt": "2026-09-06T08:07:50.676Z",
+        "uploadedAt": "2024-01-13T13:32:52.000Z",
+        "capturedAt": null,
+        "bytesReencoded": false
+      },
+      "humanReviewRequired": true,
+      "conditions": [
+        "curved bottle",
+        "dot-matrix stamp",
+        "close-up",
+        "yellow low-contrast background"
+      ],
+      "expectedStatus": null,
+      "expectedValues": {
+        "packDate": "15/11/23"
+      },
+      "fields": {
+        "mrp": {
+          "status": "not_visible",
+          "metricEligible": false,
+          "value": null,
+          "surface": null,
+          "notes": "No MRP or price value is visible in the photographed stamp."
+        },
+        "netQuantity": {
+          "status": "not_visible",
+          "metricEligible": false,
+          "value": null,
+          "surface": null,
+          "notes": "No net quantity declaration is visible in the photographed stamp."
+        },
+        "packDate": {
+          "status": "readable",
+          "metricEligible": true,
+          "value": "15/11/23",
+          "surface": "MFD: 15/11/23",
+          "notes": "The manufacturing-date prefix and date are readable in the top dot-matrix line. The time and batch number are not part of the date. Preserve the printed two-digit year.",
+          "location": "Top stamp line approximately x=0.04–0.72 y=0.24–0.58"
+        }
+      },
+      "otherVisibleReadings": [
+        {
+          "kind": "use-by",
+          "value": "14/06/24",
+          "surface": "USE BY:14/06/24",
+          "notPackingDate": true
+        }
+      ]
+    },
+    {
+      "id": "RD-006",
+      "productCode": "8906080603938",
+      "productLabel": "Paper Boat Swing+ Slurpy Mango - quantity panel",
+      "productUrl": "https://world.openfoodfacts.org/product/8906080603938",
+      "panelId": "off:8906080603938:6",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8906080603938-6.jpg",
+      "sourceUrl": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/890/608/060/3938/6.jpg",
+      "sha256": "01f809ab58916499c6423f2430e2e19e56f4a85db5d32bfaf43e359a19b55489",
+      "imageSize": {
+        "width": 2292,
+        "height": 4464,
+        "bytes": 3251858
+      },
+      "sourceAttribution": {
+        "name": "Open Food Facts contributors",
+        "uploader": "chunkieramos",
+        "imageLicense": "CC BY-SA 3.0",
+        "databaseLicense": "ODbL 1.0",
+        "acquiredAt": "2026-09-06T08:07:55.306Z",
+        "uploadedAt": "2024-01-13T13:32:43.000Z",
+        "capturedAt": null,
+        "bytesReencoded": false
+      },
+      "humanReviewRequired": true,
+      "conditions": [
+        "curved bottle",
+        "complete quantity heading",
+        "dense manufacturer addresses",
+        "yellow background"
+      ],
+      "expectedStatus": null,
+      "expectedValues": {
+        "netQuantity": "250 ml"
+      },
+      "fields": {
+        "mrp": {
+          "status": "not_visible",
+          "metricEligible": false,
+          "value": null,
+          "surface": null,
+          "notes": "No MRP value is visible in this manufacturer/quantity panel."
+        },
+        "netQuantity": {
+          "status": "readable",
+          "metricEligible": true,
+          "value": "250 ml",
+          "surface": "NET QUANTITY: 250 ml",
+          "notes": "Complete heading and volume are visible near the bottom. Do not infer a package size from the product catalogue.",
+          "location": "Near bottom above barcode, approximately x=0.02–0.70 y=0.80–0.89"
+        },
+        "packDate": {
+          "status": "not_visible",
+          "metricEligible": false,
+          "value": null,
+          "surface": null,
+          "notes": "Manufacturer addresses and batch-number instructions are not a visible manufacture/packing date."
+        }
+      },
+      "otherVisibleReadings": []
+    },
+    {
+      "id": "RD-007",
+      "productCode": "8901725015275",
+      "productLabel": "Sunfeast Dark Fantasy Choco Fills",
+      "productUrl": "https://world.openfoodfacts.org/product/8901725015275",
+      "panelId": "off:8901725015275:9",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos-extra/8901725015275-9.jpg",
+      "sourceUrl": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/890/172/501/5275/9.jpg",
+      "sha256": "8c464eed41c7d3cd85b5380e6b72aeb0917398527df961888b33dc9820b5a39d",
+      "imageSize": {
+        "width": 4223,
+        "height": 1103,
+        "bytes": 1466896
+      },
+      "sourceAttribution": {
+        "name": "Open Food Facts contributors",
+        "uploader": "abishek",
+        "imageLicense": "CC BY-SA 3.0",
+        "databaseLicense": "ODbL 1.0",
+        "acquiredAt": "2026-09-06T08:11:04.391Z",
+        "uploadedAt": "2025-12-24T10:42:24.000Z",
+        "capturedAt": null,
+        "bytesReencoded": false
+      },
+      "humanReviewRequired": true,
+      "conditions": [
+        "wide side panel",
+        "dense small print",
+        "staggered heading/value table",
+        "net multipack total",
+        "unit-price distractor"
+      ],
+      "expectedStatus": null,
+      "expectedValues": {
+        "mrp": "35.00",
+        "netQuantity": "69 g",
+        "packDate": "30/11/25"
+      },
+      "fields": {
+        "mrp": {
+          "status": "readable",
+          "metricEligible": true,
+          "value": "35.00",
+          "surface": "MRP Rs. incl. of all taxes/(Rs. per g) ... 35.00 /(0.51)",
+          "notes": "The right-hand declaration table prints MRP 35.00 and unit price 0.51. Unit price is not another package MRP. Heading and stamped value column use different line spacing.",
+          "location": "Bottom right, approximately x=0.65–0.94 y=0.69–0.98"
+        },
+        "netQuantity": {
+          "status": "readable",
+          "metricEligible": true,
+          "value": "69 g",
+          "surface": "NET WEIGHT: 69 g (6 PACKS X 11.5 g)",
+          "notes": "69 g is explicitly printed as the total net weight; it is not computed from six packs.",
+          "location": "Upper right, approximately x=0.65–0.80 y=0.34–0.48"
+        },
+        "packDate": {
+          "status": "readable",
+          "metricEligible": true,
+          "value": "30/11/25",
+          "surface": "PKD.: ... 30/11/25",
+          "notes": "Ordered declaration table: Batch No. (10:13 01A36), PKD. (30/11/25), Use By (28/05/26), MRP (35.00). Column line spacing differs; preserve the printed two-digit year.",
+          "location": "Right stamp column approximately x=0.65–0.89 y=0.55–0.78"
+        }
+      },
+      "otherVisibleReadings": [
+        {
+          "kind": "unit-price",
+          "value": "0.51",
+          "surface": "(Rs. per g) ... /(0.51)",
+          "notPackageMrp": true
+        },
+        {
+          "kind": "use-by",
+          "value": "28/05/26",
+          "surface": "Use By: ... 28/05/26",
+          "notPackingDate": true
+        }
+      ]
+    },
+    {
+      "id": "RD-008",
+      "productCode": "8901491503051",
+      "productLabel": "Lay's West Indies Hot 'n' Sweet Chilli",
+      "productUrl": "https://world.openfoodfacts.org/product/8901491503051",
+      "panelId": "off:8901491503051:7",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos-extra/8901491503051-7.jpg",
+      "sourceUrl": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/890/149/150/3051/7.jpg",
+      "sha256": "da4898a7db9db4d55056ab405a04762ed461f4e64ff2360316ddf9cd23549d62",
+      "imageSize": {
+        "width": 2052,
+        "height": 3648,
+        "bytes": 1168866
+      },
+      "sourceAttribution": {
+        "name": "Open Food Facts contributors",
+        "uploader": "kamalbagchi9",
+        "imageLicense": "CC BY-SA 3.0",
+        "databaseLicense": "ODbL 1.0",
+        "acquiredAt": "2026-09-06T08:11:01.593Z",
+        "uploadedAt": "2024-12-10T12:55:57.000Z",
+        "capturedAt": null,
+        "bytesReencoded": false
+      },
+      "humanReviewRequired": true,
+      "conditions": [
+        "hand occlusion",
+        "wrinkled glossy pouch",
+        "dark background",
+        "nutrition distractors"
+      ],
+      "expectedStatus": null,
+      "expectedValues": {},
+      "fields": {
+        "mrp": {
+          "status": "illegible",
+          "metricEligible": false,
+          "value": null,
+          "surface": "Rs. 0.50/- PER g",
+          "notes": "A hand covers the MRP area; only inclusive-of-all-taxes wording is visible. The visible Rs.0.50/- PER g is unit price and cannot establish package MRP."
+        },
+        "netQuantity": {
+          "status": "ambiguous_field",
+          "metricEligible": false,
+          "value": null,
+          "surface": "20 g; partial T QTY",
+          "notes": "20 g is visible, but the net-quantity heading is partly occluded/clipped by the hand and folded package. Preserve it as an unassigned quantity, not a repaired complete declaration."
+        },
+        "packDate": {
+          "status": "ambiguous_field",
+          "metricEligible": false,
+          "value": null,
+          "surface": "12/11/24 & 12/03/25",
+          "notes": "12/11/24 & 12/03/25 are readable but the packing/use-by heading is partly hidden. Do not assign date meaning from temporal order alone."
+        }
+      },
+      "otherVisibleReadings": [
+        {
+          "kind": "unit-price",
+          "value": "0.50",
+          "surface": "Rs.0.50/- PER g",
+          "notPackageMrp": true
+        },
+        {
+          "kind": "visible-unassigned-mass",
+          "value": "20 g",
+          "surface": "20 g"
+        },
+        {
+          "kind": "visible-unassigned-dates",
+          "values": [
+            "12/11/24",
+            "12/03/25"
+          ],
+          "surface": "12/11/24 & 12/03/25"
+        }
+      ]
+    }
+  ]
+}

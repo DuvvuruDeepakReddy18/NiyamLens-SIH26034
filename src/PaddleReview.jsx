@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { comparePaddleFieldReadings, proposalSourceView } from './lib/paddleReviewEvidence.mjs'
+import CompoundTableReview from './CompoundTableReview.jsx'
 import './paddle-review.css'
 
 const fieldText = field => field.conflict ? `Conflicting readings: ${field.candidates.map(item => item.value).join(' / ')}` : field.value ? `${field.value}${field.status === 'format_valid' ? ' · unverified' : ' · needs review'}` : 'Not recovered'
@@ -41,6 +42,7 @@ export default function PaddleReview({ preview, currentText = '', onAppend, onDi
         </article>
       })}
     </div>}
+    <CompoundTableReview items={preview.output.items} />
     <section className="paddle-field-comparison" aria-label="Unverified field comparison"><h4>What would change?</h4><p>Existing text is included. These are candidate readings, not checked answers or accuracy scores.</p>
       {comparison.error ? <p role="status">Comparison unavailable: {comparison.error}</p> : <><div className="paddle-comparison-scroll" tabIndex="0" role="region" aria-label="Candidate readings table"><table><thead><tr><th scope="col">Field</th><th scope="col">Current transcript</th><th scope="col">With raw Paddle</th><th scope="col">With selected suggestions</th></tr></thead><tbody>{comparison.fields.map(field => <tr key={field.id}><th scope="row">{field.label}</th><td>{fieldText(field.current)}</td><td className={field.raw.conflict ? 'reading-conflict' : ''}>{fieldText(field.raw)}</td><td className={field.selected.conflict ? 'reading-conflict' : ''}>{fieldText(field.selected)}</td></tr>)}</tbody></table></div><small>{comparison.limitation}</small></>}
     </section>

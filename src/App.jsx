@@ -74,6 +74,7 @@ import { mergeCloudRecord } from './lib/workspaceClient.mjs'
 import { WorkspaceGate, SharedOperations } from './Workspace.jsx'
 import FieldVerification from './FieldVerification.jsx'
 import CaptureCoach from './CaptureCoach.jsx'
+import { CAPTURE_TARGET_IDS, validateCloseUpCapture } from './lib/captureCoach.mjs'
 import MachineCandidateHistory from './MachineCandidateHistory.jsx'
 import { singleFlight } from './lib/singleFlight.mjs'
 import { beginRuleReassessment } from './lib/reassessment.mjs'
@@ -822,6 +823,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   const [saving, setSaving] = useState(false)
   const fileInput = useRef(null)
   const pendingRetakeId = useRef('')
+  const pendingCaptureTarget = useRef('')
   const activeJob = useRef(null)
   const [focusSelection, setFocusSelection] = useState(null)
   const [focusRequest, setFocusRequest] = useState(null)
@@ -966,14 +968,16 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     }))
   }
 
-  const openEvidencePicker = (replaceId = '') => {
+  const openEvidencePicker = (replaceId = '', captureTarget = '') => {
     if (activeJob.current || saved || saving || ocrPreviewPending) return
+    if (captureTarget && (!CAPTURE_TARGET_IDS.includes(captureTarget) || replaceId || !evidenceItems.length || evidenceItems.length >= 4)) return
     pendingRetakeId.current = replaceId
+    pendingCaptureTarget.current = captureTarget
     if (fileInput.current) fileInput.current.value = ''
     fileInput.current?.click()
   }
 
-  const handleFiles = async (fileList, { replaceId = '' } = {}) => {
+  const handleFiles = async (fileList, { replaceId = '', captureTarget = '' } = {}) => {
     if (activeJob.current || saved || saving || ocrPreviewPending) return
     const replaced = replaceId ? evidenceItems.find((item) => item.id === replaceId) : null
     if (replaceId && !replaced) { setOcrState((current) => ({ ...current, error: 'The panel selected for replacement is no longer available.' })); return }
@@ -983,6 +987,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     activeJob.current = controller
     const firstPanel = evidenceItems.length === 0
     try {
+      const capturePurpose = validateCloseUpCapture({ target: captureTarget, replaceId, panelCount: evidenceItems.length, fileCount: Array.from(fileList || []).length })
       if (workspace && files.some((file) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type))) throw new Error('Managed evidence accepts JPEG, PNG or WebP originals. Export other camera formats before capture.')
       setProcessing(true)
       setOcrState({ running: false, progress: 4, label: `Securing ${files.length} evidence panel${files.length > 1 ? 's' : ''}`, error: '' })
@@ -996,7 +1001,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       let preparedChain = firstPanel ? await appendAuditEvent([], 'inspection_started', { challengeId: challenge?.id || null }, actor?.id || 'local-officer') : null
       for (const item of nextItems) {
         throwIfAborted(controller.signal)
-        const payload = { id: item.id, name: item.name, panelRole: item.panelRole, sha256: item.sha256, quality: item.quality?.score, capturedAt: item.capturedAt }
+        const payload = { id: item.id, name: item.name, panelRole: item.panelRole, sha256: item.sha256, quality: item.quality?.score, capturedAt: item.capturedAt, ...(capturePurpose ? { capturePurpose } : {}) }
         if (firstPanel) preparedChain = await appendAuditEvent(preparedChain, 'evidence_captured', payload, actor?.id || 'local-officer')
         else if (replaced) await recordAudit('evidence_replaced_before_seal', { previousEvidenceId: replaced.id, previousSha256: replaced.sha256, replacement: payload })
         else await recordAudit('evidence_captured', payload)
@@ -1027,7 +1032,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
         ? current.map((item) => item.id === replaced.id ? nextItems[0] : item)
         : [...current, ...nextItems].slice(0, 4))
       setActiveEvidenceId(nextItems[0].id)
-      if (!controller.signal.aborted) setOcrState({ running: false, progress: 8, label: replaced ? 'Replacement panel validated and ready for OCR' : `${nextItems.length} panel${nextItems.length > 1 ? 's' : ''} ready for OCR`, error: '' })
+      if (!controller.signal.aborted) setOcrState({ running: false, progress: 8, label: capturePurpose ? 'Close-up panel ready for OCR; previous photographs and readings retained. Read the new photo and review any conflict.' : replaced ? 'Replacement panel validated and ready for OCR' : `${nextItems.length} panel${nextItems.length > 1 ? 's' : ''} ready for OCR`, error: '' })
     } catch (error) {
       if (activeJob.current === controller) setOcrState({ running: false, progress: 0, label: 'Image rejected', error: error.message || 'The selected evidence could not be prepared.' })
     } finally {
@@ -1566,8 +1571,10 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
                 hidden
                 onChange={(event) => {
                   const replaceId = pendingRetakeId.current
+                  const captureTarget = pendingCaptureTarget.current
                   pendingRetakeId.current = ''
-                  handleFiles(event.target.files, { replaceId })
+                  pendingCaptureTarget.current = ''
+                  handleFiles(event.target.files, { replaceId, captureTarget })
                 }}
               />
               <button type="button" className="upload-button" onClick={() => openEvidencePicker()} disabled={evidenceItems.length >= 4 || processing || ocrPreviewPending}>
@@ -1578,7 +1585,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               {barcodeState.candidate?.evidenceId === activeEvidence?.id && barcodeState.candidate?.cornerPoints?.length === 4 && <button type="button" className="barcode-button" onClick={rectifyFromBarcode} disabled={processing || ocrPreviewPending}><Layers3 size={16} /> Flatten from barcode</button>}
             </div>
             <CaptureChecklist evidenceItems={evidenceItems} />
-            <CaptureCoach hasImage={Boolean(evidenceItems.length)} hasText={Boolean(text.trim())} extraction={extraction} disabled={saved || saving || processing || ocrState.running || Boolean(draft)} pendingPreview={ocrPreviewPending} onFocus={(target) => { setFocusSelection(null); setActiveRegionId(target.id); setFocusRequest({ id: crypto.randomUUID(), fieldId: target.id }) }} />
+            <CaptureCoach hasImage={Boolean(evidenceItems.length)} hasText={Boolean(text.trim())} extraction={extraction} disabled={saved || saving || processing || ocrState.running || Boolean(draft)} pendingPreview={ocrPreviewPending} canAddPhoto={evidenceItems.length < 4} onRecapture={target => openEvidencePicker('', target.id)} onFocus={(target) => { setFocusSelection(null); setActiveRegionId(target.id); setFocusRequest({ id: crypto.randomUUID(), fieldId: target.id }) }} />
             {evidenceItems.length > 0 && <PackageEvidenceViewer
               evidenceItems={evidenceItems}
               activeEvidenceId={activeEvidence?.id || ''}
@@ -1617,6 +1624,8 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               <p>Include the heading, value and unit. Three real OCR passes keep conflicting readings visible. This does not replace the original photo or certify the result.</p>
               <button type="button" className="secondary-action" onClick={runFocusedOcr} disabled={qualityBlocked || ocrState.running || ocrPreviewPending}>Scan selected region</button>
               <button type="button" className="secondary-action" onClick={() => runAlternativeOcr(true)} disabled={qualityBlocked || ocrState.running || ocrPreviewPending}>Try Paddle on selected region</button>
+              <button type="button" className="secondary-action" onClick={() => runAlternativeOcr(true, null, null, 'sensitive')} disabled={qualityBlocked || ocrState.running || ocrPreviewPending}>Retry faint text in selected region</button>
+              <PaddleStampRecovery onlyRegion disabled={qualityBlocked || ocrState.running || ocrPreviewPending} hasRegion onRun={(focused, mode) => runAlternativeOcr(focused, null, mode)} />
               {ocrPreviewPending && <p role="status">Append or dismiss the pending preview before scanning again. Your current transcript has not changed.</p>}
               {focusResult && <>
                 <img src={focusResult.preview} alt="Selected declaration crop used for OCR" />

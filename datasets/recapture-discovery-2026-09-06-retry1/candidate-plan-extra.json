@@ -1,0 +1,14 @@
+{
+  "kind": "authorized-second-screening-batch-no-ocr",
+  "selection": "Eight additional already-observed originals from four of the same eight SKUs; no further metadata requests. The first batch showed that selected packaging/late-icon images often contain recycling or vegetarian symbols, so inspect earlier large originals and unassigned horizontal panels. This is purposeful visual screening, not random sampling.",
+  "candidates": [
+    { "code": "8901719117183", "imageId": "3" },
+    { "code": "8901719117183", "imageId": "1" },
+    { "code": "8901491503051", "imageId": "2" },
+    { "code": "8901491503051", "imageId": "7" },
+    { "code": "8901725015275", "imageId": "9" },
+    { "code": "8901725015275", "imageId": "11" },
+    { "code": "8904025407504", "imageId": "1" },
+    { "code": "8904025407504", "imageId": "4" }
+  ]
+}

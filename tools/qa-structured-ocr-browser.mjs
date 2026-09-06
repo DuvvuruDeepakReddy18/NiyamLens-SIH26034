@@ -14,15 +14,31 @@ import { verifyAuditChain } from '../src/lib/audit.mjs'
 import { PADDLE_MODEL } from '../src/lib/paddleOcr.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-if (process.argv.slice(2).some(value => value !== '--checkset') || process.argv.length > 3) throw new Error('Only optional --checkset is supported.')
+if (process.argv.slice(2).some(value => !['--checkset', '--recapture'].includes(value)) || process.argv.length > 3) throw new Error('Only optional --checkset or --recapture is supported; they cannot be combined.')
 const checkset = process.argv.includes('--checkset')
+const recapture = process.argv.includes('--recapture')
 const origin = localPilotOrigin(process.env.NIYAMLENS_BASE_URL || 'http://127.0.0.1:4195/')
 const hash = value => createHash('sha256').update(value).digest('hex')
-const manifestPath = checkset ? 'datasets/critical-fields.checkset.v1.json' : 'datasets/critical-fields.v1.json'
+const manifestPath = recapture ? 'datasets/recapture-discovery-2026-09-06-retry1/critical-fields.json' : checkset ? 'datasets/critical-fields.checkset.v1.json' : 'datasets/critical-fields.v1.json'
 const manifestBytes = await readFile(resolve(root, manifestPath))
 const manifest = validateCriticalFieldManifest(JSON.parse(manifestBytes))
-assert.equal(manifest.datasetId, checkset ? 'niyamlens-critical-fields-checkset-v1' : 'niyamlens-critical-fields-v1')
-assert.equal(manifest.samples.length, checkset ? 6 : 8)
+assert.equal(manifest.datasetId, recapture ? 'niyamlens-recapture-discovery-2026-09-06' : checkset ? 'niyamlens-critical-fields-checkset-v1' : 'niyamlens-critical-fields-v1')
+if (!recapture) assert.equal(manifest.samples.length, checkset ? 6 : 8)
+else assert.ok(manifest.samples.length >= 1 && manifest.samples.length <= 24)
+let referenceFreeze = null
+if (recapture) {
+  const freezeBytes = await readFile(resolve(root, dirname(manifestPath), 'freeze.json'))
+  const freeze = JSON.parse(freezeBytes)
+  assert.equal(manifest.corpusRole, 'prospectively-frozen-ai-discovery-corpus')
+  assert.equal(freeze.datasetId, manifest.datasetId)
+  assert.equal(freeze.manifestPath, manifestPath)
+  assert.equal(freeze.ocrExecutedBeforeFreeze, false)
+  assert.equal(freeze.humanReviewed, false)
+  assert.equal(freeze.isHoldout, false)
+  assert.equal(freeze.manifestSha256, hash(manifestBytes), 'Reference answers must match their pre-OCR freeze.')
+  assert.ok(Number.isFinite(Date.parse(freeze.frozenAt)) && Date.parse(freeze.frozenAt) < Date.now())
+  referenceFreeze = { ...freeze, freezeSha256: hash(freezeBytes) }
+}
 if (checkset) assert.ok(manifest.samples.every(sample => CRITICAL_FIELDS.every(field => !sample.fields[field].metricEligible)))
 const sourceVerification = await verifyCriticalSourceImages(manifest, root)
 async function listSourceFiles(directory = 'src') {
@@ -40,18 +56,18 @@ const appModule = { url: new URL(entry, origin).href }
 const appBytes = Buffer.from(await (await fetch(appModule.url)).arrayBuffer())
 Object.assign(appModule, { bytes: appBytes.length, sha256: hash(appBytes) })
 const startedAt = new Date().toISOString(); const stamp = startedAt.replace(/[:.]/g, '-')
-const directory = resolve(root, 'reports/root-cause-2026-09-05')
+const directory = resolve(root, recapture ? 'reports/recapture-2026-09-06' : 'reports/root-cause-2026-09-05')
 await mkdir(directory, { recursive: true })
-const outputPath = resolve(directory, `structured-ocr-browser-${checkset ? 'checkset-' : ''}${stamp}.json`)
+const outputPath = resolve(directory, `structured-ocr-browser-${recapture ? 'unfamiliar-' : checkset ? 'checkset-' : ''}${stamp}.json`)
 const file = await open(outputPath, 'wx')
 const report = { schemaVersion: 1, kind: 'actual-Chrome-primary-structured-candidates-NOT-RAW-OR-HUMAN-ACCURACY', startedAt, finishedAt: null,
   datasetId: manifest.datasetId, isHoldout: false, humanReviewed: false, positiveRecognitionEvaluationReady: !checkset,
-  manifest: { path: manifestPath, sha256: hash(manifestBytes) }, sourceVerification,
+  manifest: { path: manifestPath, sha256: hash(manifestBytes) }, referenceFreeze, sourceVerification,
   execution: { origin, appModule, beforeSources, afterSources: null, status: 'running', plannedPhotos: manifest.samples.length,
     model: PADDLE_MODEL, settings: { textDetLimitSideLen: 960, textDetLimitType: 'max', textDetMaxSideLimit: 2000, maximumInputSide: 2000, backend: 'wasm', numThreads: 1 },
     policy: 'Actual upload → Read label fields → source-mapped machine candidates → auto-saved draft. No suggestion checkboxes, field confirmations, typed corrections, crops, alternative passes or expected-answer lookup. Continue on every capture-quality caution solely as an evaluation policy.',
     manualSuggestionSelections: 0, typedCorrections: false, fieldConfirmations: false }, rows: [], rawScoring: null, structuredScoring: null,
-  limitations: ['Known availability-selected development photographs with AI-provisional labels; not representative independent accuracy.',
+  limitations: [recapture ? 'Newly acquired case-enriched photographs, visually selected and provisionally labelled by one AI before OCR. Not independent human validation, a representative sample or a human holdout. Later reruns are development runs.' : 'Known availability-selected development photographs with AI-provisional labels; not representative independent accuracy.',
     'Machine-derived candidates use literal OCR strings and geometry, and still require officer verification. They are not unchanged raw OCR.',
     'Zero-denominator checkset outcomes are not measurable positive recognition accuracy; candidates on excluded fields are listed for review, not automatically called false declarations.',
     'No legal verdict, physical measurement, new-user workflow timing, hosted permissions or cold-offline OCR is validated.'] }
@@ -163,7 +179,9 @@ try {
       const digestBefore = await page.locator('.hash-readout').innerText()
       assert.equal(await page.locator('.evidence-editor').inputValue(), '')
       await page.getByRole('button', { name: 'Read label fields', exact: true }).click()
-      await page.getByText(/Label fields ready/).waitFor({ timeout: 180000 })
+      await page.waitForFunction(() => /Label fields ready/.test(document.querySelector('.ocr-toolbar .ocr-progress small')?.textContent || '') || Boolean(document.querySelector('.inline-warning:not(.quality-blocked)')?.textContent?.trim()), null, { timeout: 180000 })
+      const terminalWarning = await page.locator('.inline-warning:not(.quality-blocked)').allTextContents()
+      if (terminalWarning.length) throw new Error(`Recognition ended without publishing fields: ${terminalWarning.join(' ').slice(0, 1700)}`)
       row.workingText = await page.locator('.evidence-editor').inputValue()
       const observed = await page.evaluate(() => window.__structuredOcrObserved)
       assert.equal(observed.error, null); assert.equal(observed.outputs.length, 1); assert.equal(observed.frames.length, 1)
@@ -230,7 +248,7 @@ try {
       for (const candidate of candidateRows) assert.ok(historyText.includes(candidate.text), 'Every retained machine association must be available in the displayed history.')
       if (!candidateRows.length) assert.match(historyText, /recorded scan found no unambiguous geometric associations/i)
       row.verification.machineHistoryAvailable = true
-      if (!checkset && sample.id === 'CF-001') {
+      if (!checkset && sample.id === manifest.samples[0].id) {
         row.screenshots = []
         for (const [name, width, height] of [['desktop', 1440, 1000], ['mobile', 390, 844]]) {
           await page.setViewportSize({ width, height }); await details.scrollIntoViewIfNeeded()
@@ -242,15 +260,21 @@ try {
         }
       }
       assert.deepEqual(pageErrors, []); assert.deepEqual(blockedRequests, [])
-    } catch (error) { row.error = String(error.message || error).slice(0, 2000) }
+    } catch (error) {
+      row.error = String(error.message || error).slice(0, 2000)
+      // Preserve the application's actual error and observed worker response,
+      // not only an eventual UI wait timeout. No expected answer is supplied.
+      row.failureDiagnostics = await page.evaluate(() => ({ warnings: [...document.querySelectorAll('.inline-warning')].map(node => node.textContent.slice(0, 2000)), observed: window.__structuredOcrObserved || null })).catch(() => null)
+    }
     finally { row.elapsedMs = Math.round(performance.now() - before); await context.close() }
     report.rows.push(row); await checkpoint()
     console.log(JSON.stringify({ sampleId: row.sampleId, photo: report.rows.length, planned: manifest.samples.length, machineCandidates: row.candidateRows?.length, error: row.error, elapsedMs: row.elapsedMs }))
   }
   report.execution.afterSources = await fingerprintSources()
+  report.execution.referenceUnchanged = hash(await readFile(resolve(root, manifestPath))) === hash(manifestBytes)
   report.execution.sourceUnchanged = JSON.stringify(report.execution.afterSources) === JSON.stringify(beforeSources)
   report.execution.appModuleUnchanged = hash(Buffer.from(await (await fetch(appModule.url)).arrayBuffer())) === appModule.sha256
   report.execution.status = 'complete'; report.finishedAt = new Date().toISOString(); await checkpoint()
-  if (report.rows.some(row => row.error || row.blockedRequests.length) || !report.execution.sourceUnchanged || !report.execution.appModuleUnchanged) process.exitCode = 1
+  if (report.rows.some(row => row.error || row.blockedRequests.length) || !report.execution.sourceUnchanged || !report.execution.appModuleUnchanged || !report.execution.referenceUnchanged) process.exitCode = 1
   console.log(JSON.stringify({ outputPath, failed: report.rows.filter(row => row.error).length, raw: report.rawScoring.runs.map(run => ({ correct: run.exactMatchCorrect, denominator: run.exactMatchSamples })), structured: report.structuredScoring }, null, 2))
 } finally { await browser?.close(); await file.close() }

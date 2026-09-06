@@ -15,6 +15,15 @@ const manifest = (...samples) => ({ schemaVersion: 1, datasetId: 'test-critical-
 const row = (rawText = 'MRP Rs. 22.00\nNET QUANTITY: 500 mL\nPKD:19/10/25', extra = {}) => ({ sampleId: 'ONE', mode: 'test', rawText, ...extra })
 const run = (rawText, extra = {}) => scoreCriticalFields(manifest(), [row(rawText, extra)]).runs[0]
 
+test('prospective AI discovery references remain provisional and cannot claim a human holdout', () => {
+  const discovery = { ...manifest(), corpusRole: 'prospectively-frozen-ai-discovery-corpus' }
+  const result = scoreCriticalFields(discovery, [row()])
+  assert.equal(result.humanReviewed, false)
+  assert.equal(result.isHoldout, false)
+  assert.throws(() => validateCriticalFieldManifest({ ...discovery, isHoldout: true }))
+  assert.throws(() => validateCriticalFieldManifest({ ...discovery, annotation: { ...discovery.annotation, humanReviewed: true } }))
+})
+
 test('critical scorer uses actual extraction on untouched text and returns valid exact matches', () => {
   const input = row()
   const original = clone(input)

@@ -1,6 +1,8 @@
 *.pdf binary
 /public/ocr/paddle-v1/** -text -diff -whitespace
 /datasets/critical-fields*.json -text
+/datasets/recapture-discovery-2026-09-06*/**/*.json -text
+/datasets/recapture-discovery-2026-09-06*/*.json -text
 /reports/**/*.json -text whitespace=trailing-space,space-before-tab,cr-at-eol
 /reports/**/*.jsonl -text whitespace=trailing-space,space-before-tab,cr-at-eol
 /src/lib/labelParser.mjs -text

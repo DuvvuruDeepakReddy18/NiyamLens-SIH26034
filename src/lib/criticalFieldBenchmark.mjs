@@ -4,7 +4,7 @@ import { MAX_LABEL_TEXT, normalizeUnit } from './labelParser.mjs'
 export const CRITICAL_FIELDS = Object.freeze(['mrp', 'netQuantity', 'packDate'])
 export const CRITICAL_BENCHMARK_LIMITS = Object.freeze({ samples: 500, rows: 5000, text: MAX_LABEL_TEXT, totalCharacters: 20_000_000, nodes: 200_000, depth: 15 })
 const LABEL_STATUSES = new Set(['readable', 'not_visible', 'illegible', 'ambiguous_field'])
-const NON_HOLDOUT_CORPUS_ROLES = new Set(['previously-used-development-corpus', 'availability-sampled-abstention-checkset'])
+const NON_HOLDOUT_CORPUS_ROLES = new Set(['previously-used-development-corpus', 'availability-sampled-abstention-checkset', 'prospectively-frozen-ai-discovery-corpus'])
 const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value) && [Object.prototype, null].includes(Object.getPrototypeOf(value))
 const ratio = (a, b) => b ? a / b : null
 const fail = message => { throw new Error(message) }
@@ -56,7 +56,7 @@ export function validateCriticalFieldManifest(manifest) {
   safeJson(manifest)
   if (!plain(manifest) || manifest.schemaVersion !== 1 || !Array.isArray(manifest.samples)) fail('Critical manifest requires schemaVersion 1 and a samples array.')
   boundedText(manifest.datasetId, 'datasetId')
-  if (manifest.isHoldout !== false || !NON_HOLDOUT_CORPUS_ROLES.has(manifest.corpusRole)) fail('This scorer requires an explicitly identified development corpus or abstention checkset, not a holdout claim.')
+  if (manifest.isHoldout !== false || !NON_HOLDOUT_CORPUS_ROLES.has(manifest.corpusRole)) fail('This scorer requires an explicitly identified development corpus, AI discovery corpus or abstention checkset, not a holdout claim.')
   if (!plain(manifest.annotation) || manifest.annotation.status !== 'provisional-human-review-required' || manifest.annotation.humanReviewed !== false) fail('Manifest must preserve the provisional AI / human-review-required annotation status.')
   if (!manifest.samples.length || manifest.samples.length > CRITICAL_BENCHMARK_LIMITS.samples) fail('Critical manifest requires between 1 and 500 photographs.')
   const ids = new Set(); const paths = new Set()

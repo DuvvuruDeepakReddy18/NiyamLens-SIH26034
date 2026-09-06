@@ -11,7 +11,7 @@ assert.ok(args.length === 1 || args.length === 3 && args[1] === '--expect-sha', 
 const expectedSha256 = args.length === 3 ? args[2].toLowerCase() : null
 if (args.length === 3) assert.match(expectedSha256, /^[a-f0-9]{64}$/)
 const origin = 'https://niyamlens-sih26034.vercel.app'
-const markers = ['Read label fields', 'machine-structured-candidates-v1', 'Retry faint stamp detection', 'LMPC-RC-2026.09-RC7']
+const markers = ['Read label fields', 'machine-structured-candidates-v1', 'Retry faint stamp detection', 'LMPC-RC-2026.09-RC7', 'officer-requested-additional-close-up', 'dark-ink-270', 'three-anchor-compound-mrp-table-v1']
 const maximumBytes = 2000000
 const report = {
   kind: 'public-structured-release-anonymous-smoke', phase, origin, startedAt: new Date().toISOString(),

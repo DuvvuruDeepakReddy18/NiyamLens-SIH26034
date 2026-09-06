@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 1,
+  "kind": "single-ai-visual-selection-log-before-ocr",
+  "createdAt": "2026-09-06T08:15:26.822Z",
+  "retainedPhotoCount": 21,
+  "selectedPhotoCount": 8,
+  "retainedProductCount": 8,
+  "selectedProductCount": 6,
+  "ocrExecuted": false,
+  "ocrSidecarsFetched": false,
+  "humanReviewed": false,
+  "isHoldout": false,
+  "selection": "Positive-enriched engineering selection with informative ambiguity/incomplete-capture cases. Selection used pixels before OCR, never recognition success. All rejected photos remain retained with original hash and attribution in acquisition reports.",
+  "photos": [
+    {
+      "productCode": "8901719117183",
+      "imageId": "8",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8901719117183-8.jpg",
+      "sha256": "0a967df202850f345cc2167865d2ad05c4c4714c9e8200232dbf67ea038ab511",
+      "selected": false,
+      "sampleId": null,
+      "reason": "Vegetarian symbol and BISCUITS only; no MRP/net quantity/packing date."
+    },
+    {
+      "productCode": "8901719117183",
+      "imageId": "7",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8901719117183-7.jpg",
+      "sha256": "4d19eb047d9339ce4d6f711b5cd091ece36c9d1eedbe5982d8b8eae2059ae21f",
+      "selected": false,
+      "sampleId": null,
+      "reason": "Recycling/disposal symbol only; no critical declarations."
+    },
+    {
+      "productCode": "8908010900070",
+      "imageId": "10",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8908010900070-10.jpg",
+      "sha256": "5a7e7cc5da385236304882c8ad62e5f9cdb11d065e06d70610efe6c0abda8755",
+      "selected": false,
+      "sampleId": null,
+      "reason": "Recipe/manufacturer side with curved partial price stamp at left; RD-001 provides the complete observed declaration area for this SKU. Recipe 250 ml is not package net quantity."
+    },
+    {
+      "productCode": "8908010900070",
+      "imageId": "9",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8908010900070-9.jpg",
+      "sha256": "3cc3627d0979edf81790348e1965661bc22e75aba8c26d244b41a2f66cd3eaa1",
+      "selected": true,
+      "sampleId": "RD-001",
+      "reason": "Selected before OCR; complete per-field readable/ambiguous/illegible/not-visible labels in critical-fields.json."
+    },
+    {
+      "productCode": "8901491503051",
+      "imageId": "14",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8901491503051-14.jpg",
+      "sha256": "03ec3cd8dabb1d9f5a0f35fb826cbc895b49057d5fc4171cfca268965622e428",
+      "selected": false,
+      "sampleId": null,
+      "reason": "Disposal symbol only; no critical declarations."
+    },
+    {
+      "productCode": "8901491503051",
+      "imageId": "13",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8901491503051-13.jpg",
+      "sha256": "ad1a438ab035a1ab644d9cd6a42474bd31063561871a85938411161371cc27da",
+      "selected": false,
+      "sampleId": null,
+      "reason": "Ingredients close-up only; no critical declarations."
+    },
+    {
+      "productCode": "8906004562389",
+      "imageId": "5",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8906004562389-5.jpg",
+      "sha256": "374e6ed2c572aca71f55d701d7be37308904b4831b46167f93d7a3fc7034a495",
+      "selected": true,
+      "sampleId": "RD-002",
+      "reason": "Selected before OCR; complete per-field readable/ambiguous/illegible/not-visible labels in critical-fields.json."
+    },
+    {
+      "productCode": "8906004562389",
+      "imageId": "4",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8906004562389-4.jpg",
+      "sha256": "6b1280223cecab8124721b64f05d07dadfcbfcdda7f0343c3185c862ba5d556c",
+      "selected": false,
+      "sampleId": null,
+      "reason": "Nutrition/recycling/barcode panel; no net/MRP/dated declaration values. Nutritional masses are not net quantity."
+    },
+    {
+      "productCode": "8901725015275",
+      "imageId": "14",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8901725015275-14.jpg",
+      "sha256": "c548f6f988c6973dab5e6f4a10105461a12c7a45d458da8df558d855a7639823",
+      "selected": false,
+      "sampleId": null,
+      "reason": "Vegetarian symbol and BISCUITS only; no critical declarations."
+    },
+    {
+      "productCode": "8901725015275",
+      "imageId": "13",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8901725015275-13.jpg",
+      "sha256": "0d616334945f395b185996f13f1b96564c0471e7037e5235c2c89d323e3f2053",
+      "selected": false,
+      "sampleId": null,
+      "reason": "Disposal symbol and Keep your city clean only; no critical declarations."
+    },
+    {
+      "productCode": "8906008818611",
+      "imageId": "10",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8906008818611-10.jpg",
+      "sha256": "9711eda3de52b1704196b65b28f820a8c2033ddd4d1597eb9b9337e2b987dee1",
+      "selected": true,
+      "sampleId": "RD-003",
+      "reason": "Selected before OCR; complete per-field readable/ambiguous/illegible/not-visible labels in critical-fields.json."
+    },
+    {
+      "productCode": "8906008818611",
+      "imageId": "9",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8906008818611-9.jpg",
+      "sha256": "7d046c9588ba86e98dace485b1a46ecc0f1571d4afd24653ddb35346c720758f",
+      "selected": true,
+      "sampleId": "RD-004",
+      "reason": "Selected before OCR; complete per-field readable/ambiguous/illegible/not-visible labels in critical-fields.json."
+    },
+    {
+      "productCode": "8906080603938",
+      "imageId": "7",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8906080603938-7.jpg",
+      "sha256": "5cba83833d175fd0b8ca29b547f17389050fb3126dfd252d014bcc0d158bf8f3",
+      "selected": true,
+      "sampleId": "RD-005",
+      "reason": "Selected before OCR; complete per-field readable/ambiguous/illegible/not-visible labels in critical-fields.json."
+    },
+    {
+      "productCode": "8906080603938",
+      "imageId": "6",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8906080603938-6.jpg",
+      "sha256": "01f809ab58916499c6423f2430e2e19e56f4a85db5d32bfaf43e359a19b55489",
+      "selected": true,
+      "sampleId": "RD-006",
+      "reason": "Selected before OCR; complete per-field readable/ambiguous/illegible/not-visible labels in critical-fields.json."
+    },
+    {
+      "productCode": "8904025407504",
+      "imageId": "6",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8904025407504-6.jpg",
+      "sha256": "6ebb815e3907ce61ebbccbe16fcf9a03e0f005db50b8090c85b34ec1f26ca393",
+      "selected": false,
+      "sampleId": null,
+      "reason": "Partial nutrition/vegetarian-symbol photo; no critical declarations."
+    },
+    {
+      "productCode": "8904025407504",
+      "imageId": "5",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos/8904025407504-5.jpg",
+      "sha256": "cd0d53ba8436820298d9d3e2e8dc6e2e5323b57562c7c5c8fcc83651b771376a",
+      "selected": false,
+      "sampleId": null,
+      "reason": "Manufacturer/customer-care panel; refers MRP/date to sleeve, neck or bottom but does not show those values. Best-before 180 days is not a packing date."
+    },
+    {
+      "productCode": "8901719117183",
+      "imageId": "3",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos-extra/8901719117183-3.jpg",
+      "sha256": "e04048f657bb1df0aa058dc71988f6df09313b8116cc9b1cb29c8ebc0245cf1a",
+      "selected": false,
+      "sampleId": null,
+      "reason": "Front branding photograph with substantial empty background; no visible critical declaration."
+    },
+    {
+      "productCode": "8901719117183",
+      "imageId": "1",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos-extra/8901719117183-1.jpg",
+      "sha256": "d757fd8daae457362caaf7c488c6c964ec4ba319391a1350c986bf2de23a57fe",
+      "selected": false,
+      "sampleId": null,
+      "reason": "Front branding close-up; no visible critical declaration."
+    },
+    {
+      "productCode": "8901491503051",
+      "imageId": "2",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos-extra/8901491503051-2.jpg",
+      "sha256": "4fd9576d5aaa83941ac9a654568873e728f6a8a14da00f084bd6e01b6d286f6e",
+      "selected": false,
+      "sampleId": null,
+      "reason": "Ingredients/nutrition/manufacturer-address panel; no visible critical declarations."
+    },
+    {
+      "productCode": "8901491503051",
+      "imageId": "7",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos-extra/8901491503051-7.jpg",
+      "sha256": "da4898a7db9db4d55056ab405a04762ed461f4e64ff2360316ddf9cd23549d62",
+      "selected": true,
+      "sampleId": "RD-008",
+      "reason": "Selected before OCR; complete per-field readable/ambiguous/illegible/not-visible labels in critical-fields.json."
+    },
+    {
+      "productCode": "8901725015275",
+      "imageId": "9",
+      "sourcePath": "datasets/recapture-discovery-2026-09-06-retry1/photos-extra/8901725015275-9.jpg",
+      "sha256": "8c464eed41c7d3cd85b5380e6b72aeb0917398527df961888b33dc9820b5a39d",
+      "selected": true,
+      "sampleId": "RD-007",
+      "reason": "Selected before OCR; complete per-field readable/ambiguous/illegible/not-visible labels in critical-fields.json."
+    }
+  ],
+  "extraBatchEnd": {
+    "error": "DOWNLOAD_IMAGE_FORMAT_OR_DIMENSIONS",
+    "failedSource": "8901725015275:11",
+    "note": "The metadata declares a 272px-high original, below the reused downloader dimension requirement. Acquisition aborted; source bytes were not retained or visually inspected. Chitale IDs 1 and 4 were planned but never requested.",
+    "unattempted": [
+      "8904025407504:1",
+      "8904025407504:4"
+    ]
+  },
+  "networkBodyBytesRead": 25657093,
+  "failedInitialAttempt": "First metadata request HTTP_503; single authorized same-API retry succeeded after >30s. Both records preserved.",
+  "frozenPixelsRead": false
+}

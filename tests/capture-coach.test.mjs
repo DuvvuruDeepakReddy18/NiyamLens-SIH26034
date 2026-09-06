@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { captureTargets, fieldReviewComplete } from '../src/lib/captureCoach.mjs'
+import { captureTargets, fieldReviewComplete, validateCloseUpCapture } from '../src/lib/captureCoach.mjs'
 import { extractDeclarations } from '../src/lib/extraction.mjs'
 import { singleFlight } from '../src/lib/singleFlight.mjs'
 
@@ -22,6 +22,31 @@ test('pre-OCR capture targets cannot imply detection, absence or recovered value
   assert.equal(rows.length, 3)
   assert.ok(rows.every(row => row.issue === 'Not read yet' && row.value === '' && row.needsCapture))
   assert.deepEqual(rows.map(row => row.id), ['mrp', 'netQuantity', 'packDate'])
+})
+
+test('guided recapture requests a new image, never an OCR answer or replacement', () => {
+  assert.equal(validateCloseUpCapture({ target: '', panelCount: 0, fileCount: 1 }), null)
+  for (const target of ['mrp', 'netQuantity', 'packDate']) {
+    const intent = validateCloseUpCapture({ target, panelCount: 1, fileCount: 1 })
+    assert.equal(intent.target, target)
+    assert.equal(intent.originalEvidencePreserved, true)
+    assert.equal(intent.suppliesOcrAnswer, false)
+    assert.equal('value' in intent, false)
+  }
+  for (const bad of [{ target: 'MRP 99' }, { replaceId: 'old' }, { panelCount: 0 }, { panelCount: 4 }, { panelCount: 1.5 }, { fileCount: 2 }]) {
+    assert.throws(() => validateCloseUpCapture({ target: 'mrp', panelCount: 1, fileCount: 1, ...bad }))
+  }
+})
+
+test('recapture guidance cannot diagnose absence or silently resolve conflicting readings', () => {
+  const unresolved = captureTargets(extractDeclarations('random text'))
+  assert.ok(unresolved.every(row => row.recovery.includes('does not prove it is absent')))
+  const conflicting = captureTargets(extractDeclarations('MRP Rs. 40\nMRP Rs. 80'))[0]
+  assert.equal(conflicting.issue, 'Conflicting readings')
+  assert.match(conflicting.recovery, /cannot silently resolve/)
+  const valid = captureTargets(extractDeclarations('MRP Rs. 40'))[0]
+  assert.match(valid.recovery, /separate photograph/)
+  assert.equal(valid.issue, 'Compare with photo')
 })
 test('review filtering never hides stale, unsupported absence or unreadable evidence', () => {
   const field = { id: 'mrp', detected: true, value: '40.00' }

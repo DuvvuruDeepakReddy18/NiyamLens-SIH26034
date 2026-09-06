@@ -1,0 +1,25 @@
+{
+  "kind": "bounded-public-image-screening-plan-no-ocr",
+  "selection": "Eight product IDs absent from the recorded exclusion inventory. Two observed numeric original IDs per product, favoring packaging-associated and otherwise unassigned late images as possible declaration/stamp panels. These roles do not prove readable declarations; retain visual screening outcomes including rejected photos.",
+  "isHoldout": false,
+  "humanReviewed": false,
+  "ocrExecuted": false,
+  "candidates": [
+    { "code": "8901719117183", "imageId": "8" },
+    { "code": "8901719117183", "imageId": "7" },
+    { "code": "8908010900070", "imageId": "10" },
+    { "code": "8908010900070", "imageId": "9" },
+    { "code": "8901491503051", "imageId": "14" },
+    { "code": "8901491503051", "imageId": "13" },
+    { "code": "8906004562389", "imageId": "5" },
+    { "code": "8906004562389", "imageId": "4" },
+    { "code": "8901725015275", "imageId": "14" },
+    { "code": "8901725015275", "imageId": "13" },
+    { "code": "8906008818611", "imageId": "10" },
+    { "code": "8906008818611", "imageId": "9" },
+    { "code": "8906080603938", "imageId": "7" },
+    { "code": "8906080603938", "imageId": "6" },
+    { "code": "8904025407504", "imageId": "6" },
+    { "code": "8904025407504", "imageId": "5" }
+  ]
+}

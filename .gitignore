@@ -31,3 +31,5 @@ datasets/openfoodfacts-india/data_keys.gz
 datasets/openfoodfacts-india/india_products_*.csv
 datasets/openfoodfacts-india/candidates/
 datasets/openfoodfacts-india/real-labels/
+datasets/recapture-discovery-2026-09-06-retry1/photos/
+datasets/recapture-discovery-2026-09-06-retry1/photos-extra/

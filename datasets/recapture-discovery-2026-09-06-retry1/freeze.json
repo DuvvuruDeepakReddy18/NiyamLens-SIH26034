@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "niyamlens-recapture-discovery-2026-09-06",
+  "manifestPath": "datasets/recapture-discovery-2026-09-06-retry1/critical-fields.json",
+  "manifestSha256": "97f683e7974a7539fc784ade3c8b684b0e61d378965b682891824f247b2d9b7c",
+  "frozenAt": "2026-09-06T08:15:27.574Z",
+  "statement": "The exact eight-photo reference manifest and all eight source SHA256 digests were validated and frozen before any OCR on these newly acquired sources. Labels and visual selection are provisional opinions of one AI, not independent human ground truth. Do not amend after the first recognition run; corrections must be a new disclosed version.",
+  "ocrExecutedBeforeFreeze": false,
+  "ocrSidecarsFetched": false,
+  "sourceHashesVerified": true,
+  "humanReviewed": false,
+  "isHoldout": false,
+  "expectedReadableDenominators": {
+    "mrp": 1,
+    "netQuantity": 2,
+    "packDate": 3
+  }
+}

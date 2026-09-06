@@ -148,7 +148,7 @@ export async function runPaddleOcr({ evidenceItems, signal, onProgress = () => {
       const frame = await boundedOcr(inputFactory(item), { signal: job.signal, timeoutMs: limits.passMs, label: 'Paddle image preparation' })
       const sourceBinding = paddleSourceBinding(item)
       if (!samePaddleSource(frame?.sourceBinding, sourceBinding) || typeof frame?.previewUrl !== 'string' || !/^data:image\/png;base64,/.test(frame.previewUrl)) throw new Error('Paddle input preview is not bound to the current evidence pixels.')
-      if (frame.retryMode && (frame.retryMode.photometric !== 'max-rgb-v1' || ![0, 90].includes(frame.retryMode.rotation))) throw new Error('Invalid Paddle retry provenance.')
+      if (frame.retryMode && (frame.retryMode.photometric !== 'max-rgb-v1' || ![0, 90, 180, 270].includes(frame.retryMode.rotation))) throw new Error('Invalid Paddle retry provenance.')
       const output = await boundedOcr(engine.predict(frame.input), { signal: job.signal, timeoutMs: limits.passMs, label: 'Paddle recognition' })
       throwIfAborted(job.signal)
       if (!Array.isArray(output) || output.length !== 1) throw new Error('Paddle OCR returned an invalid page count.')
