@@ -53,6 +53,8 @@ import { APPROVAL_GATES, RULE_EDGE_CASES, RULE_MATRIX, RULE_MATRIX_VERSION } fro
 import { decryptBundle, encryptBundle } from './lib/secureBundle.mjs'
 import { evaluateCompliance, FONT_TIERS, RULE_PACK } from './lib/rules.mjs'
 import { createEvidenceStore } from './lib/storage.mjs'
+import { activateInspectionDraft, createDraftWriter, parkInspectionDraft, removeInspectionDraft } from './lib/inspectionDrafts.mjs'
+import InspectionDrafts from './InspectionDrafts.jsx'
 import { appendReview, auditPresentation, effectiveStatus, normalizeCase } from './lib/caseRecords.mjs'
 import { evaluateInspection, fieldCandidates, FIELD_RULES } from './lib/inspectionSafety.mjs'
 import { EMPTY_OCR, MAX_EVIDENCE_TEXT, ocrProvenance, restoreEvidencePolicy, invalidateCapturedEvidence, validateSealableEvidence, nextPageOffset } from './lib/inspectionWorkflow.mjs'
@@ -797,7 +799,7 @@ function ChallengeClock({ challenge }) {
   return <div className="challenge-ribbon"><Timer size={18} /><span>Blind inspection <b>{challenge.code}</b></span><code>{minutes}:{seconds}</code><small>Controlled packets disabled · all actions audited</small></div>
 }
 
-function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeComplete, actor, workspace, store, onNewInspection }) {
+function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeComplete, actor, workspace, store, onNewInspection, initialNotice = '' }) {
   const [inspectionId, setInspectionId] = useState(createInspectionId)
   const [startedAt, setStartedAt] = useState(() => new Date().toISOString())
   const [evidenceItems, setEvidenceItems] = useState([])
@@ -806,7 +808,11 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   const [rawOcrText, setRawOcrText] = useState('')
   const [draft, setDraft] = useState(null)
   const [draftReady, setDraftReady] = useState(false)
-  const [draftMessage, setDraftMessage] = useState('')
+  const [draftMessage, setDraftMessage] = useState(initialNotice)
+  const [savedDrafts, setSavedDrafts] = useState([])
+  const [draftBusy, setDraftBusy] = useState(false)
+  const draftWriter = useMemo(() => createDraftWriter(store), [store])
+  const studioMounted = useRef(true)
   const [meta, setMeta] = useState(INITIAL_META)
   const [ocrState, setOcrState] = useState({ running: false, progress: 0, label: 'Ready', error: '' })
   const [processing, setProcessing] = useState(false)
@@ -837,7 +843,10 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     focusCardRef.current?.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
     focusCardRef.current?.focus({ preventScroll: true })
   }, [focusSelection])
-  useEffect(() => () => { activeJob.current?.abort(); activeJob.current = null; auditGeneration.current += 1 }, [])
+  useEffect(() => {
+    studioMounted.current = true
+    return () => { studioMounted.current = false; activeJob.current?.abort(); activeJob.current = null; auditGeneration.current += 1 }
+  }, [])
 
   const cancelActiveJob = () => {
     activeJob.current?.abort()
@@ -862,25 +871,70 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }, [rawRegions, result])
   const qualityBlocked = qualityDecisionRequired(evidenceItems, meta.qualityAcknowledgements)
 
+  const loadDrafts = async () => {
+    try {
+      const rows = await store.all('drafts')
+      if (!studioMounted.current) return
+      setDraft(rows.find(row => row.id === 'active') || null)
+      setDraftMessage(rows.some(row => row.id === 'active') ? '' : initialNotice)
+      setSavedDrafts(rows.filter(row => row.id.startsWith('saved:')).sort((a, b) => new Date(b.savedAt || b.startedAt) - new Date(a.savedAt || a.startedAt)))
+      setDraftReady(true)
+    } catch (error) {
+      if (studioMounted.current) { setDraftReady(false); setDraftMessage(`Drafts could not be loaded: ${error.message}. Existing drafts have not been cleared.`) }
+    }
+  }
+  useEffect(() => { loadDrafts() }, [store])
+  const draftSnapshot = () => ({ id: 'active', inspectionId, startedAt, evidenceItems, activeEvidenceId, text, rawOcrText, meta, ocrWords, auditChain: auditRef.current, challengeId: challenge?.id || null })
   useEffect(() => {
-    let active = true
-    store.get('drafts', 'active').then((record) => { if (active) { setDraft(record); setDraftReady(true) } }).catch((error) => { if (active) { setDraftMessage(error.message); setDraftReady(true) } })
-    return () => { active = false }
-  }, [store])
-  useEffect(() => {
-    if (!draftReady || draft || saved || !evidenceItems.length) return
+    if (!draftReady || draft || saved || saving || draftBusy || !evidenceItems.length) return
     const timer = setTimeout(() => {
-      store.put('drafts', { id: 'active', inspectionId, startedAt, evidenceItems, activeEvidenceId, text, rawOcrText, meta, ocrWords, auditChain, challengeId: challenge?.id || null }).then(() => setDraftMessage('Draft saved on this device.')).catch((error) => setDraftMessage(`Draft NOT saved: ${error.message}`))
+      draftWriter.save(draftSnapshot()).then(committed => {
+        if (committed && studioMounted.current && !draftWriter.busy) setDraftMessage('Draft saved on this device. Use “Save draft & new inspection” for a different package.')
+      }).catch(error => { if (studioMounted.current) setDraftMessage(`Draft NOT saved: ${error.message}`) })
     }, 350)
     return () => clearTimeout(timer)
-  }, [store, draftReady, draft, saved, inspectionId, startedAt, evidenceItems, activeEvidenceId, text, rawOcrText, meta, ocrWords, auditChain])
-  const restoreDraft = () => {
-    if (!draft || activeJob.current || processing || ocrState.running || saving) { setDraftMessage('Finish or cancel the current operation before restoring a draft.'); return }
-    if (challenge?.active && draft.challengeId !== challenge.id) { setDraftMessage('This draft predates the blind challenge. It cannot be used as blind-run evidence. Discard it explicitly or exit the challenge to recover it.'); return }
-    auditGeneration.current += 1
-    setFocusResult(null); setFocusSelection(null); setPaddlePreview(null); setPaddleGuidance([])
-    setInspectionId(draft.inspectionId); setStartedAt(draft.startedAt); setEvidenceItems(draft.evidenceItems); setActiveEvidenceId(draft.activeEvidenceId)
-    setText(draft.text); setRawOcrText(draft.rawOcrText || ''); setMeta({ ...INITIAL_META, ...restoreEvidencePolicy(draft) }); setOcrWords(draft.ocrWords || []); auditRef.current = draft.auditChain || []; setAuditChain(auditRef.current); setDraft(null); setDraftMessage('Draft restored under the current evidence policy; verify before sealing.')
+  }, [draftWriter, draftReady, draft, saved, saving, draftBusy, inspectionId, startedAt, evidenceItems, activeEvidenceId, text, rawOcrText, meta, ocrWords, auditChain, challenge?.id])
+  const startNewDraft = async () => {
+    if (!draftReady || draftWriter.busy || activeJob.current || processing || ocrState.running || saving || ocrPreviewPending || challenge?.active) return
+    if (saved) { onNewInspection('Sealed inspection retained in Inspection history. Upload a new package.'); return }
+    if (!draft && !evidenceItems.length) return
+    setDraftBusy(true)
+    try {
+      await draftWriter.transition(async () => {
+        await auditQueue.current
+        const previous = await parkInspectionDraft(store, draft || draftSnapshot())
+        if (studioMounted.current) onNewInspection(`“${previous.evidenceItems[0]?.name || 'Previous package'}” saved in Saved drafts on this device. Upload a new package below.`)
+      })
+    } catch (error) { if (studioMounted.current) setDraftMessage(`Draft NOT saved; current inspection kept open. ${error.message}`) }
+    finally { if (studioMounted.current) setDraftBusy(false) }
+  }
+  const restoreDraft = async (selected = draft) => {
+    if (activeJob.current || processing || ocrState.running || saving) { setDraftMessage('Finish or cancel the current operation before restoring a draft.'); return }
+    if (ocrPreviewPending) { setDraftMessage('Append or dismiss the pending OCR preview before restoring a draft.'); return }
+    if (!selected || !draftReady || draftWriter.busy) return
+    setDraftBusy(true)
+    try {
+      await draftWriter.transition(async () => {
+        await auditQueue.current
+        const current = draft || (!saved && evidenceItems.length ? draftSnapshot() : null)
+        const restored = await activateInspectionDraft(store, selected, current, challenge?.active ? challenge.id : null)
+        if (!studioMounted.current) return
+        auditGeneration.current += 1
+        setFocusResult(null); setFocusSelection(null); setFocusRequest(null); setPaddlePreview(null); setPaddleGuidance([])
+        setBarcodeState({ message: '', error: false, candidate: null }); setActiveRegionId('')
+        setOcrState({ running: false, progress: 0, label: 'Draft restored; verify preserved readings before sealing', error: '' })
+        setInspectionId(restored.inspectionId); setStartedAt(restored.startedAt); setEvidenceItems(restored.evidenceItems); setActiveEvidenceId(restored.activeEvidenceId)
+        setText(restored.text || ''); setRawOcrText(restored.rawOcrText || ''); setMeta({ ...INITIAL_META, ...restoreEvidencePolicy(restored) }); setOcrWords(restored.ocrWords || [])
+        auditRef.current = restored.auditChain || []; setAuditChain(auditRef.current); setDraft(null); setSaved(false); setSealedRecord(null)
+        if (fileInput.current) fileInput.current.value = ''
+        setDraftMessage('Draft restored under the current evidence policy. Any previous package was saved separately; verify before sealing.')
+        try {
+          const rows = await store.all('drafts')
+          if (studioMounted.current) setSavedDrafts(rows.filter(row => row.id.startsWith('saved:')).sort((a, b) => new Date(b.savedAt || b.startedAt) - new Date(a.savedAt || a.startedAt)))
+        } catch (error) { if (studioMounted.current) setDraftMessage(`Draft restored, but the saved-draft list could not refresh: ${error.message}. Reload before switching again.`) }
+      })
+    } catch (error) { if (studioMounted.current) setDraftMessage(`Draft not switched; current evidence retained. ${error.message}`) }
+    finally { if (studioMounted.current) setDraftBusy(false) }
   }
 
   const updateMeta = (key, value) => setMeta((current) => ({ ...current, [key]: value,
@@ -1513,19 +1567,23 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   })
 
   const save = async () => {
-    if (saved) return
+    if (saved || saving || draftWriter.busy || draftBusy) return
     try {
       if (ocrPreviewPending) throw new Error('Append or dismiss the pending OCR preview before finalizing this inspection.')
       validateSealableEvidence({ evidenceItems, text, processing, ocrRunning: ocrState.running })
       setSaving(true)
-      const finalChain = await recordAudit('inspection_sealed', { inspectionId, status: result.status, score: result.score, evidencePanels: evidenceItems.length })
-      const record = { ...buildRecord(finalChain), auditVerified: await verifyAuditChain(finalChain) }
-      const storedRecord = await onSaveRecord(record)
-      setSealedRecord(storedRecord || record)
-      setSaved(true)
-      await store.remove('drafts', 'active')
-      setDraftMessage('Sealed record saved. Start a new inspection to capture new evidence.')
-      if (challenge) onChallengeComplete?.(record)
+      await draftWriter.transition(async () => {
+        const finalChain = await recordAudit('inspection_sealed', { inspectionId, status: result.status, score: result.score, evidencePanels: evidenceItems.length })
+        const record = { ...buildRecord(finalChain), auditVerified: await verifyAuditChain(finalChain) }
+        const storedRecord = await onSaveRecord(record)
+        setSealedRecord(storedRecord || record)
+        setSaved(true)
+        try {
+          await removeInspectionDraft(store, inspectionId)
+          setDraftMessage('Sealed record saved. Start a new inspection to capture new evidence.')
+        } catch (error) { setDraftMessage(`Sealed record saved, but its draft cleanup needs a retry: ${error.message}`) }
+        if (challenge) onChallengeComplete?.(record)
+      })
     } catch (error) {
       setOcrState((current) => ({ ...current, error: error.message || 'The inspection could not be stored.' }))
     } finally {
@@ -1547,10 +1605,10 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
         </div>
       </div>
       <ChallengeClock challenge={challenge} />
-      <div className="draft-bar" role="status">{draft ? <><span>An unfinished inspection is available.</span><button onClick={restoreDraft}>Restore draft</button><button onClick={async () => { try { await store.remove('drafts', 'active'); setDraft(null) } catch (error) { setDraftMessage(error.message) } }}>Discard unfinished draft</button></> : draftMessage || 'Drafts save automatically on this device after capture.'}{saved && <><button onClick={() => onOpenReport(sealedRecord)}>Open sealed report</button><button onClick={onNewInspection}>Start new inspection</button></>}</div>
+      <InspectionDrafts pending={draft} rows={savedDrafts.filter(row => saved || row.inspectionId !== inspectionId)} message={draftMessage} ready={draftReady} busy={draftBusy} blocked={saving || processing || ocrState.running} previewPending={ocrPreviewPending} challengeActive={Boolean(challenge?.active)} hasEvidence={Boolean(evidenceItems.length)} saved={saved} onNew={startNewDraft} onRestore={restoreDraft} onOpenReport={() => onOpenReport(sealedRecord)} onReload={loadDrafts} />
       <InspectionProgress evidenceItems={evidenceItems} extraction={extraction} provenance={provenance} meta={meta} result={result} saved={saved} />
       {(processing || ocrState.running) && <div className="processing-banner" role="status"><LoaderCircle className="spin" size={18} /><span>{ocrState.label}<small>Work is time-limited. Cancellation prevents pending results from replacing evidence.</small></span><button type="button" onClick={cancelActiveJob}>Cancel current operation</button></div>}
-      <fieldset className="studio-lock" disabled={saved || saving || processing || ocrState.running || Boolean(draft)}>
+      <fieldset className="studio-lock" disabled={!draftReady || draftBusy || saved || saving || processing || ocrState.running || Boolean(draft)}>
       <div className="studio-grid">
         <div className="workflow-column">
           <section className="workflow-step">
@@ -2404,6 +2462,7 @@ function InspectionApp({ workspace }) {
   const reportRequest = useRef(null)
   const [overrideRecord, setOverrideRecord] = useState(null)
   const [studioKey, setStudioKey] = useState(0)
+  const [studioNotice, setStudioNotice] = useState('')
   const [syncError, setSyncError] = useState('')
   const [lastSyncAt, setLastSyncAt] = useState('')
   const [operations, setOperations] = useState([])
@@ -2580,7 +2639,7 @@ function InspectionApp({ workspace }) {
       <Shell route={route} setRoute={setRoute} historyCount={history.length} actor={actor} online={online} offlineOnly={workspace?.offlineOnly}>
         {reportLoading && <div className="processing-banner" role="status"><LoaderCircle size={20} /><span><b>{reportLoading.source === 'cloud' ? 'Checking fresh cloud evidence…' : 'Opening evidence…'}</b><small>{reportLoading.source === 'cloud' ? 'Fetching server metadata and hash-checking original/analysis images. No cached image fallback.' : 'Checking image bytes before opening the report.'}</small></span><button type="button" onClick={() => { reportRequest.current?.abort(); reportRequest.current = null; setReportLoading(null) }}>Cancel evidence check</button></div>}
         {(workspace || syncError) && <div className="sync-status" role="status"><b>{syncing ? 'Synchronizing…' : `${operations.length} queued change(s)`}</b><span>{syncError || (workspace?.offlineOnly ? 'Limited offline access. Captures remain local until fresh authentication and server permission checks.' : 'Local evidence is retained until the server acknowledges it.')}</span>{workspace && <button disabled={syncing || workspace.offlineOnly} onClick={() => synchronize(true)}>Sync / retry</button>}{operations.map((operation) => <details key={operation.id}><summary>{operation.kind} · {operation.recordId} · {operation.state}</summary><p>{operation.lastError || 'Waiting for upload and server verification.'}</p>{operation.lastErrorCode === 'RULE_PACK_MISMATCH' && <button disabled={syncing} onClick={() => startReassessment(operation)}>Archive unsent upload and start linked reassessment</button>}{operation.kind === 'review' && operation.state === 'conflict' && <><p>Your proposed disposition: {operation.payload.status}. {operation.payload.reason}</p><button disabled={workspace?.offlineOnly} onClick={() => archiveConflictingReview(operation)}>Keep server version; archive my unsent review locally</button><p>Then reopen Evidence and submit a new review against the latest version.</p></>}</details>)}</div>}
-        {route === 'inspect' && <InspectionStudio key={studioKey} store={store} workspace={workspace} onNewInspection={() => setStudioKey((value) => value + 1)} onSaveRecord={saveRecord} onOpenReport={openReport} challenge={challenge?.active ? challenge : null} onChallengeComplete={completeChallenge} actor={actor} />}
+        {route === 'inspect' && <InspectionStudio key={studioKey} store={store} workspace={workspace} initialNotice={studioNotice} onNewInspection={message => { setStudioNotice(message || ''); setStudioKey(value => value + 1) }} onSaveRecord={saveRecord} onOpenReport={openReport} challenge={challenge?.active ? challenge : null} onChallengeComplete={completeChallenge} actor={actor} />}
         {route === 'challenge' && <BlindChallengePage challenge={challenge} onStart={startChallenge} onContinue={() => setRoute('inspect')} history={history} />}
         {route === 'dashboard' && <Dashboard history={history} onNavigate={setRoute} onOpenReport={openReport} />}
         {route === 'history' && <HistoryPage history={history} onOpenReport={openReport} onVerifyCloud={workspace && !workspace.offlineOnly ? (record) => openReport(record, { source: 'cloud' }) : null} reportBusy={Boolean(reportLoading)} onNavigate={setRoute} />}

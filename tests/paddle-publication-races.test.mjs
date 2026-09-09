@@ -28,7 +28,7 @@ const declarations = names.map(name => {
   assert.ok(end >= 0, `Missing App closure boundary ${name}.`)
   return rest.slice(0, end + '\n  }'.length)
 }).join('\n')
-const cleanup = app.match(/  useEffect\(\(\) => \(\) => (\{[^\n]*activeJob\.current\?\.abort\(\)[^\n]*\}), \[\]\)/)?.[1]
+const cleanup = app.match(/return \(\) => (\{[^\n]*studioMounted\.current = false[^\n]*activeJob\.current\?\.abort\(\)[^\n]*\})/)?.[1]
 assert.ok(cleanup, 'Missing exact App unmount cleanup; update the source harness after a refactor.')
 const pendingPreviewExpression = app.match(/  const ocrPreviewPending = ([^\r\n]+)/)?.[1]
 assert.ok(pendingPreviewExpression, 'Missing exact App pending-preview expression; update the source harness after a refactor.')
@@ -66,6 +66,7 @@ async function harness({ pauseType = '', failType = '', pauseRunner = false, fai
   const context = {
     ...state, challenge: null, workspace: { offlineOnly: false }, activeEvidence: state.evidenceItems[0], actor: { id: 'officer' }, qualityBlocked: false,
     activeJob: { current: null }, auditRef: { current: oldChain }, auditQueue: { current: Promise.resolve() }, auditGeneration: { current: 0 },
+    studioMounted: { current: true },
     AbortController, crypto, abortError, INITIAL_META: {}, invalidateCapturedEvidence, restoreEvidencePolicy,
     appendFocusedTranscript, appendOcrHistory, validateOcrHistory, preparePaddleAppend, fieldCandidates, extractDeclarations,
     reconstructOcrReadingOrder, reviewableDeclarationProposals, collectPaddleLayoutProposals,
@@ -586,17 +587,18 @@ test('structured runner failure preserves evidence, and its job lock prevents ov
   assertEvidencePreserved(h)
 })
 
-test('idle draft restore invalidates queued audit generation and clears OCR previews', async () => {
+test('draft restore preserves unresolved OCR previews and does not drop a queued audit', async () => {
   const h = await harness({ pauseType: 'officer_note' })
   const pending = h.handlers.recordAudit('officer_note')
-  const rejected = assert.rejects(pending, { name: 'AbortError' })
   await h.entered.promise
-  h.handlers.restoreDraft()
-  h.release.resolve(); await rejected
-  assert.equal(h.state.inspectionId, 'draft-id'); assert.equal(h.state.text, 'DRAFT TEXT')
-  assert.equal(h.context.auditGeneration.current, 1)
-  for (const key of ['focusResult', 'focusSelection', 'paddlePreview']) assert.equal(h.state[key], null)
-  assert.deepEqual(clone(h.state.auditChain), [])
+  await h.handlers.restoreDraft()
+  assert.match(h.state.draftMessage, /Append or dismiss/)
+  assertEvidencePreserved(h)
+  assert.equal(h.context.auditGeneration.current, 0)
+  for (const key of ['focusResult', 'focusSelection', 'paddlePreview']) assert.deepEqual(clone(h.state[key]), h.initial[key])
+  h.release.resolve(); await pending
+  assert.equal(h.state.auditChain.at(-1).type, 'officer_note')
+  assert.equal(await verifyAuditChain(h.state.auditChain), true)
 })
 
 const regionExtraction = { fields: [{ id: 'mrp', label: 'MRP', detected: true, evidence: 'MRP 40.00' }] }
