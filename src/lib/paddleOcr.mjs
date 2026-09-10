@@ -155,7 +155,7 @@ export async function runPaddleOcr({ evidenceItems, signal, onProgress = () => {
       const parsed = parsePaddleOutput(output[0], item.id, frame)
       const words = frame.mapWords ? frame.mapWords(parsed.words) : parsed.words
       validateOcrWords(words)
-      const sourceStrategy = frame.retryMode ? `local-alternative-dark-ink-${frame.retryMode.rotation}${frame.crop ? '-focus' : ''}` : frame.crop ? 'local-alternative-officer-focus' : 'local-alternative-original'
+      const sourceStrategy = frame.retryMode ? `local-alternative-dark-ink-${frame.retryMode.rotation}${frame.crop ? '-focus' : ''}` : frame.crop ? frame.automaticFocus ? 'local-automatic-heading-focus' : 'local-alternative-officer-focus' : 'local-alternative-original'
       const strategy = `${sourceStrategy}${detectionProfile === 'sensitive' ? '-sensitive-detector' : ''}`
       const reading = { id: item.id, imageUrl: item.analysisUrl, previewUrl: frame.previewUrl, sourceBinding, crop: frame.crop || null, retryMode: frame.retryMode || null, detectionProfile, detectionThresholds: thresholds, source: frame.source, width: frame.width, height: frame.height, ...parsed,
         ocrPasses: [{ id: `${item.id}:paddle-${frame.crop ? 'focus' : 'original'}`, text: parsed.text, confidence: parsed.confidence, provider: 'paddleocr-js', model: PADDLE_MODEL, strategy, detectionProfile, detectionThresholds: thresholds }], ocrWords: words }

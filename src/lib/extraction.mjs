@@ -1,5 +1,6 @@
 import { findConsumerAddress, findConsumerPhone } from './consumerContact.mjs'
 import { normalizeUnit, parseLabelNumbers, parsePackingDates, findBoundedEmail, MAX_LABEL_TEXT } from './labelParser.mjs'
+import { wrappedDeclaration } from './wrappedDeclarations.mjs'
 export { normalizeUnit } from './labelParser.mjs'
 
 const cleanLines = (text) =>
@@ -50,6 +51,11 @@ export function extractDeclarations(text) {
   const barcodeMatch = raw.match(/\b(?:EAN|GTIN|BARCODE)\s*[:\-]?\s*(\d{8,14})\b/i)
   const fssaiMatch = raw.match(/\bFSSAI\b[^\d\n]{0,35}(?:LIC(?:ENCE)?\.?\s*(?:NO\.?)?)?[^\d\n]{0,12}(\d(?:[\s-]?\d){13})\b/i)
   const fssaiLicense = fssaiMatch?.[1]?.replace(/\D/g, '') || ''
+  const wrappedName = wrappedDeclaration(raw, /^(?:COMMON|GENERIC)[ \t]+NAME[ \t]*[:\-]?[ \t]*$/i)
+  const wrappedOrigin = wrappedDeclaration(raw, /^(?:COUNTRY[ \t]+OF[ \t]+ORIGIN|MADE[ \t]+IN|PRODUCT[ \t]+OF)[ \t]*[:\-]?[ \t]*$/i)
+  const wrappedMaker = wrappedDeclaration(raw, /^(?:(?:MANUFACTURED|MFD|PACKED|IMPORTED)[ \t]+BY|MANUFACTURER|PACKER|IMPORTER)[ \t]*[:\-]?[ \t]*$/i, { maxLines: 3 })
+  const wrappedExpiry = wrappedDeclaration(raw, /^(?:BEST[ \t]+BEFORE|USE[ \t]+BY|EXPIRY|EXP)[ \t]*[:\-]?[ \t]*$/i, { kind: 'date' })
+  const wrappedField = (id, label, block, includeHeading = false) => field(id, label, block.value ? (includeHeading ? `${block.heading} ${block.value}` : block.value) : '', block.evidence, block.value ? 75 : 0, block.value ? { status: 'layout_candidate', message: 'Literal heading and adjacent text lines associated; verify their layout on the package.' } : { status: 'invalid', message: 'Heading detected without an adjacent readable value. Capture the declaration close-up.' })
 
   const excludedFirstLine = /^(?:MRP|NET\s|PACKED|MFG|MFD|MANUFACTURED|CONSUMER|CUSTOMER|HELPLINE|UNIT\s|COUNTRY\s|MADE\s|INGREDIENTS?|NUTRITION|\[)/i
   // A title heuristic may inspect the first label line only. Searching past a
@@ -75,17 +81,17 @@ export function extractDeclarations(text) {
   }
 
   const fields = [
-    field('productName', 'Product / generic name', genericMatch?.[1] || productFallback, genericMatch ? lineContaining(lines, genericMatch) : productFallback, genericMatch ? 94 : productFallback ? 72 : 0),
+    wrappedName ? wrappedField('productName', 'Product / generic name', wrappedName) : field('productName', 'Product / generic name', genericMatch?.[1] || productFallback, genericMatch ? lineContaining(lines, genericMatch) : productFallback, genericMatch ? 94 : productFallback ? 72 : 0),
     numericField('mrp', 'Maximum Retail Price', 96),
     numericField('netQuantity', 'Net quantity', 96),
     numericField('packDate', 'Month / year', 92),
-    field('bestBefore', 'Best before / use by', bestBeforeMatch?.[1], lineContaining(lines, bestBeforeMatch), bestBeforeMatch ? 88 : 0),
-    field('responsibleEntity', 'Manufacturer / packer / importer', manufacturerMatch?.[0], responsibleEvidence, manufacturerMatch ? 89 : 0),
+    wrappedExpiry ? wrappedField('bestBefore', 'Best before / use by', wrappedExpiry) : field('bestBefore', 'Best before / use by', bestBeforeMatch?.[1], lineContaining(lines, bestBeforeMatch), bestBeforeMatch ? 88 : 0),
+    wrappedMaker ? wrappedField('responsibleEntity', 'Manufacturer / packer / importer', wrappedMaker, true) : field('responsibleEntity', 'Manufacturer / packer / importer', manufacturerMatch?.[0], responsibleEvidence, manufacturerMatch ? 89 : 0),
     field('consumerCare', 'Consumer-care channel', careMatch?.[0], lineContaining(lines, careMatch), careMatch ? 90 : 0),
     field('consumerAddress', 'Consumer-care address', careAddress.value, careAddress.line, careAddress.found ? 86 : 0),
     field('email', 'Consumer-care email', emailMatch.value, emailMatch.line, emailMatch.found ? 98 : 0),
     field('phone', 'Consumer-care phone', phoneMatch.value, phoneMatch.line, phoneMatch.found ? 94 : 0),
-    field('countryOrigin', 'Country of origin', originMatch?.[1], lineContaining(lines, originMatch), originMatch ? 92 : 0),
+    wrappedOrigin ? wrappedField('countryOrigin', 'Country of origin', wrappedOrigin) : field('countryOrigin', 'Country of origin', originMatch?.[1], lineContaining(lines, originMatch), originMatch ? 92 : 0),
     numericField('unitSalePrice', 'Unit sale price', 90),
     field('fssaiLicense', 'FSSAI licence', fssaiLicense, lineContaining(lines, fssaiMatch), fssaiMatch ? 95 : 0, fssaiLicense ? { status: 'format_valid', message: '14-digit licence format detected; registry validity is not inferred.' } : null),
     field('barcode', 'Barcode / GTIN', barcodeMatch?.[1], lineContaining(lines, barcodeMatch), barcodeMatch ? 96 : 0, barcodeMatch ? { status: isValidGtin(barcodeMatch[1]) ? 'check_digit_valid' : 'check_digit_invalid', message: isValidGtin(barcodeMatch[1]) ? 'GTIN check digit is valid.' : 'GTIN check digit failed; verify OCR or scan the barcode.' } : null),

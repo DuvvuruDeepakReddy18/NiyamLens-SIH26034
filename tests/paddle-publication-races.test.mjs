@@ -4,7 +4,9 @@ import { readFile } from 'node:fs/promises'
 import { runInNewContext } from 'node:vm'
 import { appendAuditEvent, verifyAuditChain } from '../src/lib/audit.mjs'
 import { abortError } from '../src/lib/ocrLifecycle.mjs'
-import { invalidateCapturedEvidence, restoreEvidencePolicy, ocrProvenance } from '../src/lib/inspectionWorkflow.mjs'
+import { invalidateCapturedEvidence, invalidateOcrEvidence, restoreEvidencePolicy, ocrProvenance } from '../src/lib/inspectionWorkflow.mjs'
+import { applyContextAutofill } from '../src/lib/inspectionAutofill.mjs'
+import { readLabelWithRecovery, prepareRecoveredLabelAppend } from '../src/lib/structuredLabelOcr.mjs'
 import { appendFocusedTranscript } from '../src/lib/focusOcr.mjs'
 import { appendOcrHistory, validateOcrHistory } from '../src/lib/ocrHistory.mjs'
 import { preparePaddleAppend, parsePaddleOutput, paddleSourceBinding, PADDLE_MODEL } from '../src/lib/paddleOcr.mjs'
@@ -67,7 +69,7 @@ async function harness({ pauseType = '', failType = '', pauseRunner = false, fai
     ...state, challenge: null, workspace: { offlineOnly: false }, activeEvidence: state.evidenceItems[0], actor: { id: 'officer' }, qualityBlocked: false,
     activeJob: { current: null }, auditRef: { current: oldChain }, auditQueue: { current: Promise.resolve() }, auditGeneration: { current: 0 },
     studioMounted: { current: true },
-    AbortController, crypto, abortError, INITIAL_META: {}, invalidateCapturedEvidence, restoreEvidencePolicy,
+    AbortController, crypto, abortError, INITIAL_META: {}, invalidateCapturedEvidence, invalidateOcrEvidence, restoreEvidencePolicy, applyContextAutofill, readLabelWithRecovery, prepareRecoveredLabelAppend,
     appendFocusedTranscript, appendOcrHistory, validateOcrHistory, preparePaddleAppend, fieldCandidates, extractDeclarations,
     reconstructOcrReadingOrder, reviewableDeclarationProposals, collectPaddleLayoutProposals,
     resolvePaddleFocusSuggestion, prepareOcrPassSelection,
@@ -85,7 +87,7 @@ async function harness({ pauseType = '', failType = '', pauseRunner = false, fai
     createPaddleFocusInput: async (item, rect) => ({ item, rect, syntheticTestInput: true }),
   }
   const setters = []
-  for (const key of ['InspectionId', 'StartedAt', 'AuditChain', 'Processing', 'OcrState', 'EvidenceItems', 'ActiveEvidenceId', 'OcrWords', 'Text', 'RawOcrText', 'Meta', 'FocusSelection', 'FocusResult', 'PaddlePreview', 'PaddleGuidance', 'Draft', 'DraftMessage']) {
+  for (const key of ['InspectionId', 'StartedAt', 'AuditChain', 'Processing', 'OcrState', 'EvidenceItems', 'ActiveEvidenceId', 'OcrWords', 'Text', 'RawOcrText', 'Meta', 'FocusSelection', 'FocusResult', 'PaddlePreview', 'PaddleGuidance', 'Draft', 'DraftMessage', 'DraftChallengeId']) {
     const stateKey = key[0].toLowerCase() + key.slice(1)
     context[`set${key}`] = value => { setters.push(key); state[stateKey] = typeof value === 'function' ? value(state[stateKey]) : value }
   }

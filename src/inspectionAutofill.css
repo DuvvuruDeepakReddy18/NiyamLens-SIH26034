@@ -1,0 +1,15 @@
+.context-autofill { margin-bottom: 20px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); padding: 16px; }
+.context-autofill header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.context-autofill header > span, .autofill-badge { color: #286052; background: #edf6f1; border-radius: 5px; padding: 5px 7px; font-size: 11px; }
+.context-autofill p { font-size: 12px; line-height: 1.6; color: var(--muted); margin: 8px 0; }
+.context-autofill ul { list-style: none; padding: 0; margin: 14px 0; }
+.context-autofill li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.context-autofill li > div { display: grid; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.context-autofill li b, .context-autofill li span { font-size: 12px; }
+.context-autofill li small { font-size: 11px; color: var(--muted); line-height: 1.5; }
+.context-autofill button { flex-shrink: 0; padding: 7px 10px; border: 1px solid #91b3a7; border-radius: 5px; background: white; color: #075c49; font-size: 11px; cursor: pointer; }
+.geometry-autofill-note { border-top: 1px solid var(--line); padding-top: 12px; font-size: 12px; }
+.verification-prefill-notice { padding: 9px 12px; border-left: 3px solid var(--green); background: #edf6f1; }
+.ocr-coverage-notice { padding: 14px 16px; margin: 14px 0; border: 1px solid #c4ced5; border-left: 3px solid #276aa8; border-radius: 6px; background: #f0f5f9; font-size: 12px; }
+.ocr-coverage-notice p { color: var(--muted); line-height: 1.6; margin: 7px 0; }
+@media (max-width: 540px) { .context-autofill li { align-items: flex-start; flex-direction: column; } .context-autofill { padding: 12px; } }

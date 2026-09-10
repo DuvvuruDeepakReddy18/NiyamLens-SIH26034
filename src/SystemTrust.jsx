@@ -1,4 +1,5 @@
 import { Check, Cloud, Database, Download, HardDrive, Info, LockKeyhole, ScanLine, ShieldCheck, Wifi, WifiOff } from 'lucide-react'
+import { BLIND_CHALLENGE_ENABLED } from './lib/features.mjs'
 
 const syncLabel = (value) => value
   ? `Verified this session · ${new Date(value).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
@@ -54,7 +55,7 @@ export default function SystemTrust({ workspace, online, install, historyCount, 
 
       <article className="judge-path">
         <div><span className="eyebrow">60-SECOND VERIFICATION PATH</span><h3>Let a judge try to falsify it.</h3><p>Use a package the team has never seen, run one real capture, inspect the highlighted source, then open the rule reasoning and sealed evidence packet.</p></div>
-        <div><button type="button" onClick={() => onNavigate('challenge')}>1 · Start blind challenge</button><button type="button" onClick={() => onNavigate('inspect')}>2 · Inspect a package</button><button type="button" onClick={() => onNavigate('rules')}>3 · Verify rule sources</button></div>
+        <div>{BLIND_CHALLENGE_ENABLED && <button type="button" onClick={() => onNavigate('challenge')}>Start blind challenge</button>}<button type="button" onClick={() => onNavigate('inspect')}>Inspect a package</button><button type="button" onClick={() => onNavigate('rules')}>Verify rule sources</button></div>
       </article>
     </section>
   )

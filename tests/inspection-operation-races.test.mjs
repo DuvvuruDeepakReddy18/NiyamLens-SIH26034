@@ -71,7 +71,7 @@ async function harness({ empty = false, pauseType = '', pauseOccurrence = 1, fai
     updatePanelMeasurement: (key, value) => { state.measurementUpdated = { key, value } },
   }
   const setters = []
-  for (const key of ['InspectionId', 'StartedAt', 'Saved', 'AuditChain', 'Processing', 'OcrState', 'EvidenceItems', 'ActiveEvidenceId', 'OcrWords', 'Text', 'RawOcrText', 'Meta', 'BarcodeState']) {
+  for (const key of ['InspectionId', 'DraftChallengeId', 'StartedAt', 'Saved', 'AuditChain', 'Processing', 'OcrState', 'EvidenceItems', 'ActiveEvidenceId', 'OcrWords', 'Text', 'RawOcrText', 'Meta', 'BarcodeState']) {
     const stateKey = key[0].toLowerCase() + key.slice(1)
     context[`set${key}`] = value => { setters.push(key); state[stateKey] = typeof value === 'function' ? value(state[stateKey]) : value }
   }

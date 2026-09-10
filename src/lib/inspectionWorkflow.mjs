@@ -54,6 +54,16 @@ export function invalidateCapturedEvidence(meta = {}) {
   }
 }
 
+// A new reading of the same photos resets decisions, not the officer's notes.
+// Actual image replacement still uses invalidateCapturedEvidence above.
+export function invalidateOcrEvidence(meta = {}) {
+  const next = invalidateCapturedEvidence(meta)
+  next.fieldReviews = Object.fromEntries(Object.entries(meta.fieldReviews || {})
+    .filter(([, review]) => typeof review?.reason === 'string')
+    .map(([id, review]) => [id, { ...review, state: 'unreviewed' }]))
+  return next
+}
+
 export function validateSealableEvidence({ evidenceItems = [], text = '', processing = false, ocrRunning = false } = {}) {
   if (processing || ocrRunning) throw new Error('Wait for capture or OCR to finish before sealing the inspection.')
   if (!Array.isArray(evidenceItems) || evidenceItems.length < 1 || evidenceItems.length > 4) throw new Error('Capture at least one package photograph before finalizing. Text-only input cannot be sealed as image-supported evidence.')

@@ -47,6 +47,12 @@ import {
 import { DEMOS } from './lib/demoData.js'
 import { detectBarcode, evidenceFromFile, processImage, rectifyEvidence, rectifyEvidenceFromBarcode, reprocessEvidence } from './lib/evidence.mjs'
 import { extractDeclarations } from './lib/extraction.mjs'
+import { applyContextAutofill, markContextEdited, useDetectedContext, updateGeometryDimension } from './lib/inspectionAutofill.mjs'
+import ContextAutofill from './ContextAutofill.jsx'
+import OcrCoverageNotice from './OcrCoverageNotice.jsx'
+import InspectionCommandView from './InspectionCommandView.jsx'
+import { buildInspectionAnalysis } from './lib/inspectionAnalysis.mjs'
+import { BLIND_CHALLENGE_ENABLED } from './lib/features.mjs'
 import { appendAuditEvent, verifyAuditChain } from './lib/audit.mjs'
 import { parseBenchmarkFile, runBenchmark, SEEDED_BENCHMARK } from './lib/benchmark.mjs'
 import { APPROVAL_GATES, RULE_EDGE_CASES, RULE_MATRIX, RULE_MATRIX_VERSION } from './lib/ruleMatrix.mjs'
@@ -57,9 +63,10 @@ import { activateInspectionDraft, createDraftWriter, parkInspectionDraft, remove
 import InspectionDrafts from './InspectionDrafts.jsx'
 import { appendReview, auditPresentation, effectiveStatus, normalizeCase } from './lib/caseRecords.mjs'
 import { evaluateInspection, fieldCandidates, FIELD_RULES } from './lib/inspectionSafety.mjs'
-import { EMPTY_OCR, MAX_EVIDENCE_TEXT, ocrProvenance, restoreEvidencePolicy, invalidateCapturedEvidence, validateSealableEvidence, nextPageOffset } from './lib/inspectionWorkflow.mjs'
+import { EMPTY_OCR, MAX_EVIDENCE_TEXT, ocrProvenance, restoreEvidencePolicy, invalidateCapturedEvidence, invalidateOcrEvidence, validateSealableEvidence, nextPageOffset } from './lib/inspectionWorkflow.mjs'
 import { runLocalOcr } from './lib/ocrRunner.mjs'
 import { runPaddleOcr, preparePaddleAppend, createPaddleFocusInput } from './lib/paddleOcr.mjs'
+import { readLabelWithRecovery, prepareRecoveredLabelAppend } from './lib/structuredLabelOcr.mjs'
 import { createPaddleRetryInput } from './lib/paddleRetryInput.mjs'
 import PaddleStampRecovery from './PaddleStampRecovery.jsx'
 import { collectPaddleLayoutProposals } from './lib/paddleLayoutProposals.mjs'
@@ -99,7 +106,7 @@ const NAV_ITEMS = [
   { id: 'operations', label: 'Officer operations', icon: Users },
   { id: 'rules', label: 'Rule library', icon: Library },
   { id: 'system', label: 'System & trust', icon: ShieldCheck },
-]
+].filter(item => item.id !== 'challenge' || BLIND_CHALLENGE_ENABLED)
 
 const STATUS = {
   compliant: { label: 'PASS', className: 'pass', icon: BadgeCheck },
@@ -696,7 +703,7 @@ function ExtractionWorkbench({ extraction, onApply, barcodeState, regions = [], 
           <h4>{found} of {visibleFields.length} declaration signals detected</h4>
         </div>
         <button type="button" onClick={() => onApply(extraction)} disabled={!extraction.raw}>
-          <WandSparkles size={15} /> Apply detected context
+          <WandSparkles size={15} /> Refresh detected context
         </button>
       </header>
       <div className="extraction-grid">
@@ -799,7 +806,7 @@ function ChallengeClock({ challenge }) {
   return <div className="challenge-ribbon"><Timer size={18} /><span>Blind inspection <b>{challenge.code}</b></span><code>{minutes}:{seconds}</code><small>Controlled packets disabled · all actions audited</small></div>
 }
 
-function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeComplete, actor, workspace, store, onNewInspection, initialNotice = '' }) {
+function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeComplete, actor, workspace, store, onNewInspection, onInspectionChange, commandFocus, initialNotice = '' }) {
   const [inspectionId, setInspectionId] = useState(createInspectionId)
   const [startedAt, setStartedAt] = useState(() => new Date().toISOString())
   const [evidenceItems, setEvidenceItems] = useState([])
@@ -807,6 +814,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   const [text, setText] = useState('')
   const [rawOcrText, setRawOcrText] = useState('')
   const [draft, setDraft] = useState(null)
+  const [draftChallengeId, setDraftChallengeId] = useState(null)
   const [draftReady, setDraftReady] = useState(false)
   const [draftMessage, setDraftMessage] = useState(initialNotice)
   const [savedDrafts, setSavedDrafts] = useState([])
@@ -870,6 +878,19 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     return rawRegions.map((region) => ({ ...region, status: statuses[region.id] || 'info' }))
   }, [rawRegions, result])
   const qualityBlocked = qualityDecisionRequired(evidenceItems, meta.qualityAcknowledgements)
+  const commandAnalysis = useMemo(() => buildInspectionAnalysis(draft || { inspectionId, text, rawOcrText, meta, evidenceItems, ocrWords, auditChain }, { pendingRestore: Boolean(draft), saved, running: processing || ocrState.running, pendingPreview: ocrPreviewPending, error: ocrState.error }), [draft, inspectionId, text, rawOcrText, meta, evidenceItems, ocrWords, auditChain, saved, processing, ocrState.running, ocrPreviewPending, ocrState.error])
+  useEffect(() => { onInspectionChange?.(commandAnalysis) }, [commandAnalysis, onInspectionChange])
+  const lastCommandFocus = useRef(null)
+  useEffect(() => {
+    if (!commandFocus || commandFocus.id === lastCommandFocus.current) return
+    const target = document.getElementById(`verify-${commandFocus.fieldId}`)
+    if (!target) return
+    lastCommandFocus.current = commandFocus.id
+    const region = regions.find(item => item.id === commandFocus.fieldId)
+    if (region) { setActiveEvidenceId(region.panelId); setActiveRegionId(region.id) }
+    target.scrollIntoView({ block: 'center', behavior: 'instant' })
+    target.focus({ preventScroll: true })
+  }, [commandFocus, regions, draft])
 
   const loadDrafts = async () => {
     try {
@@ -884,7 +905,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     }
   }
   useEffect(() => { loadDrafts() }, [store])
-  const draftSnapshot = () => ({ id: 'active', inspectionId, startedAt, evidenceItems, activeEvidenceId, text, rawOcrText, meta, ocrWords, auditChain: auditRef.current, challengeId: challenge?.id || null })
+  const draftSnapshot = () => ({ id: 'active', inspectionId, startedAt, evidenceItems, activeEvidenceId, text, rawOcrText, meta, ocrWords, auditChain: auditRef.current, challengeId: challenge?.id || draftChallengeId || null })
   useEffect(() => {
     if (!draftReady || draft || saved || saving || draftBusy || !evidenceItems.length) return
     const timer = setTimeout(() => {
@@ -893,7 +914,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       }).catch(error => { if (studioMounted.current) setDraftMessage(`Draft NOT saved: ${error.message}`) })
     }, 350)
     return () => clearTimeout(timer)
-  }, [draftWriter, draftReady, draft, saved, saving, draftBusy, inspectionId, startedAt, evidenceItems, activeEvidenceId, text, rawOcrText, meta, ocrWords, auditChain, challenge?.id])
+  }, [draftWriter, draftReady, draft, saved, saving, draftBusy, inspectionId, startedAt, evidenceItems, activeEvidenceId, text, rawOcrText, meta, ocrWords, auditChain, challenge?.id, draftChallengeId])
   const startNewDraft = async () => {
     if (!draftReady || draftWriter.busy || activeJob.current || processing || ocrState.running || saving || ocrPreviewPending || challenge?.active) return
     if (saved) { onNewInspection('Sealed inspection retained in Inspection history. Upload a new package.'); return }
@@ -924,6 +945,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
         setBarcodeState({ message: '', error: false, candidate: null }); setActiveRegionId('')
         setOcrState({ running: false, progress: 0, label: 'Draft restored; verify preserved readings before sealing', error: '' })
         setInspectionId(restored.inspectionId); setStartedAt(restored.startedAt); setEvidenceItems(restored.evidenceItems); setActiveEvidenceId(restored.activeEvidenceId)
+        setDraftChallengeId(restored.challengeId || null)
         setText(restored.text || ''); setRawOcrText(restored.rawOcrText || ''); setMeta({ ...INITIAL_META, ...restoreEvidencePolicy(restored) }); setOcrWords(restored.ocrWords || [])
         auditRef.current = restored.auditChain || []; setAuditChain(auditRef.current); setDraft(null); setSaved(false); setSealedRecord(null)
         if (fileInput.current) fileInput.current.value = ''
@@ -938,6 +960,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const updateMeta = (key, value) => setMeta((current) => ({ ...current, [key]: value,
+    ...markContextEdited(current, key),
     ...(['pdpArea', 'pdpUncertainty', 'formedText'].includes(key) ? { pdpConfirmed: false, placementPdpConfirmed: false } : {}),
     ...(['referenceMm', 'measurementUncertainty'].includes(key) ? { measurementConfirmed: false, widthCharacterConfirmed: false } : {}),
     ...(['quantity', 'unit', 'category', 'commodityClass'].includes(key) ? { classificationConfirmed: false, placementPdpConfirmed: false } : {}),
@@ -979,29 +1002,17 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const updatePanelDimension = (key, value) => {
-    setMeta((current) => {
-      const next = { ...current, [key]: value, pdpConfirmed: false, placementPdpConfirmed: false }
-      const width = Number(key === 'panelWidthCm' ? value : next.panelWidthCm)
-      const height = Number(key === 'panelHeightCm' ? value : next.panelHeightCm)
-      if (width > 0 && height > 0) next.pdpArea = Number((width * height).toFixed(2))
-      return next
-    })
+    setMeta(current => updateGeometryDimension(current, key, value))
   }
 
   const updateCylinderDimension = (key, value) => {
-    setMeta((current) => {
-      const next = { ...current, [key]: value, pdpConfirmed: false, placementPdpConfirmed: false }
-      const diameter = Number(key === 'cylinderDiameterCm' ? value : next.cylinderDiameterCm)
-      const height = Number(key === 'cylinderHeightCm' ? value : next.cylinderHeightCm)
-      const coverage = Number(key === 'cylinderCoverage' ? value : next.cylinderCoverage)
-      if (diameter > 0 && height > 0 && coverage > 0) next.pdpArea = Number((Math.PI * diameter * height * (coverage / 100)).toFixed(2))
-      return next
-    })
+    setMeta(current => updateGeometryDimension(current, key, value))
   }
 
   const beginEvidenceRecord = () => {
     auditGeneration.current += 1
     setInspectionId(createInspectionId())
+    setDraftChallengeId(null)
     setStartedAt(new Date().toISOString())
     setSaved(false)
     auditRef.current = []
@@ -1009,17 +1020,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
   }
 
   const applyExtraction = (parsed) => {
-    setMeta((current) => ({
-      ...current,
-      classificationConfirmed: false,
-      rule3ApplicabilityConfirmed: false,
-      productName: parsed.suggestions.productName || current.productName,
-      category: parsed.suggestions.category || current.category,
-      commodityClass: parsed.suggestions.commodityClass || current.commodityClass,
-      quantity: parsed.byId.netQuantity?.detected ? (parsed.suggestions.quantity ?? '') : current.quantity,
-      unit: parsed.suggestions.unit || current.unit,
-      barcode: parsed.suggestions.barcode || current.barcode,
-    }))
+    setMeta(current => applyContextAutofill(current, parsed))
   }
 
   const openEvidencePicker = (replaceId = '', captureTarget = '') => {
@@ -1313,17 +1314,17 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       setOcrState({ running: true, progress: 1, label: 'Preparing local label reading', error: '' })
       await recordAudit('ocr_requested', { panels: evidenceItems.length, provider: 'paddleocr-js', strategy: 'machine-structured-candidates-v1', imagesLeaveDevice: false })
       if (!current()) return
-      const output = await runPaddleOcr({ evidenceItems, signal: controller.signal, onProgress: state => { if (current()) setOcrState(state) } })
+      const output = await readLabelWithRecovery({ evidenceItems, signal: controller.signal, runner: runPaddleOcr, onProgress: state => { if (current()) setOcrState(state) } })
       if (!current()) return
       const runId = crypto.randomUUID()
-      const next = preparePaddleAppend({ evidenceItems, text, rawOcrText, output, runId, structured: true })
-      await recordAudit('ocr_completed', { provider: 'paddleocr-js', model: output.model, detectionProfile: output.detectionProfile || 'baseline', detectionThresholds: output.detectionThresholds || null, strategy: 'machine-structured-candidates-v1', runId, reliability: null, engineConfidence: null, previousTranscriptPreserved: true, reviewedRows: [], candidateRows: next.candidateRows, workingMappings: next.workingMappings, warnings: next.warnings, requiresOfficerReview: true, rawHistoryUnchanged: true, rawPasses: output.items.map(item => ({ panelId: item.id, characters: item.text.length, lines: item.lines.length, source: item.source, crop: item.crop, detectionProfile: item.detectionProfile || 'baseline' })) })
+      const next = prepareRecoveredLabelAppend({ evidenceItems, text, rawOcrText, output, runId })
+      await recordAudit('ocr_completed', { provider: 'paddleocr-js', model: output.model, detectionProfile: output.detectionProfile || 'baseline', detectionThresholds: output.detectionThresholds || null, strategy: 'machine-structured-candidates-v1', runId, reliability: null, engineConfidence: null, previousTranscriptPreserved: true, reviewedRows: [], candidateRows: next.candidateRows, workingMappings: next.workingMappings, warnings: next.warnings, requiresOfficerReview: true, rawHistoryUnchanged: true, automaticRecovery: output.recoveryNotes, rawPasses: [output, ...output.recoveries].flatMap(observation => observation.items.map(item => ({ panelId: item.id, characters: item.text.length, lines: item.lines.length, source: item.source, crop: item.crop, detectionProfile: item.detectionProfile || 'baseline' }))) })
       if (!current()) return
       setText(next.text); setRawOcrText(next.rawOcrText); setEvidenceItems(next.evidenceItems); setOcrWords(next.words)
-      setMeta(previous => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(next.evidenceItems.flatMap(item => item.ocrPasses || [])), ocrCompletedAt: new Date().toISOString(), ocrSource: 'local-paddle-structured', ocrReliabilityReason: 'Machine-generated heading/value candidates, not officer-verified readings. Raw characters are unchanged; spatial associations are heuristic. No validated accuracy score is available.' }))
+      setMeta(previous => ({ ...invalidateOcrEvidence(previous), fieldCandidates: fieldCandidates(next.evidenceItems.flatMap(item => item.ocrPasses || [])), ocrCompletedAt: new Date().toISOString(), ocrSource: 'local-paddle-structured', ocrReliabilityReason: 'Machine-generated heading/value candidates, not officer-verified readings. Raw characters are unchanged; spatial associations are heuristic. No validated accuracy score is available.' }))
       applyExtraction(extractDeclarations(next.text))
       setPaddleGuidance(output.items.flatMap(item => item.focusGuidance?.suggestions || []))
-      setOcrState({ running: false, progress: 100, label: `Label fields ready · ${next.candidateRows.length} automatic layout association(s). Verify each value against the photo; unresolved readings stay unresolved.`, error: '' })
+      setOcrState({ running: false, progress: 100, label: `Label fields ready · ${next.candidateRows.length} layout association(s), ${output.recoveries.length} automatic close-up reading(s). Verify each value against the photo; unresolved readings stay unresolved.`, error: '' })
     } catch (error) {
       if (current()) setOcrState({ running: false, progress: 0, label: 'Label reading unavailable; previous evidence preserved', error: error.name === 'AbortError' ? '' : error.message })
     } finally { if (activeJob.current === controller) activeJob.current = null }
@@ -1346,7 +1347,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       setRawOcrText(output.text)
       setOcrWords(output.words)
       setEvidenceItems(output.items)
-      setMeta((previous) => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(output.items.flatMap((item) => item.ocrPasses)), ocrConfidence: output.reliability, ocrEngineConfidence: output.engineConfidence, ocrCompletedAt: new Date().toISOString(), ocrReliabilityReason: 'Unvalidated OCR heuristic. Compare each field with its image; repeated readings can share the same error.', ocrSource: scanMode === 'deep' ? 'local-deep' : 'local' }))
+      setMeta((previous) => ({ ...invalidateOcrEvidence(previous), fieldCandidates: fieldCandidates(output.items.flatMap((item) => item.ocrPasses)), ocrConfidence: output.reliability, ocrEngineConfidence: output.engineConfidence, ocrCompletedAt: new Date().toISOString(), ocrReliabilityReason: 'Unvalidated OCR heuristic. Compare each field with its image; repeated readings can share the same error.', ocrSource: scanMode === 'deep' ? 'local-deep' : 'local' }))
       applyExtraction(extractDeclarations(output.text))
       if (current()) setOcrState({ running: false, progress: 100, label: `${scanMode === 'deep' ? 'Deep scan' : 'OCR'} complete across ${evidenceItems.length} panel${evidenceItems.length > 1 ? 's' : ''} — verify evidence`, error: '' })
     } catch (error) {
@@ -1420,7 +1421,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       setOcrWords(recognizedItems.flatMap((item) => item.ocrWords))
       setRawOcrText(combinedText)
       setEvidenceItems(recognizedItems)
-      setMeta((previous) => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(recognizedItems.flatMap((item) => item.ocrPasses)), ocrConfidence: reliability, ocrEngineConfidence: engineConfidence, ocrCompletedAt: new Date().toISOString(), ocrReliabilityReason: reliabilityReason, ocrSource: 'google-vision' }))
+      setMeta((previous) => ({ ...invalidateOcrEvidence(previous), fieldCandidates: fieldCandidates(recognizedItems.flatMap((item) => item.ocrPasses)), ocrConfidence: reliability, ocrEngineConfidence: engineConfidence, ocrCompletedAt: new Date().toISOString(), ocrReliabilityReason: reliabilityReason, ocrSource: 'google-vision' }))
       applyExtraction(extractDeclarations(combinedText))
       if (current()) setOcrState({ running: false, progress: 100, label: `Connected OCR complete across ${evidenceItems.length} panel${evidenceItems.length > 1 ? 's' : ''} — verify evidence`, error: '' })
     } catch (error) {
@@ -1471,7 +1472,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       if (!current()) return
       setText(next.text); setRawOcrText(next.rawOcrText); setEvidenceItems(nextItems)
       setOcrWords((words) => [...words, ...item.ocrWords])
-      setMeta((previous) => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(nextItems.flatMap((panel) => panel.ocrPasses || [])), ocrCompletedAt: new Date().toISOString(), ocrSource: 'local-focus', ocrReliabilityReason: 'Focused OCR covers only the selected crop. No full-inspection score is inferred; verify every field against its original panel.' }))
+      setMeta((previous) => ({ ...invalidateOcrEvidence(previous), fieldCandidates: fieldCandidates(nextItems.flatMap((panel) => panel.ocrPasses || [])), ocrCompletedAt: new Date().toISOString(), ocrSource: 'local-focus', ocrReliabilityReason: 'Focused OCR covers only the selected crop. No full-inspection score is inferred; verify every field against its original panel.' }))
       applyExtraction(extractDeclarations(next.text))
       setFocusResult(null)
       setOcrState({ running: false, progress: 100, label: 'Crop OCR appended without rewriting earlier text. Reverify fields and resolve conflicts.', error: '' })
@@ -1516,7 +1517,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       await recordAudit('ocr_completed', { provider: 'paddleocr-js', model: paddlePreview.output.model, detectionProfile: paddlePreview.output.detectionProfile || 'baseline', detectionThresholds: paddlePreview.output.detectionThresholds || null, strategy: 'officer-reviewed-alternative-append', runId: paddlePreview.runId, reliability: null, engineConfidence: null, previousTranscriptPreserved: true, reviewedRows: next.reviewedRows, workingMappings: next.workingMappings, rawHistoryUnchanged: true, rawPasses: paddlePreview.output.items.map(item => ({ panelId: item.id, characters: item.text.length, lines: item.lines.length, crop: item.crop, source: item.source })) })
       if (!current()) return
       setText(next.text); setRawOcrText(next.rawOcrText); setEvidenceItems(next.evidenceItems); setOcrWords(next.words)
-      setMeta(previous => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(next.evidenceItems.flatMap(item => item.ocrPasses || [])), ocrCompletedAt: new Date().toISOString(), ocrSource: 'local-paddle', ocrReliabilityReason: 'Alternative engine reading appended. Raw transcripts and selected layout derivations remain separate. No validated inspection-wide accuracy score is available.' }))
+      setMeta(previous => ({ ...invalidateOcrEvidence(previous), fieldCandidates: fieldCandidates(next.evidenceItems.flatMap(item => item.ocrPasses || [])), ocrCompletedAt: new Date().toISOString(), ocrSource: 'local-paddle', ocrReliabilityReason: 'Alternative engine reading appended. Raw transcripts and selected layout derivations remain separate. No validated inspection-wide accuracy score is available.' }))
       applyExtraction(extractDeclarations(next.text))
       if (paddlePreview.guidedSuggestionId) setPaddleGuidance(previous => previous.filter(item => item.id !== paddlePreview.guidedSuggestionId))
       else if (paddlePreview.output.items.some(item => !item.crop)) setPaddleGuidance(paddlePreview.output.items.flatMap(item => item.focusGuidance?.suggestions || []))
@@ -1537,7 +1538,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
       await recordAudit('working_ocr_passes_selected', { ...next.auditPayload, previousWorkingText: text })
       if (!current()) return false
       setText(next.text)
-      setMeta(previous => ({ ...invalidateCapturedEvidence(previous), fieldCandidates: fieldCandidates(evidenceItems.flatMap(item => item.ocrPasses || [])), ocrSource: 'officer-selected-raw-passes', ocrCompletedAt: previous.ocrCompletedAt, ocrReliabilityReason: 'An officer selected existing raw readings for the working transcript. Excluded readings remain in raw history; no new OCR inference or accuracy score is claimed.' }))
+      setMeta(previous => ({ ...invalidateOcrEvidence(previous), fieldCandidates: fieldCandidates(evidenceItems.flatMap(item => item.ocrPasses || [])), ocrSource: 'officer-selected-raw-passes', ocrCompletedAt: previous.ocrCompletedAt, ocrReliabilityReason: 'An officer selected existing raw readings for the working transcript. Excluded readings remain in raw history; no new OCR inference or accuracy score is claimed.' }))
       applyExtraction(extractDeclarations(next.text))
       setOcrState({ running: false, progress: 100, label: 'Working readings selected. Raw history preserved; reverify every decisive field.', error: '' })
       return true
@@ -1561,6 +1562,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
     regions,
     auditChain: chain,
     challenge: challenge ? { ...challenge, active: false, completedAt: new Date().toISOString() } : null,
+    sourceChallengeId: draftChallengeId,
     actor: actor || null,
     meta: evaluationMeta,
     result,
@@ -1756,17 +1758,18 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
             <textarea
               className="evidence-editor"
               value={text}
-              onChange={(event) => setText(event.target.value)}
+              onChange={(event) => { setText(event.target.value); applyExtraction(extractDeclarations(event.target.value)) }}
               maxLength={MAX_EVIDENCE_TEXT}
               aria-label="Declaration evidence text"
               placeholder="Extracted label text will appear here. You may paste or correct evidence manually."
               spellCheck="false"
             />
+            <OcrCoverageNotice extraction={extraction} rawOcrText={rawOcrText} />
             <ExtractionWorkbench extraction={extraction} onApply={applyExtraction} barcodeState={barcodeState} regions={regions} evidenceItems={evidenceItems} activeFieldId={activeRegionId} onSelectRegion={(id) => { const region = regions.find((item) => item.id === id); if (region) setActiveEvidenceId(region.panelId); setActiveRegionId(id) }} meta={meta} />
             <EvidenceTracePanel fieldId={activeRegionId} extraction={extraction} regions={regions} evidenceItems={evidenceItems} result={result} meta={meta} onLocate={(id) => { const region = regions.find((item) => item.id === id); if (region) setActiveEvidenceId(region.panelId); setActiveRegionId(id) }} />
             {rawOcrText && <details><summary>Original OCR transcript (not edited)</summary><pre className="transcript-original">{rawOcrText}</pre></details>}
             <OcrPassSelection evidenceItems={evidenceItems} onApply={applyRawPassSelection} disabled={ocrPreviewPending || saved || saving || processing || ocrState.running} />
-            {text.trim() && <FieldVerification extraction={extraction} meta={meta} onChange={updateMeta} />}
+            {text.trim() && <FieldVerification extraction={extraction} meta={meta} onChange={updateMeta} regions={regions} evidenceItems={evidenceItems} focusedFieldId={commandFocus?.fieldId} />}
             {text.trim() && <PlacementReview extraction={extraction} meta={meta} evidenceItems={evidenceItems} onChange={updateMeta} result={result} />}
             <details className="optional-notes"><summary>Optional interpretation note</summary><div className="translation-panel">
               <header><Languages size={17} /><div><strong>Officer interpretation</strong><small>Original OCR evidence is preserved; this note never replaces it.</small></div></header>
@@ -1787,6 +1790,7 @@ function InspectionStudio({ onSaveRecord, onOpenReport, challenge, onChallengeCo
               copy="The rule tier depends on the package profile, panel area and physical scale."
               complete={Boolean(meta.productName && meta.pdpArea && Object.values(meta.panelMeasurements || {}).some((measurement) => measurement.referencePx && measurement.glyphPx))}
             />
+            <ContextAutofill extraction={extraction} meta={meta} onUseDetected={key => setMeta(current => useDetectedContext(current, key, extraction))} />
             <div className="field-grid">
               <Field label="Product / generic name" wide>
                 <input value={meta.productName} onChange={(event) => updateMeta('productName', event.target.value)} placeholder="e.g. Turmeric powder" />
@@ -2463,6 +2467,8 @@ function InspectionApp({ workspace }) {
   const [overrideRecord, setOverrideRecord] = useState(null)
   const [studioKey, setStudioKey] = useState(0)
   const [studioNotice, setStudioNotice] = useState('')
+  const [currentInspection, setCurrentInspection] = useState(null)
+  const [commandFocus, setCommandFocus] = useState(null)
   const [syncError, setSyncError] = useState('')
   const [lastSyncAt, setLastSyncAt] = useState('')
   const [operations, setOperations] = useState([])
@@ -2480,6 +2486,7 @@ function InspectionApp({ workspace }) {
 
   useEffect(() => { if (!workspace) localStorage.setItem('niyamlens:actor', JSON.stringify(actor)) }, [actor, workspace])
   useEffect(() => {
+    if (!BLIND_CHALLENGE_ENABLED) return
     if (challenge) localStorage.setItem(challengeKey, JSON.stringify(challenge))
     else localStorage.removeItem(challengeKey)
   }, [challenge, challengeKey])
@@ -2590,12 +2597,14 @@ function InspectionApp({ workspace }) {
   }
 
   const startChallenge = () => {
+    if (!BLIND_CHALLENGE_ENABLED) return
     const id = crypto.randomUUID?.() || `challenge-${Date.now()}`
     setChallenge({ id, code: id.slice(0, 8).toUpperCase(), active: true, startedAt: new Date().toISOString(), actorId: actor.id })
     setRoute('inspect')
   }
 
   const completeChallenge = () => {
+    if (!BLIND_CHALLENGE_ENABLED) return
     setChallenge((current) => current ? { ...current, active: false, completedAt: new Date().toISOString() } : null)
     setRoute('challenge')
   }
@@ -2628,7 +2637,8 @@ function InspectionApp({ workspace }) {
     try {
       if (syncing) throw new Error('Wait for current synchronization to finish before reassessment.')
       await beginRuleReassessment(store, operation, actor.id)
-      setChallenge(null); setStudioKey(value => value + 1); setRoute('inspect')
+      if (BLIND_CHALLENGE_ENABLED) setChallenge(null)
+      setStudioKey(value => value + 1); setRoute('inspect')
       await refreshLocal()
       setSyncError('Original seal retained locally; its unsent upload is archived. Restore the new draft, rerun OCR and reconfirm the evidence under current rules before sealing.')
     } catch (error) { setSyncError(error.message) }
@@ -2639,9 +2649,9 @@ function InspectionApp({ workspace }) {
       <Shell route={route} setRoute={setRoute} historyCount={history.length} actor={actor} online={online} offlineOnly={workspace?.offlineOnly}>
         {reportLoading && <div className="processing-banner" role="status"><LoaderCircle size={20} /><span><b>{reportLoading.source === 'cloud' ? 'Checking fresh cloud evidence…' : 'Opening evidence…'}</b><small>{reportLoading.source === 'cloud' ? 'Fetching server metadata and hash-checking original/analysis images. No cached image fallback.' : 'Checking image bytes before opening the report.'}</small></span><button type="button" onClick={() => { reportRequest.current?.abort(); reportRequest.current = null; setReportLoading(null) }}>Cancel evidence check</button></div>}
         {(workspace || syncError) && <div className="sync-status" role="status"><b>{syncing ? 'Synchronizing…' : `${operations.length} queued change(s)`}</b><span>{syncError || (workspace?.offlineOnly ? 'Limited offline access. Captures remain local until fresh authentication and server permission checks.' : 'Local evidence is retained until the server acknowledges it.')}</span>{workspace && <button disabled={syncing || workspace.offlineOnly} onClick={() => synchronize(true)}>Sync / retry</button>}{operations.map((operation) => <details key={operation.id}><summary>{operation.kind} · {operation.recordId} · {operation.state}</summary><p>{operation.lastError || 'Waiting for upload and server verification.'}</p>{operation.lastErrorCode === 'RULE_PACK_MISMATCH' && <button disabled={syncing} onClick={() => startReassessment(operation)}>Archive unsent upload and start linked reassessment</button>}{operation.kind === 'review' && operation.state === 'conflict' && <><p>Your proposed disposition: {operation.payload.status}. {operation.payload.reason}</p><button disabled={workspace?.offlineOnly} onClick={() => archiveConflictingReview(operation)}>Keep server version; archive my unsent review locally</button><p>Then reopen Evidence and submit a new review against the latest version.</p></>}</details>)}</div>}
-        {route === 'inspect' && <InspectionStudio key={studioKey} store={store} workspace={workspace} initialNotice={studioNotice} onNewInspection={message => { setStudioNotice(message || ''); setStudioKey(value => value + 1) }} onSaveRecord={saveRecord} onOpenReport={openReport} challenge={challenge?.active ? challenge : null} onChallengeComplete={completeChallenge} actor={actor} />}
-        {route === 'challenge' && <BlindChallengePage challenge={challenge} onStart={startChallenge} onContinue={() => setRoute('inspect')} history={history} />}
-        {route === 'dashboard' && <Dashboard history={history} onNavigate={setRoute} onOpenReport={openReport} />}
+        <div className="inspection-route" hidden={route !== 'inspect'}><InspectionStudio key={studioKey} store={store} workspace={workspace} initialNotice={studioNotice} onNewInspection={message => { setStudioNotice(message || ''); setCurrentInspection(null); setCommandFocus(null); setStudioKey(value => value + 1) }} onSaveRecord={saveRecord} onOpenReport={openReport} challenge={BLIND_CHALLENGE_ENABLED && challenge?.active ? challenge : null} onChallengeComplete={completeChallenge} actor={actor} onInspectionChange={setCurrentInspection} commandFocus={commandFocus} /></div>
+        {BLIND_CHALLENGE_ENABLED && route === 'challenge' && <BlindChallengePage challenge={challenge} onStart={startChallenge} onContinue={() => setRoute('inspect')} history={history} />}
+        {route === 'dashboard' && <InspectionCommandView key={currentInspection?.id || 'empty'} analysis={currentInspection} onInspect={fieldId => { setRoute('inspect'); setCommandFocus(fieldId ? { id: crypto.randomUUID(), fieldId } : null) }} />}
         {route === 'history' && <HistoryPage history={history} onOpenReport={openReport} onVerifyCloud={workspace && !workspace.offlineOnly ? (record) => openReport(record, { source: 'cloud' }) : null} reportBusy={Boolean(reportLoading)} onNavigate={setRoute} />}
         {route === 'benchmark' && <ValidationLab />}
         {route === 'operations' && (workspace ? <SharedOperations workspace={workspace} history={history} onOpenReport={openReport} onOverride={openOverride} /> : <OfficerOperations history={history} actor={actor} onActorChange={setActor} onOpenReport={openReport} onOverride={openOverride} onImportRecord={importRecord} />)}
