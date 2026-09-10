@@ -219,6 +219,7 @@ export function flattenOcrWords(blocks, panelId, fallbackWidth = 1, fallbackHeig
             panelId,
             text: String(word.text || '').trim(),
             confidence: Number(word.confidence || 0),
+            confidenceSource: typeof word.confidence === 'number' && Number.isFinite(word.confidence) && word.confidence >= 0 && word.confidence <= 100 ? 'engine' : 'unavailable',
             lineText: String(line.text || '').trim(),
             bbox: {
               x0: Number(box.x0 || 0), y0: Number(box.y0 || 0),

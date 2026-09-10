@@ -3,6 +3,7 @@ import { evaluateInspection } from './inspectionSafety.mjs'
 import { restoreEvidencePolicy, ocrProvenance } from './inspectionWorkflow.mjs'
 import { matchDeclarationRegions } from './vision.mjs'
 import { labelLocationHints } from './captureCoach.mjs'
+import { buildInspectionInsights } from './inspectionInsights.mjs'
 
 export const EVIDENCE_STATES = Object.freeze([
   { id: 'verified', label: 'Officer verified', color: '#087c66', detail: 'Reading explicitly confirmed against the package.' },
@@ -63,11 +64,13 @@ export function buildInspectionAnalysis(record = {}, state = {}) {
     { id: 'pass', label: 'Pass checks', color: '#087c66' }, { id: 'fail', label: 'Flagged checks', color: '#ba3e53' },
     { id: 'review', label: 'Needs review', color: '#ad670b' }, { id: 'info', label: 'Information / exempt', color: '#687786' },
   ].map(bucket => ({ ...bucket, count: checks.filter(check => bucket.id === 'info' ? !['pass', 'fail', 'review'].includes(check.status) : check.status === bucket.id).length }))
+  const hasRecordedOcr = ocrProvenance(record).hasRun
+  const insights = buildInspectionInsights({ record, extraction, fields, checks, hasRecordedOcr, status: result.status, ...state })
   return { id: record.inspectionId || record.id || null, hasEvidence, productName: meta.productName || extraction.byId.productName.value || evidenceItems[0]?.name || 'No current package',
     thumbnail: evidenceItems[0]?.analysisUrl || '', fields, distribution, panels, coverage, ruleDistribution, checks,
     detected: fields.filter(field => ['verified', 'detected'].includes(field.status)).length,
     verified: fields.filter(field => field.status === 'verified').length,
     status: !hasEvidence ? 'empty' : !text.trim() ? 'awaiting_ocr' : result.status,
-    hasRecordedOcr: ocrProvenance(record).hasRun, ...state,
+    hasRecordedOcr, insights, ...state,
   }
 }

@@ -3,9 +3,10 @@ import path from 'node:path'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { launchTestBrowser } from './browser-runtime.mjs'
 import { extractDeclarations } from '../src/lib/extraction.mjs'
+import { buildInspectionAnalysis } from '../src/lib/inspectionAnalysis.mjs'
 
 const origin = 'http://127.0.0.1:4203/'
-const out = path.resolve('reports/current-inspection-2026-09-10')
+const out = path.resolve('reports/decision-insights-2026-09-10')
 await mkdir(out, { recursive: true })
 const browser = await launchTestBrowser()
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
@@ -45,6 +46,15 @@ const readWhileInCommand = async ({ priceVisible = true } = {}) => {
     const text = document.querySelector('.current-assessment > b')?.textContent
     return text && !text.includes('processing in progress')
   }, null, { timeout: 300000 })
+  await page.getByRole('heading', { name: 'What has actually happened?' }).waitFor()
+  assert.match(await page.locator('.inspection-journey li').first().textContent(), /1 photos/)
+  assert.match(await page.locator('.inspection-journey li').nth(3).textContent(), /0 fields/)
+  assert.match(await page.locator('.inspection-journey li').last().textContent(), /0 records/)
+  const priceScore = page.locator('.extraction-confidence li').filter({ hasText: 'Maximum Retail Price' })
+  if (priceVisible) assert.match(await priceScore.locator('strong').textContent(), /\d+(?:\.\d+)?\/100/, 'retained price observation has a reported engine score')
+  else assert.equal(await priceScore.locator('strong').textContent(), 'Unavailable')
+  await page.locator('.result-explanation select').selectOption('mrp')
+  assert.match(await page.locator('.result-explanation').textContent(), /Required — OCR alone/)
   assert.equal(await page.getByRole('heading', { name: 'Recent inspections', exact: true }).count(), 0)
   assert.equal(await page.locator('.current-field-table tbody tr').count(), 14)
   await back()
@@ -55,7 +65,8 @@ const readWhileInCommand = async ({ priceVisible = true } = {}) => {
   const parsed = extractDeclarations(text)
   const saved = await waitRecord(record => record.text === text && record.auditChain?.some(event => event.type === 'ocr_completed'))
   const event = saved.auditChain.filter(event => event.type === 'ocr_completed').at(-1)
-  results.push({ filename: saved.evidenceItems[0].name, id: saved.inspectionId, text, rawOcrText: saved.rawOcrText, extracted: Object.fromEntries(parsed.fields.map(field => [field.id, { value: field.value, conflict: Boolean(field.conflict), validation: field.validation?.status || null }])), automaticRecovery: event.payload.automaticRecovery, rawPasses: saved.evidenceItems[0].ocrPasses.length, scope: 'Observed OCR output, not independently adjudicated accuracy.' })
+  const insight = buildInspectionAnalysis(saved).insights
+  results.push({ filename: saved.evidenceItems[0].name, id: saved.inspectionId, text, rawOcrText: saved.rawOcrText, extracted: Object.fromEntries(parsed.fields.map(field => [field.id, { value: field.value, conflict: Boolean(field.conflict), validation: field.validation?.status || null }])), reportedScores: Object.fromEntries(insight.explanations.map(field => [field.id, field.reportedScore])), stages: insight.stages, automaticRecovery: event.payload.automaticRecovery, rawPasses: saved.evidenceItems[0].ocrPasses.length, scope: 'Observed OCR output, not independently adjudicated accuracy.' })
   // Persist actual output even when a later assertion fails. Never hide failures.
   await writeFile(path.join(out, 'ocr-observations.json'), JSON.stringify(results, null, 2))
   assert.ok(parsed.suggestions.quantity, 'real photograph yielded a usable quantity')
@@ -111,14 +122,25 @@ try {
   assert.equal(await page.locator('.current-field-table tbody tr').count(), 1)
   assert.match(await page.locator('.current-field-table tbody').textContent(), /Maximum Retail Price/)
   assert.equal(await page.locator('.current-metrics article').nth(2).locator('b').textContent(), '0 / 14')
+  assert.equal(await page.locator('.extraction-confidence li').filter({ hasText: 'Maximum Retail Price' }).locator('strong').textContent(), 'Unavailable')
   await back()
   await page.locator('.evidence-editor').fill(first.text)
   assert.equal(await page.locator('.transcript-original').textContent(), first.raw)
+  // A changed value is an explicit workflow fixture, never an OCR answer.
+  await page.locator('.evidence-editor').fill(first.text.replace('MRP:22.00', 'MRP:77.00'))
+  await command()
+  assert.equal(await page.locator('.extraction-confidence li').filter({ hasText: 'Maximum Retail Price' }).locator('strong').textContent(), 'Unavailable')
+  await page.locator('.result-explanation select').selectOption('mrp')
+  await page.getByRole('button', { name: 'Verify / correct this field →', exact: true }).click()
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'verify-mrp')
+  await page.locator('.evidence-editor').fill(first.text)
   console.log('PASS: immediate navigation retains verification; chart drill-down focuses fields; conflicts are separately colored and raw text stays unchanged')
 
   await command()
   await page.locator('.evidence-distribution').screenshot({ path: path.join(out, 'desktop-evidence.png'), animations: 'disabled' })
-  await page.locator('.current-chart-grid').screenshot({ path: path.join(out, 'desktop-charts.png'), animations: 'disabled' })
+  await page.locator('.current-chart-grid').last().screenshot({ path: path.join(out, 'desktop-charts.png'), animations: 'disabled' })
+  await page.locator('.inspection-insights > .current-chart-grid').screenshot({ path: path.join(out, 'actual-score-charts.png'), animations: 'disabled' })
+  await page.locator('.result-explanation').screenshot({ path: path.join(out, 'why-this-result.png'), animations: 'disabled' })
   await page.setViewportSize({ width: 390, height: 844 })
   await page.locator('.evidence-distribution').scrollIntoViewIfNeeded()
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'mobile page has no horizontal overflow')

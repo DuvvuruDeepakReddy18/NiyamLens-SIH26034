@@ -57,4 +57,19 @@ Both are previously used development photographs, not a blind evaluation. Neithe
 
 Final local validation on 2026-09-10: **786/786 regression tests pass**, production build succeeds (existing OCR bundle-size warnings remain). The isolated Chrome workflow check is `node tools/qa-current-inspection.mjs` with the app on `127.0.0.1:4203`; output is in `reports/current-inspection-2026-09-10/browser-verification.json` and `ocr-observations.json`. It checks real OCR during navigation, live counts, explicit confirmation, injected conflict handling, unchanged raw text, draft isolation/reload and desktop/mobile overflow. Its confirmation and manually injected conflict are software fixtures, not officer adjudication. No hosted accounts or cases are touched.
 
-These changes are local; this verification does not establish that they have been pushed or deployed.
+The initial autofill/current-inspection release was pushed as `30587b99b70a06538bc1cb85221da41de0b53b5b`, passed GitHub CI, and deployed to production as `dpl_5aKnkBotPtVB2K3QfzehAFPA5Exh` on 2026-09-10. Anonymous smoke checks confirmed public homepage access, backend readiness and denied anonymous case access. No authenticated production cases were changed for validation.
+
+## Why this result, actual scores and workflow counts
+
+Command view now also includes:
+
+- A field selector explaining retained evidence, actual field-linked rule checks and reasons, validation, reported OCR score, field-check decision and remaining human review. Fields with no applicable check yet say NOT ASSESSED; no invented Rule 6 PASS is supplied.
+- Declaration-presence bars for six core declarations. A full bar means a usable reading exists in the current transcript—not 100% accuracy or proof of legal completeness. Verification status remains explicit.
+- Engine-score bars on a zero-based 0–100 scale. These use the **minimum retained reported score** across observations matching the exact current value and its source line. Hard-coded parser confidence constants are excluded. Missing/nonfinite/unknown-provenance scores, conflicting values and corrections unsupported by retained OCR show Unavailable, not zero or an invented percentage.
+- Clearly labelled display bands (high ≥90, needs review 70–<90, low <70). These are uncalibrated triage thresholds; they do not change the rules, waive review or establish recognition accuracy. Genuine reported zero is preserved as zero.
+- Six actual stage counts: captured photos, photos with recorded OCR text, usable current fields, officer-verified fields, evaluated checks and recorded verdicts. Photos, fields, checks and records have different units; this is deliberately not a percentage-conversion funnel. An unsealed inspection has zero final records; a sealed MANUAL REVIEW case is not counted as PASS.
+- Expandable OCR verification/error-handling guidance. Uncertainty remains visible, while a genuinely verified violation elsewhere may still yield an overall FLAG.
+
+Validation for this extension: 793 local tests passed, build succeeded, and isolated Chrome used real Amul and Kinley photos to check actual scores/unavailable values, correction-score invalidation, explanation drill-down, draft restoration and mobile overflow. Report: `reports/decision-insights-2026-09-10/browser-verification.json`. No blind-accuracy or human-review claim is made. The local suite contains one unrelated uncommitted developer-watcher test; GitHub CI runs the committed suite.
+
+Deployment checklist: source changes reviewed, no database migration/authentication change, blind challenge flag unchanged, local tests/build/browser smoke passed. Rollback target for this extension is the preceding verified production deployment `dpl_5aKnkBotPtVB2K3QfzehAFPA5Exh`. Roll back if the authenticated application fails to load, private-case access becomes public, or current-package data/score isolation fails. Public health and authentication-denial checks are smoke tests, not sustained production-load or authenticated multi-account validation.
